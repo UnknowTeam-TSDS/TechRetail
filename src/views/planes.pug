@@ -1,0 +1,73 @@
+extends layout
+
+block contenido
+  h2(class="text-2xl font-bold text-blue-900 mb-6") #{titulo}
+
+  // Formulario agregar
+  div(class="bg-white rounded-xl shadow-md p-6 mb-8")
+    h3(class="text-lg font-semibold text-blue-900 mb-4") Agregar nuevo plan
+    form(action="/planes" method="POST")
+      div(class="grid grid-cols-2 gap-4")
+        div
+          label(class="block text-sm text-gray-600 mb-1") Nombre
+          input(type="text" name="nombre" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+        div
+          label(class="block text-sm text-gray-600 mb-1") Precio (ARS)
+          input(type="number" name="precio" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+        div
+          label(class="block text-sm text-gray-600 mb-1") Tipo
+          select(name="tipo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+            option(value="plan") plan
+            option(value="addon") addon
+        div
+          label(class="block text-sm text-gray-600 mb-1") Descripción
+          input(type="text" name="descripcion" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+      button(type="submit" class="mt-4 bg-blue-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors") + Agregar
+
+  // Separar planes y addons
+  - const soloPlanes = planes.filter(p => p.tipo === 'plan')
+  - const soloAddons = planes.filter(p => p.tipo === 'addon')
+
+  // Sección Planes de Suscripción
+  h3(class="text-lg font-semibold text-blue-900 mb-3") Planes de Suscripción
+  div(class="rounded-xl overflow-hidden shadow-md mb-8")
+    table(class="w-full border-collapse bg-white")
+      thead
+        tr
+          th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") ID
+          th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Nombre
+          th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Descripción
+          th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Precio (ARS)
+          th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Acción
+      tbody
+        each plan in soloPlanes
+          tr(class="border-b border-gray-100 hover:bg-blue-50 transition-colors")
+            td(class="px-4 py-3 text-sm") #{plan.id}
+            td(class="px-4 py-3 text-sm font-medium") #{plan.nombre}
+            td(class="px-4 py-3 text-xs text-gray-500 max-w-xs") #{plan.descripcion}
+            td(class="px-4 py-3 text-sm") $#{plan.precio.toLocaleString('es-AR')}
+            td(class="px-4 py-3")
+              form(action="/planes/eliminar/" + plan.id method="POST" onsubmit="return confirm('¿Eliminar este plan?')")
+                button(type="submit" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-200 transition-colors") Eliminar
+
+  // Sección Add-ons
+  h3(class="text-lg font-semibold text-yellow-700 mb-3") Add-ons
+  div(class="rounded-xl overflow-hidden shadow-md")
+    table(class="w-full border-collapse bg-white")
+      thead
+        tr
+          th(class="bg-yellow-600 text-white text-left text-sm px-4 py-3") ID
+          th(class="bg-yellow-600 text-white text-left text-sm px-4 py-3") Nombre
+          th(class="bg-yellow-600 text-white text-left text-sm px-4 py-3") Descripción
+          th(class="bg-yellow-600 text-white text-left text-sm px-4 py-3") Precio (ARS)
+          th(class="bg-yellow-600 text-white text-left text-sm px-4 py-3") Acción
+      tbody
+        each addon in soloAddons
+          tr(class="border-b border-gray-100 hover:bg-yellow-50 transition-colors")
+            td(class="px-4 py-3 text-sm") #{addon.id}
+            td(class="px-4 py-3 text-sm font-medium") #{addon.nombre}
+            td(class="px-4 py-3 text-xs text-gray-500 max-w-xs") #{addon.descripcion}
+            td(class="px-4 py-3 text-sm") $#{addon.precio.toLocaleString('es-AR')}
+            td(class="px-4 py-3")
+              form(action="/planes/eliminar/" + addon.id method="POST" onsubmit="return confirm('¿Eliminar este add-on?')")
+                button(type="submit" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-200 transition-colors") Eliminar

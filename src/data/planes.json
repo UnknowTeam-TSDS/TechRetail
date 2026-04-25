@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "nombre": "Plan Starter",
+    "descripcion": "Ideal para emprendedores que inician su tienda online. Hasta 100 productos, dominio compartido y soporte básico.",
+    "precio": 12000,
+    "tipo": "plan",
+    "fechaCreacion": "2025-01-15T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "nombre": "Plan Growth",
+    "descripcion": "Para PyMEs en crecimiento. Productos ilimitados, dominio propio, analytics avanzado y soporte prioritario.",
+    "precio": 28000,
+    "tipo": "plan",
+    "fechaCreacion": "2025-01-15T10:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "nombre": "Plan Pro",
+    "descripcion": "Solución completa para empresas. API access, white-label, SLA garantizado y soporte 24/7.",
+    "precio": 55000,
+    "tipo": "plan",
+    "fechaCreacion": "2025-01-15T10:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "nombre": "Add-on Analytics Avanzado",
+    "descripcion": "Dashboard en tiempo real con métricas de ventas, conversión y reportes exportables.",
+    "precio": 8000,
+    "tipo": "addon",
+    "fechaCreacion": "2025-02-01T10:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "nombre": "Add-on Dominio Propio",
+    "descripcion": "Configuración y gestión de dominio personalizado para tu tienda.",
+    "precio": 3500,
+    "tipo": "addon",
+    "fechaCreacion": "2025-02-01T10:00:00.000Z"
+  },
+  {
+    "id": 6,
+    "nombre": "Essential",
+    "descripcion": "altoke de prueba",
+    "precio": 15000,
+    "tipo": "addon",
+    "fechaCreacion": "2026-04-25T18:59:57.715Z"
+  }
+]

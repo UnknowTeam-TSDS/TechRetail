@@ -1,0 +1,18 @@
+extends layout
+
+block contenido
+  h2(class="text-2xl font-bold text-blue-900 mb-2") Bienvenido al panel de TechRetail Solutions
+  p(class="text-gray-500 mb-6") Sistema de gestión interna — Primera entrega PFO1
+
+  div(class="grid grid-cols-2 gap-5 mt-4")
+    a(href="/productos/vista" class="no-underline")
+      div(class="bg-white rounded-xl p-7 shadow-md hover:shadow-lg transition-shadow")
+        h3(class="text-blue-900 font-semibold text-lg mb-2") Módulo Planes
+        p(class="text-gray-500 text-sm") Gestión del catálogo: planes y add-ons disponibles en la plataforma.
+        p(class="text-blue-900 font-semibold mt-3 text-sm") Ver catálogo →
+
+    a(href="/usuarios/vista" class="no-underline")
+      div(class="bg-white rounded-xl p-7 shadow-md hover:shadow-lg transition-shadow")
+        h3(class="text-blue-800 font-semibold text-lg mb-2") Módulo Usuarios
+        p(class="text-gray-500 text-sm") Registro y gestión de clientes/tiendas suscritas a la plataforma.
+        p(class="text-blue-800 font-semibold mt-3 text-sm") Ver usuarios →

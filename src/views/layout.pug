@@ -1,0 +1,25 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title TechRetail Solutions — #{titulo}
+    script(src="https://cdn.tailwindcss.com")
+  body(class="bg-gray-100 text-gray-800 font-sans")
+
+    header(class="bg-blue-900 text-white px-8 py-4 flex items-center gap-4")
+      h1(class="text-xl font-bold") TechRetail Solutions S.R.L.
+      span(class="text-sm opacity-60") Plataforma SaaS de E-Commerce
+
+    nav(class="bg-blue-800 px-8 py-2 flex gap-6")
+      a(href="/" class="text-blue-200 hover:text-white text-sm transition-colors") Inicio
+      a(href="/planes/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Planes
+      a(href="/usuarios/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Usuarios
+      a(href="/api/planes" class="text-blue-200 hover:text-white text-sm transition-colors") API Productos
+      a(href="/api/usuarios" class="text-blue-200 hover:text-white text-sm transition-colors") API Usuarios
+
+    main(class="max-w-6xl mx-auto px-8 py-8")
+      block contenido
+
+    footer(class="text-center text-gray-400 text-xs py-6 mt-10")
+      p © 2025 TechRetail Solutions S.R.L. | Grupo 13 — Ingeniería de Software

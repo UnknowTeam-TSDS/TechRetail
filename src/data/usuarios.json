@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "nombre": "María González",
+    "email": "maria@modaurbana.com",
+    "plan": "Starter",
+    "empresa": "Moda Urbana",
+    "activo": true,
+    "fechaRegistro": "2025-03-10T09:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "nombre": "Carlos Pérez",
+    "email": "carlos@tecnohogar.com.ar",
+    "plan": "Growth",
+    "empresa": "TecnoHogar",
+    "activo": true,
+    "fechaRegistro": "2025-03-15T11:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "nombre": "Laura Ramírez",
+    "email": "laura@naturalezsabores.com",
+    "plan": "Pro",
+    "empresa": "Natural & Sabores",
+    "activo": true,
+    "fechaRegistro": "2025-04-01T08:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "nombre": "Leandro Melchiori",
+    "email": "leandromelchiori@gmail.com",
+    "plan": "Growth",
+    "empresa": "TechRetail",
+    "activo": true,
+    "fechaRegistro": "2026-04-25T18:59:38.961Z"
+  }
+]
