@@ -1,0 +1,387 @@
+{
+  "info": {
+    "_postman_id": "64d803ba-31a9-4e4e-bce7-dc84633a6256",
+    "name": "TechRetail - Test general",
+    "description": "Colección de pruebas para los módulos Planes y Usuarios. TechRetail Solutions S.R.L. — Grupo 13",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "38883854"
+  },
+  "item": [
+    {
+      "name": "Planes",
+      "item": [
+        {
+          "name": "1 — Listar todos los planes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Retorna array de planes', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/planes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "planes"
+              ]
+            },
+            "description": "Obtiene el listado completo de planes y add-ons."
+          },
+          "response": []
+        },
+        {
+          "name": "2 — Buscar plan por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Retorna un objeto plan', () => pm.expect(pm.response.json().datos).to.be.an('object'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/planes/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "planes",
+                "1"
+              ]
+            },
+            "description": "Obtiene el plan con ID 1."
+          },
+          "response": []
+        },
+        {
+          "name": "3 — Buscar plan inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('ok: false', () => pm.expect(pm.response.json().ok).to.be.false);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/planes/9999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "planes",
+                "9999"
+              ]
+            },
+            "description": "Verifica que se retorne 404 cuando el plan no existe."
+          },
+          "response": []
+        },
+        {
+          "name": "4 — Crear nuevo plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Plan creado con ID', () => {",
+                  "  const id = pm.response.json().datos.id;",
+                  "  pm.expect(id).to.exist;",
+                  "  pm.collectionVariables.set('plan_id', id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Plan Enterprise\",\n  \"descripcion\": \"Solución completa para grandes empresas con soporte dedicado.\",\n  \"precio\": 95000,\n  \"tipo\": \"plan\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/planes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "planes"
+              ]
+            },
+            "description": "Crea un nuevo plan y guarda el ID generado para usarlo en el DELETE."
+          },
+          "response": []
+        },
+        {
+          "name": "5 — Eliminar plan creado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Mensaje de eliminación', () => pm.expect(pm.response.json().mensaje).to.include('eliminado'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/planes/{{plan_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "planes",
+                "{{plan_id}}"
+              ]
+            },
+            "description": "Elimina el plan creado en el paso anterior usando el ID guardado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "1 — Listar todos los usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Retorna array de usuarios', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "Obtiene el listado completo de usuarios registrados."
+          },
+          "response": []
+        },
+        {
+          "name": "2 — Buscar usuario por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Retorna un objeto usuario', () => pm.expect(pm.response.json().datos).to.be.an('object'));"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "1"
+              ]
+            },
+            "description": "Obtiene el usuario con ID 2001."
+          },
+          "response": []
+        },
+        {
+          "name": "3 — Buscar usuario inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('ok: false', () => pm.expect(pm.response.json().ok).to.be.false);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/9999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "9999"
+              ]
+            },
+            "description": "Verifica que se retorne 404 cuando el usuario no existe."
+          },
+          "response": []
+        },
+        {
+          "name": "4 — Crear nuevo usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Usuario creado con ID', () => {",
+                  "  const id = pm.response.json().datos.id;",
+                  "  pm.expect(id).to.exist;",
+                  "  pm.collectionVariables.set('usuario_id', id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan López\",\n  \"email\": \"juan@mitienda.com\",\n  \"plan\": \"Growth\",\n  \"empresa\": \"Mi Tienda Online\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "Registra un nuevo usuario y guarda el ID generado para usarlo en el DELETE."
+          },
+          "response": []
+        },
+        {
+          "name": "5 — Eliminar usuario creado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
+                  "pm.test('Mensaje de eliminación', () => pm.expect(pm.response.json().mensaje).to.include('eliminado'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/{{usuario_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuario_id}}"
+              ]
+            },
+            "description": "Elimina el usuario creado en el paso anterior usando el ID guardado."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "plan_id",
+      "value": ""
+    },
+    {
+      "key": "usuario_id",
+      "value": ""
+    }
+  ]
+}

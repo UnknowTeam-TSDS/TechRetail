@@ -26,7 +26,6 @@ const obtenerUsuario = (req, res) => {
 // POST /api/usuarios — Registra un nuevo usuario/tienda
 const crearUsuario = (req, res) => {
   const { nombre, email, plan, empresa } = req.body;
-
   const nuevoUsuario = new Usuario({ nombre, email, plan, empresa });
 
   if (!nuevoUsuario.esValido()) {
@@ -36,12 +35,8 @@ const crearUsuario = (req, res) => {
     });
   }
 
-  const exito = storage.agregar(nuevoUsuario);
-  if (!exito) {
-    return res.status(500).json({ ok: false, mensaje: 'Error al guardar el usuario.' });
-  }
-
-  res.redirect('/usuarios/vista');
+  storage.agregar(nuevoUsuario);
+  res.status(201).json({ ok: true, mensaje: 'Usuario registrado.', datos: nuevoUsuario });
 };
 
 // PUT /api/usuarios/:id — Actualiza datos de un usuario
@@ -67,7 +62,7 @@ const eliminarUsuario = (req, res) => {
   if (!storage.eliminar(req.params.id)) {
     return res.status(404).json({ ok: false, mensaje: `Usuario ${req.params.id} no encontrado.` });
   }
-  res.redirect('/usuarios/vista');
+  res.json({ ok: true, mensaje: `Usuario ${req.params.id} eliminado.` });
 };
 
 // GET /usuarios — Vista Pug con listado de usuarios
@@ -76,11 +71,18 @@ const vistaUsuarios = (req, res) => {
   res.render('usuarios', { titulo: 'Clientes Registrados', usuarios });
 };
 
-module.exports = {
+const crearUsuarioForm = (req, res) => {
+  const nuevoUsuario = new Usuario(req.body);
+  if (nuevoUsuario.esValido()) storage.agregar(nuevoUsuario);
+  res.redirect('/usuarios/vista');
+};
+
+module.exports = { 
   listarUsuarios,
   obtenerUsuario,
   crearUsuario,
-  actualizarUsuario,
-  eliminarUsuario,
-  vistaUsuarios,
+  crearUsuarioForm,
+  actualizarUsuario, 
+  eliminarUsuario, 
+  vistaUsuarios
 };

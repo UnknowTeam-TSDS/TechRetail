@@ -12,6 +12,7 @@ router.get('/vista', ctrl.vistaUsuarios);
 
 // Rutas dinámicas con parámetro :id
 router.post('/eliminar/:id', ctrl.eliminarUsuario);
+router.post('/form', ctrl.crearUsuarioForm);
 router.post('/', ctrl.crearUsuario);
 router.get('/', ctrl.listarUsuarios);
 router.get('/:id', ctrl.obtenerUsuario);

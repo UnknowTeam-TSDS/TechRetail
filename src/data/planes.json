@@ -38,13 +38,5 @@
     "precio": 3500,
     "tipo": "addon",
     "fechaCreacion": "2025-02-01T10:00:00.000Z"
-  },
-  {
-    "id": 6,
-    "nombre": "Essential",
-    "descripcion": "altoke de prueba",
-    "precio": 15000,
-    "tipo": "addon",
-    "fechaCreacion": "2026-04-25T18:59:57.715Z"
   }
 ]

@@ -18,7 +18,7 @@ const crearPlan = (req, res) => {
     return res.status(400).json({ ok: false, mensaje: 'Datos inválidos.' });
   }
   storage.agregar(nuevoPlan);
-  res.redirect('/planes/vista');
+  res.status(201).json({ ok: true, mensaje: 'Plan creado.', datos: nuevoPlan });
 };
 
 const actualizarPlan = (req, res) => {
@@ -33,11 +33,17 @@ const eliminarPlan = (req, res) => {
   if (!storage.eliminar(req.params.id)) {
     return res.status(404).json({ ok: false, mensaje: `Plan ${req.params.id} no encontrado.` });
   }
-  res.redirect('/planes/vista');
+  res.json({ ok: true, mensaje: `Plan ${req.params.id} eliminado.` });
 };
 
 const vistaPlanes = (req, res) => {
   res.render('planes', { titulo: 'Catálogo de Planes', planes: storage.leerPlanes() });
 };
 
-module.exports = { listarPlanes, obtenerPlan, crearPlan, actualizarPlan, eliminarPlan, vistaPlanes };
+const crearPlanForm = (req, res) => {
+  const nuevoPlan = new Plan(req.body);
+  if (nuevoPlan.esValido()) storage.agregar(nuevoPlan);
+  res.redirect('/planes/vista');
+};
+
+module.exports = { listarPlanes, obtenerPlan, crearPlan, crearPlanForm, actualizarPlan, eliminarPlan, vistaPlanes };
