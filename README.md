@@ -171,7 +171,7 @@ Las vistas usan **herencia de layouts** con `extends layout` y `block contenido`
 
 ---
 
-## 🧪 Pruebas con ThunderClient
+## Pruebas con ThunderClient
 
 Ejemplos de requests para documentar como evidencia:
 
@@ -188,7 +188,7 @@ Ejemplos de requests para documentar como evidencia:
 
 ---
 
-## 📚 Bibliografía
+## Bibliografía
 
 - Documentación oficial de Node.js: https://nodejs.org/en/docs
 - Documentación oficial de Express.js: https://expressjs.com/en/guide/routing.html
@@ -196,7 +196,6 @@ Ejemplos de requests para documentar como evidencia:
 - Tailwind CSS CDN: https://tailwindcss.com/docs/installation/play-cdn
 - MDN Web Docs — JavaScript Classes: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 - MDN Web Docs — fs (File System): https://nodejs.org/api/fs.html
-- 
 ---
 
 *© 2025 TechRetail Solutions S.R.L.*
