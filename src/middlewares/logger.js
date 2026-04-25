@@ -1,7 +1,6 @@
-/**
- * Middleware: Logger de peticiones HTTP
- * Registra en consola cada request con método, URL y timestamp
- * TechRetail Solutions S.R.L.
+/*
+ Middleware: Logger de peticiones HTTP
+ Registra en consola cada request con método, URL y timestamp
  */
 
 const logger = (req, res, next) => {

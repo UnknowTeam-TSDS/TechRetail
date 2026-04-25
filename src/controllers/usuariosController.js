@@ -1,6 +1,6 @@
-/**
- * Controlador de Usuarios
- * TechRetail Solutions S.R.L.
+/*
+ Controlador de Usuarios
+ TechRetail Solutions S.R.L.
  */
 
 const Usuario = require('../models/Usuario');
@@ -23,7 +23,7 @@ const obtenerUsuario = (req, res) => {
   res.json({ ok: true, datos: usuario });
 };
 
-// POST /api/usuarios — Registra un nuevo usuario/tienda
+// POST /api/usuarios — Registra un nuevo usuario
 const crearUsuario = (req, res) => {
   const { nombre, email, plan, empresa } = req.body;
   const nuevoUsuario = new Usuario({ nombre, email, plan, empresa });
@@ -65,24 +65,26 @@ const eliminarUsuario = (req, res) => {
   res.json({ ok: true, mensaje: `Usuario ${req.params.id} eliminado.` });
 };
 
-// GET /usuarios — Vista Pug con listado de usuarios
+// GET /usuarios/vista — Renderiza la vista Pug con el listado de usuarios
 const vistaUsuarios = (req, res) => {
   const usuarios = storage.leerUsuarios();
   res.render('usuarios', { titulo: 'Clientes Registrados', usuarios });
 };
 
+// POST /usuarios/form — Registra un usuario desde el formulario HTML y redirige a la vista
+// Se usa el patrón PRG (Post/Redirect/Get) para evitar reenvíos duplicados al recargar
 const crearUsuarioForm = (req, res) => {
   const nuevoUsuario = new Usuario(req.body);
   if (nuevoUsuario.esValido()) storage.agregar(nuevoUsuario);
   res.redirect('/usuarios/vista');
 };
 
-module.exports = { 
+module.exports = {
   listarUsuarios,
   obtenerUsuario,
   crearUsuario,
   crearUsuarioForm,
-  actualizarUsuario, 
-  eliminarUsuario, 
+  actualizarUsuario,
+  eliminarUsuario,
   vistaUsuarios
 };

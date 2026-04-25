@@ -4,17 +4,20 @@
  */
 
 const PLANES_VALIDOS = ['Starter', 'Growth', 'Pro'];
-  const usuarios = require('../storage/usuariosStorage');
-  
+const usuarios = require('../storage/usuariosStorage');
+
 class Usuario {
   constructor({ id = null, nombre, email, plan = 'Starter', empresa = '' }) {
-  
-    this.id = id ?? (usuarios.leerUsuarios().length + 1);
+    // Genera un ID autoincremental basado en el máximo ID existente en el JSON
+    this.id = id ?? (() => {
+      const l = usuarios.leerUsuarios();
+      return l.length === 0 ? 1 : Math.max(...l.map(u => u.id)) + 1;
+    })();
     this.nombre = nombre;
     this.email = email;
-    this.plan = plan;
+    this.plan = plan;       // Plan contratado: Starter, Growth o Pro
     this.empresa = empresa;
-    this.activo = true;
+    this.activo = true;     // Todo usuario nuevo se crea como activo por defecto
     this.fechaRegistro = new Date().toISOString();
   }
 
@@ -23,7 +26,7 @@ class Usuario {
     return (
       this.nombre &&
       this.email &&
-      this.email.includes('@') &&
+      this.email.includes('@') &&      // Verifica formato básico de email
       PLANES_VALIDOS.includes(this.plan)
     );
   }
