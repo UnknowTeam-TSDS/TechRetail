@@ -5,12 +5,12 @@
 
 ## UnknowTeam
 
-| Integrante | Rol |
-|---|---|
-| Melchiori Leandro | ---- |
-| Zarate Carlos | ---- |
-| Navarro Javier | ---- |
-| Choque Heber | ---- |
+| Integrante | Rol | Responsabilidades |
+|---|---|---|
+| **Melchiori Leandro** | Tech Lead / Arquitecto Backend | Definición de la arquitectura del sistema, toma de decisiones técnicas, organización del proyecto y coordinación del equipo de desarrollo |
+| **Zarate Carlos** | Desarrollador Frontend & UX/UI | Diseño de la experiencia de usuario, maquetado de interfaces, implementación de vistas y garantía de una navegación intuitiva para el cliente final |
+| **Navarro Javier** | Desarrollador Backend | Desarrollo de la lógica de negocio, gestión de datos, implementación de la API REST y garantía del correcto funcionamiento del servidor |
+| **Choque Heber** | QA / Tester & Documentación | Planificación y ejecución de pruebas funcionales, reporte de errores, documentación técnica del sistema y elaboración de manuales de uso |
 
 ---
 
