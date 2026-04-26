@@ -1,6 +1,6 @@
-/**
- * Clase Usuario - Modelo de datos para clientes/tiendas registradas
- * TechRetail Solutions S.R.L.
+/*
+ Clase Usuario - Modelo de datos para clientes/tiendas registradas
+ TechRetail Solutions S.R.L.
  */
 
 const PLANES_VALIDOS = ['Starter', 'Growth', 'Pro'];
