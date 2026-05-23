@@ -71,7 +71,7 @@ TechRetail/
 │   │   │   ├── routers/
 │   │   │   │   └── planesRouter.js
 │   │   │   └── views/
-│   │   │   │   └── planes.pug
+│   │   │       └── planes.pug
 │   │   │
 │   │   └── usuarios/            # Módulo de Usuarios
 │   │       ├── models/
@@ -81,7 +81,7 @@ TechRetail/
 │   │       ├── routers/
 │   │       │   └── usuariosRouter.js
 │   │       └── views/
-│   │       │   └── usuarios.pug
+│   │           └── usuarios.pug
 │   │
 │   ├── views/                   # Vistas globales
 │   │   ├── layout.pug           # Layout principal
