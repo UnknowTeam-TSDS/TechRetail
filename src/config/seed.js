@@ -1,15 +1,13 @@
 /*
   Seed - Datos iniciales para MongoDB
   TechRetail Solutions S.R.L.
-  
-  Este archivo crea planes por defecto si la BD está vacía
  */
 
 const Plan = require('../modules/Planes/models/Plan');
+const Usuario = require('../modules/usuarios/models/Usuario');
 
 const seedPlanes = async () => {
   try {
-    // Verificar si ya hay planes
     const planesExistentes = await Plan.countDocuments();
     
     if (planesExistentes > 0) {
@@ -17,7 +15,6 @@ const seedPlanes = async () => {
       return;
     }
 
-    // Si no hay planes, crearlos
     const planesDefault = [
       {
         nombre: 'Starter',
@@ -29,7 +26,7 @@ const seedPlanes = async () => {
       {
         nombre: 'Growth',
         descripcion: 'Plan para crecer y escalar tu negocio',
-        precio: 40000,
+        precio: 45000,
         tipo: 'plan',
         activo: true,
       },
@@ -42,7 +39,6 @@ const seedPlanes = async () => {
       },
     ];
 
-    // Guardar los planes
     await Plan.insertMany(planesDefault);
     console.log('✓ Planes por defecto creados correctamente');
   } catch (error) {
@@ -50,4 +46,30 @@ const seedPlanes = async () => {
   }
 };
 
-module.exports = { seedPlanes };
+// Crear admin por defecto
+const seedAdmin = async () => {
+  try {
+    const adminExistente = await Usuario.findOne({ rol: 'admin' });
+    
+    if (adminExistente) {
+      console.log('✓ Admin ya existe en la BD');
+      return;
+    }
+
+    // Crear admin (la contraseña se hashea automáticamente en el middleware)
+    await Usuario.create({
+      nombre: 'Administrador',
+      email: 'admin@techretail.com',
+      telefono: '3413838854',
+      contrasena: '123456', // Se hashea en el middleware pre save
+      rol: 'admin',
+      estado: 'activo',
+    });
+
+    console.log('✓ Admin por defecto creado (email: admin@techretail.com, contraseña: 123456)');
+  } catch (error) {
+    console.error('✗ Error al crear admin por defecto:', error.message);
+  }
+};
+
+module.exports = { seedPlanes, seedAdmin };

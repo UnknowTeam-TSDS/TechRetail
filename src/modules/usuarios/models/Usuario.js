@@ -1,9 +1,10 @@
 /*
-  Modelo Usuario - Schema de Mongoose para usuarios registrados
+  Modelo Usuario - Schema de Mongoose para usuarios y admins
   TechRetail Solutions S.R.L.
  */
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 // Define el esquema del usuario
 const usuarioSchema = new mongoose.Schema({
@@ -20,19 +21,27 @@ const usuarioSchema = new mongoose.Schema({
     lowercase: true,
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Ingresa un email válido'],
   },
+  contrasena: {
+    type: String,
+    required: [true, 'La contraseña es obligatoria'],
+    minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
+    select: false, // No incluir contraseña en queries por defecto
+  },
   empresa: {
     type: String,
-    required: [true, 'El nombre de la empresa es obligatorio'],
     trim: true,
   },
   telefono: {
     type: String,
-    required: [true, 'El teléfono es obligatorio'],
   },
   planId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Plan',
-    required: [true, 'El usuario debe tener un plan'],
+  },
+  rol: {
+    type: String,
+    enum: ['admin', 'cliente'],
+    default: 'cliente',
   },
   estado: {
     type: String,
@@ -49,6 +58,22 @@ const usuarioSchema = new mongoose.Schema({
   },
 });
 
+// Middleware: hashear contraseña antes de guardar
+usuarioSchema.pre('save', async function() {
+  // Si la contraseña no fue modificada, pasar al siguiente
+  if (!this.isModified('contrasena')) {
+    return;
+  }
+
+  try {
+    // Generar salt y hashear
+    const salt = await bcrypt.genSalt(10);
+    this.contrasena = await bcrypt.hash(this.contrasena, salt);
+  } catch (error) {
+    throw error;
+  }
+});
+
 // Middleware: actualizar fecha de modificación antes de guardar
 usuarioSchema.pre('save', function() {
   this.fechaActualizacion = Date.now();
@@ -61,6 +86,11 @@ usuarioSchema.pre(/^find/, function() {
     select: 'nombre precio tipo',
   });
 });
+
+// Método: comparar contraseña ingresada con la hasheada
+usuarioSchema.methods.compararContrasena = async function(contrasenaBuscada) {
+  return await bcrypt.compare(contrasenaBuscada, this.contrasena);
+};
 
 // Método personalizado: email formateado
 usuarioSchema.methods.emailFormato = function() {

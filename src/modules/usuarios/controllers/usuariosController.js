@@ -170,22 +170,27 @@ const eliminarUsuario = async (req, res) => {
   }
 };
 
-// GET /usuarios/vista — Renderiza la vista Pug con el listado de usuarios
+// GET /usuarios/vista — Renderiza la vista Pug con usuarios (solo clientes)
 const vistaUsuarios = async (req, res) => {
   try {
-    const usuarios = await storage.leerUsuarios();
-    const planes = await Plan.find({}); // ← AGREGAR ESTA LÍNEA para obtener planes
+    // Obtener solo usuarios con rol 'cliente'
+    const usuarios = await Usuario.find({ rol: 'cliente' }).populate({
+      path: 'planId',
+      select: 'nombre precio tipo',
+    });
+    
+    const planes = await Plan.find({});
     
     res.render('usuarios', { 
       titulo: 'Gestión de Usuarios', 
       usuarios: usuarios,
-      planes: planes  // ← PASAR PLANES A LA VISTA
+      planes: planes
     });
   } catch (error) {
     res.status(500).render('usuarios', {
       titulo: 'Gestión de Usuarios',
       usuarios: [],
-      planes: [],  // ← PASAR ARRAY VACÍO EN ERROR
+      planes: [],
       error: 'Error al cargar los usuarios'
     });
   }
@@ -195,7 +200,7 @@ const vistaUsuarios = async (req, res) => {
 const crearUsuarioForm = async (req, res) => {
   try {
     // Obtener datos del formulario
-    const { nombre, email, empresa, telefono, plan } = req.body;
+    const { nombre, email, empresa, telefono, contrasena, plan } = req.body;
 
     // Buscar el plan por nombre para obtener su ID
     const planEncontrado = await Plan.findOne({ 
@@ -210,13 +215,15 @@ const crearUsuarioForm = async (req, res) => {
       });
     }
 
-    // Crear el usuario con el planId correcto
+    // Crear el usuario con todos los datos (incluyendo contraseña)
     const nuevoUsuario = await storage.agregar({
       nombre,
       email,
       empresa,
       telefono,
+      contrasena,  // ← AGREGAR CONTRASEÑA
       planId: planEncontrado._id,
+      rol: 'cliente', // ← Los usuarios registrados son clientes
     });
 
     // Redirigir a la vista de usuarios

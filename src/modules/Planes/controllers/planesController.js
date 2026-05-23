@@ -31,7 +31,7 @@ const obtenerPlan = async (req, res) => {
     
     if (!plan) {
       return res.status(404).json({ 
-        ok: false, 
+        ok: false,
         mensaje: `Plan con id ${req.params.id} no encontrado.` 
       });
     }

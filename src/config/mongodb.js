@@ -4,7 +4,7 @@
  */
 
 const mongoose = require('mongoose');
-const { seedPlanes } = require('./seed');  // ← AGREGAR ESTA LÍNEA
+const { seedPlanes, seedAdmin } = require('./seed');
 
 // URL de conexión
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/techretail';
@@ -15,8 +15,9 @@ const conectarMongoDB = async () => {
     await mongoose.connect(MONGO_URI);
     console.log('✓ Conectado a MongoDB correctamente');
     
-    // Ejecutar seed de datos por defecto
-    await seedPlanes();  // ← AGREGAR ESTA LÍNEA
+    // Ejecutar seeds
+    await seedPlanes();
+    await seedAdmin();
     
   } catch (error) {
     console.error('✗ Error al conectar a MongoDB:', error.message);
