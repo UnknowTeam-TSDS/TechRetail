@@ -11,12 +11,27 @@ html(lang="es")
       h1(class="text-xl font-bold") TechRetail Solutions S.R.L.
       span(class="text-sm opacity-60") Plataforma SaaS de E-Commerce
 
-    nav(class="bg-blue-800 px-8 py-2 flex gap-6")
-      a(href="/" class="text-blue-200 hover:text-white text-sm transition-colors") Inicio
-      a(href="/planes/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Planes
-      a(href="/usuarios/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Usuarios
-      a(href="/api/planes" class="text-blue-200 hover:text-white text-sm transition-colors") API Productos
-      a(href="/api/usuarios" class="text-blue-200 hover:text-white text-sm transition-colors") API Usuarios
+    nav(class="bg-blue-800 px-8 py-2 flex items-center justify-between gap-6")
+      div(class="flex gap-6")
+        a(href="/" class="text-blue-200 hover:text-white text-sm transition-colors") Inicio
+        
+        if usuarioLogueado
+          if usuarioLogueado.rol === 'admin'
+            a(href="/planes/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Planes
+            a(href="/usuarios/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Usuarios
+          a(href="/api/planes" class="text-blue-200 hover:text-white text-sm transition-colors") API Productos
+          a(href="/api/usuarios" class="text-blue-200 hover:text-white text-sm transition-colors") API Usuarios
+
+      div(class="flex items-center gap-4")
+        if usuarioLogueado
+          span(class="text-blue-100 text-sm")
+            span(class="font-semibold") #{usuarioLogueado.nombre}
+            span(class="text-xs opacity-70 ml-2") (#{usuarioLogueado.rol})
+          
+          form(action="/logout" method="POST" style="display:inline")
+            button(type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded transition-colors") Cerrar sesion
+        else
+          a(href="/login" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1 rounded transition-colors") Iniciar sesion
 
     main(class="max-w-6xl mx-auto px-8 py-8")
       block contenido

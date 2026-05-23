@@ -11,6 +11,8 @@ const express = require('express');
 const path = require('path');
 const logger = require('./src/middlewares/logger');
 const { conectarMongoDB } = require('./src/config/mongodb');
+const session = require('express-session');
+const { verificarSesion, verificarAdmin } = require('./src/middlewares/autenticacion');
 const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
 
@@ -23,6 +25,7 @@ app.set('views', [
   path.join(__dirname, 'src/views'),                              // views index + layout compartido
   path.join(__dirname, 'src/modules/Planes/views'),               // views modulo planes
   path.join(__dirname, 'src/modules/usuarios/views'),             // views modulo usuarios
+  path.join(__dirname, 'src/modules/auth/views'),                 // views autenticacion
 ]);
 
 // ── Middlewares globales ─────────────────────────────────────────────────────
@@ -30,16 +33,38 @@ app.use(express.json());                         // Parsear body JSON en request
 app.use(express.urlencoded({ extended: true })); // Parsear form data
 app.use(logger);                                 // Logger: registra cada request
 
-// ── Ruta raíz — Vista principal ──────────────────────────────────────────────
-app.get('/', (req, res) => {
+// ── Configuración de sesiones ───────────────────────────────────────────────
+app.use(session({
+  secret: 'techretail-secret-key-2026', // Cambiar en producción
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    maxAge: 1000 * 60 * 60 * 24, // 24 horas
+    httpOnly: true,
+    secure: false, // cambiar a true si usas HTTPS
+  }
+}));
+
+// Middleware: pasar usuario logueado a las vistas
+app.use((req, res, next) => {
+  res.locals.usuarioLogueado = req.session.usuario || null;
+  next();
+});
+
+// ── Dashboard Admin (PROTEGIDA) ──────────────────────────────────────────────
+app.get('/', verificarAdmin, (req, res) => {
   res.render('index', { titulo: 'Panel de Gestión' });
 });
 
-// ── Montaje de routers ──────────────────────────────────────────────────── ───
-app.use('/api/planes', planesRouter);         // API         - Planes
-app.use('/api/usuarios', usuariosRouter);     // API         - Usuarios
-app.use('/planes', planesRouter);             // Vistas HTML - Planes
-app.use('/usuarios', usuariosRouter);         // Vistas HTML - Usuarios
+// ── Router de Autenticación ──────────────────────────────────────────────────
+const authRouter = require('./src/modules/auth/routers/authRouter');
+app.use('/', authRouter);  // GET /login, POST /login, POST /logout
+
+// ── Montaje de routers (PROTEGIDOS) ──────────────────────────────────────────
+app.use('/api/planes', verificarAdmin, planesRouter);      // Proteger API
+app.use('/api/usuarios', verificarAdmin, usuariosRouter);  // Proteger API
+app.use('/planes', verificarAdmin, planesRouter);          // Proteger vistas
+app.use('/usuarios', verificarAdmin, usuariosRouter);      // Proteger vistas
 
 // ── Manejo de rutas no encontradas (404) ─────────────────────────────────────
 app.use((req, res) => {
@@ -76,6 +101,9 @@ const iniciarServidor = async () => {
     console.log('  Módulo Usuarios:');
     console.log(`   Vista:    http://localhost:${PUERTO}/usuarios/vista`);
     console.log(`   API REST: http://localhost:${PUERTO}/api/usuarios`);
+    console.log('');
+        console.log('  Módulo Autenticacion:');
+    console.log(`   Vista:    http://localhost:${PUERTO}/login`);
     console.log('');
   });
 };
