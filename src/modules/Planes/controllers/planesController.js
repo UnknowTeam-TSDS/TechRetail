@@ -10,11 +10,7 @@ const storage = require('../storage/planesStorage');
 const listarPlanes = async (req, res) => {
   try {
     const planes = await storage.leerPlanes();
-    res.json({ 
-      ok: true, 
-      cantidad: planes.length, 
-      datos: planes 
-    });
+    res.json(planes);
   } catch (error) {
     res.status(500).json({ 
       ok: false, 
@@ -55,11 +51,7 @@ const crearPlan = async (req, res) => {
     // Guardar en la base de datos
     const planGuardado = await storage.agregar(req.body);
     
-    res.status(201).json({ 
-      ok: true, 
-      mensaje: 'Plan creado correctamente.',
-      datos: planGuardado 
-    });
+    res.status(201).json(planGuardado);
   } catch (error) {
     // Mongoose lanza errores de validación con .errors
     if (error.errors) {
@@ -96,11 +88,7 @@ const actualizarPlan = async (req, res) => {
     // Actualizar el plan
     const planActualizado = await storage.actualizar(req.params.id, req.body);
     
-    res.json({ 
-      ok: true, 
-      mensaje: 'Plan actualizado correctamente.',
-      datos: planActualizado 
-    });
+    res.json(planActualizado);
   } catch (error) {
     if (error.errors) {
       const mensajesError = Object.keys(error.errors)

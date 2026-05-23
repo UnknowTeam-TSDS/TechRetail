@@ -1,237 +1,40 @@
 {
   "info": {
-    "_postman_id": "64d803ba-31a9-4e4e-bce7-dc84633a6256",
-    "name": "TechRetail - Test general",
-    "description": "Colección de pruebas para los módulos Planes y Usuarios. TechRetail Solutions S.R.L. — Grupo 13",
+    "_postman_id": "e939a60a-4a6f-46e2-8add-30823752c7e8",
+    "name": "TechRetail - Test General",
+    "description": "Colección de tests para TechRetail Solutions S.R.L.\nGrupo 13 - Segundo Parcial Backend\n\nEndpoints cubiertos:\n- Login/Logout\n- Planes (protegido)\n- Usuarios (protegido)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "38883854"
   },
   "item": [
     {
-      "name": "Planes",
+      "name": "Pruebas sin autenticar",
       "item": [
         {
-          "name": "1 — Listar todos los planes",
+          "name": "1. Listar Planes (sin autenticación)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Retorna array de planes', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/planes",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "planes"
-              ]
-            },
-            "description": "Obtiene el listado completo de planes y add-ons."
-          },
-          "response": []
-        },
-        {
-          "name": "2 — Buscar plan por ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Retorna un objeto plan', () => pm.expect(pm.response.json().datos).to.be.an('object'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/planes/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "planes",
-                "1"
-              ]
-            },
-            "description": "Obtiene el plan con ID 1."
-          },
-          "response": []
-        },
-        {
-          "name": "3 — Buscar plan inexistente (404)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
-                  "pm.test('ok: false', () => pm.expect(pm.response.json().ok).to.be.false);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/planes/9999",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "planes",
-                "9999"
-              ]
-            },
-            "description": "Verifica que se retorne 404 cuando el plan no existe."
-          },
-          "response": []
-        },
-        {
-          "name": "4 — Crear nuevo plan",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Plan creado con ID', () => {",
-                  "  const id = pm.response.json().datos.id;",
-                  "  pm.expect(id).to.exist;",
-                  "  pm.collectionVariables.set('plan_id', id);",
+                  "pm.test(\"Status code es 302 (redirect a login)\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});",
+                  "",
+                  "pm.test(\"Redirige a /login\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"location\")).to.include(\"/login\");",
                   "});"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Plan Enterprise\",\n  \"descripcion\": \"Solución completa para grandes empresas con soporte dedicado.\",\n  \"precio\": 95000,\n  \"tipo\": \"plan\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/planes",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "planes"
-              ]
-            },
-            "description": "Crea un nuevo plan y guarda el ID generado para usarlo en el DELETE."
-          },
-          "response": []
-        },
-        {
-          "name": "5 — Eliminar plan creado",
-          "event": [
             {
-              "listen": "test",
+              "listen": "prerequest",
               "script": {
                 "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Mensaje de eliminación', () => pm.expect(pm.response.json().mensaje).to.include('eliminado'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/planes/{{plan_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "planes",
-                "{{plan_id}}"
-              ]
-            },
-            "description": "Elimina el plan creado en el paso anterior usando el ID guardado."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Usuarios",
-      "item": [
-        {
-          "name": "1 — Listar todos los usuarios",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Retorna array de usuarios', () => pm.expect(pm.response.json().datos).to.be.an('array'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/usuarios",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "usuarios"
-              ]
-            },
-            "description": "Obtiene el listado completo de usuarios registrados."
-          },
-          "response": []
-        },
-        {
-          "name": "2 — Buscar usuario por ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Retorna un objeto usuario', () => pm.expect(pm.response.json().datos).to.be.an('object'));"
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -239,33 +42,141 @@
               }
             }
           ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/usuarios/1",
+              "raw": "http://localhost:3000/api/planes",
+              "protocol": "http",
               "host": [
-                "{{base_url}}"
+                "localhost"
               ],
+              "port": "3000",
               "path": [
                 "api",
-                "usuarios",
-                "1"
+                "planes"
               ]
-            },
-            "description": "Obtiene el usuario con ID 2001."
+            }
           },
           "response": []
         },
         {
-          "name": "3 — Buscar usuario inexistente (404)",
+          "name": "1. Listar Usuarios (sin autenticación)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
-                  "pm.test('ok: false', () => pm.expect(pm.response.json().ok).to.be.false);"
+                  "pm.test(\"Status code es 302 (redirect a login)\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/usuarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1. Dashboard (Home) - Sin autenticación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 302 (redirect a login)\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});",
+                  "",
+                  "pm.test(\"Redirige a /login\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"location\")).to.include(\"/login\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "1. Ver Formulario Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta contiene formulario de login\", function () {\n    pm.expect(pm.response.text()).to.include(\"login\");\n});"
                 ],
                 "type": "text/javascript"
               }
@@ -275,34 +186,102 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/usuarios/9999",
+              "raw": "http://localhost:3000/login",
+              "protocol": "http",
               "host": [
-                "{{base_url}}"
+                "localhost"
               ],
+              "port": "3000",
               "path": [
-                "api",
-                "usuarios",
-                "9999"
+                "login"
               ]
-            },
-            "description": "Verifica que se retorne 404 cuando el usuario no existe."
+            }
           },
           "response": []
         },
         {
-          "name": "4 — Crear nuevo usuario",
+          "name": "2. Login Admin (Exitoso)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Usuario creado con ID', () => {",
-                  "  const id = pm.response.json().datos.id;",
-                  "  pm.expect(id).to.exist;",
-                  "  pm.collectionVariables.set('usuario_id', id);",
-                  "});"
+                  "pm.test(\"Status code es 302 (redirect)\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});",
+                  "",
+                  "pm.test(\"Redirige a /planes/vista (admin)\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"location\")).to.include(\"/planes/vista\");",
+                  "});",
+                  "",
+                  "pm.test(\"Se crea cookie de sesión\", function () {",
+                  "    pm.expect(pm.response.headers.has(\"Set-Cookie\")).to.be.true;",
+                  "});",
+                  "",
+                  "// Guardamos la cookie del header para usarla en los siguientes requests",
+                  "var setCookie = pm.response.headers.get(\"Set-Cookie\");",
+                  "if (setCookie) {",
+                  "    var match = setCookie.match(/connect\\.sid=([^;]+)/);",
+                  "    if (match) {",
+                  "        pm.environment.set(\"sessionCookie\", \"connect.sid=\" + match[1]);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "admin@techretail.com",
+                  "type": "text"
+                },
+                {
+                  "key": "contrasena",
+                  "value": "123456",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:3000/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Login con Credenciales Inválidas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 (no redirige)\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta contiene mensaje de error\", function () {\n    pm.expect(pm.response.text()).to.include(\"incorrectos\");\n});"
                 ],
                 "type": "text/javascript"
               }
@@ -313,37 +292,224 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Juan López\",\n  \"email\": \"juan@mitienda.com\",\n  \"plan\": \"Growth\",\n  \"empresa\": \"Mi Tienda Online\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/usuarios",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "usuarios"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "admin@techretail.com",
+                  "type": "text"
+                },
+                {
+                  "key": "contrasena",
+                  "value": "contrasenaIncorrecta",
+                  "type": "text"
+                }
               ]
             },
-            "description": "Registra un nuevo usuario y guarda el ID generado para usarlo en el DELETE."
+            "url": {
+              "raw": "http://localhost:3000/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "login"
+              ]
+            }
           },
           "response": []
-        },
+        }
+      ]
+    },
+    {
+      "name": "Planes (Protegido)",
+      "item": [
         {
-          "name": "5 — Eliminar usuario creado",
+          "name": "2. Listar Planes (con autenticación)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.be.true);",
-                  "pm.test('Mensaje de eliminación', () => pm.expect(pm.response.json().mensaje).to.include('eliminado'));"
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta es JSON\", function () {\n    pm.response.to.be.json;\n});\n\npm.test(\"Array contiene planes\", function () {\n    var data = pm.response.json();\n    pm.expect(Array.isArray(data)).to.be.true;\n    pm.expect(data.length).to.be.above(0);\n});\n\npm.test(\"Cada plan tiene campos requeridos\", function () {\n    var data = pm.response.json();\n    data.forEach(function(plan) {\n        pm.expect(plan).to.have.property(\"_id\");\n        pm.expect(plan).to.have.property(\"nombre\");\n        pm.expect(plan).to.have.property(\"precio\");\n        pm.expect(plan).to.have.property(\"tipo\");\n    });\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/planes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "planes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Ver Planes (HTML - con autenticación)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta contiene tabla de planes\", function () {\n    pm.expect(pm.response.text()).to.include(\"Planes\");\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/planes/vista",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "planes",
+                "vista"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Crear Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 201 (creado)\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Respuesta contiene el plan creado\", function () {",
+                  "    var data = pm.response.json();",
+                  "    pm.expect(data).to.have.property(\"_id\");",
+                  "    pm.expect(data.nombre).to.equal(\"Enterprise\");",
+                  "    pm.expect(data.precio).to.equal(499);",
+                  "});",
+                  "",
+                  "// Guardar ID para test de actualización",
+                  "var planId = pm.response.json()._id;",
+                  "pm.environment.set(\"planId\", planId);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "packages": {},
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Enterprise\",\n  \"precio\": 499,\n  \"tipo\": \"plan\",\n  \"descripcion\": \"Plan empresarial avanzado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/planes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "planes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Actualizar Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Precio fue actualizado\", function () {\n    var data = pm.response.json();\n    pm.expect(data.precio).to.equal(599);\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"precio\": 599\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/planes/{{planId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "planes",
+                "{{planId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Eliminar Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta indica éxito\", function () {\n    var data = pm.response.json();\n    pm.expect(data).to.have.property(\"ok\");\n});"
                 ],
                 "type": "text/javascript"
               }
@@ -353,34 +519,285 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/usuarios/{{usuario_id}}",
+              "raw": "http://localhost:3000/api/planes/{{planId}}",
+              "protocol": "http",
               "host": [
-                "{{base_url}}"
+                "localhost"
               ],
+              "port": "3000",
               "path": [
                 "api",
-                "usuarios",
-                "{{usuario_id}}"
+                "planes",
+                "{{planId}}"
               ]
-            },
-            "description": "Elimina el usuario creado en el paso anterior usando el ID guardado."
+            }
           },
           "response": []
         }
       ]
+    },
+    {
+      "name": "Usuarios (Protegido)",
+      "item": [
+        {
+          "name": "2. Listar Usuarios (con autenticación)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta es JSON\", function () {\n    pm.response.to.be.json;\n});\n\npm.test(\"Array contiene usuarios\", function () {\n    var data = pm.response.json();\n    pm.expect(Array.isArray(data)).to.be.true;\n});\n\npm.test(\"Cada usuario tiene campos requeridos\", function () {\n    var data = pm.response.json();\n    if (data.length > 0) {\n        pm.expect(data[0]).to.have.property(\"_id\");\n        pm.expect(data[0]).to.have.property(\"nombre\");\n        pm.expect(data[0]).to.have.property(\"email\");\n    }\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/usuarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Ver Usuarios (HTML - con autenticación)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta contiene tabla de usuarios\", function () {\n    pm.expect(pm.response.text()).to.include(\"Usuarios\");\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/usuarios/vista",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "usuarios",
+                "vista"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Crear Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 201 (creado)\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"Respuesta contiene el usuario creado\", function () {\n    var data = pm.response.json();\n    pm.expect(data).to.have.property(\"_id\");\n    pm.expect(data.nombre).to.equal(\"Juan Pérez García\");\n    pm.expect(data.email).to.equal(\"juan.perez@empresa.com\");\n});\n\n// Guardar ID para test de actualización\nvar usuarioId = pm.response.json()._id;\npm.environment.set(\"usuarioId\", usuarioId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Pérez García\",\n  \"email\": \"juan.perez@empresa.com\",\n  \"empresa\": \"TechCorp Argentina\",\n  \"telefono\": \"3413456789\",\n  \"contrasena\": \"password123\",\n  \"plan\": \"Growth\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/usuarios",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Actualizar Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Teléfono fue actualizado\", function () {\n    var data = pm.response.json();\n    pm.expect(data.telefono).to.equal(\"3412222222\");\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefono\": \"3412222222\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/usuarios/{{usuarioId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Eliminar Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta indica éxito\", function () {\n    var data = pm.response.json();\n    pm.expect(data).to.have.property(\"ok\");\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/usuarios/{{usuarioId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Públicas",
+      "item": [
+        {
+          "name": "2. Dashboard (Home) - Con autenticación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Respuesta contiene titulo de bienvenida\", function () {\n    pm.expect(pm.response.text()).to.include(\"Panel de Gestión\");\n});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Logout (Destruir Sesión)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code es 302 (redirect)\", function () {\n    pm.response.to.have.status(302);\n});\n\npm.test(\"Redirige a /login\", function () {\n    pm.expect(pm.response.headers.get(\"location\")).to.include(\"/login\");\n});\n\npm.test(\"Sesión se destruye correctamente\", function () {\n    pm.expect(pm.response.headers.has(\"Set-Cookie\")).to.be.true;\n});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/logout",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "logout"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
     {
-      "key": "base_url",
-      "value": "http://localhost:3000"
-    },
-    {
-      "key": "plan_id",
+      "key": "planId",
       "value": ""
     },
     {
-      "key": "usuario_id",
+      "key": "usuarioId",
+      "value": ""
+    },
+    {
+      "key": "sessionCookie",
       "value": ""
     }
   ]

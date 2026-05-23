@@ -11,11 +11,7 @@ const Plan = require('../../Planes/models/Plan');
 const listarUsuarios = async (req, res) => {
   try {
     const usuarios = await storage.leerUsuarios();
-    res.json({ 
-      ok: true, 
-      cantidad: usuarios.length, 
-      datos: usuarios 
-    });
+    res.json(usuarios);
   } catch (error) {
     res.status(500).json({ 
       ok: false, 
@@ -62,11 +58,7 @@ const crearUsuario = async (req, res) => {
     // Crear el usuario
     const usuarioGuardado = await storage.agregar(req.body);
     
-    res.status(201).json({ 
-      ok: true, 
-      mensaje: 'Usuario creado correctamente.',
-      datos: usuarioGuardado 
-    });
+    res.status(201).json(usuarioGuardado);
   } catch (error) {
     if (error.errors) {
       const mensajesError = Object.keys(error.errors)
@@ -121,11 +113,7 @@ const actualizarUsuario = async (req, res) => {
     // Actualizar el usuario
     const usuarioActualizado = await storage.actualizar(req.params.id, req.body);
     
-    res.json({ 
-      ok: true, 
-      mensaje: 'Usuario actualizado correctamente.',
-      datos: usuarioActualizado 
-    });
+    res.json(usuarioActualizado);
   } catch (error) {
     if (error.errors) {
       const mensajesError = Object.keys(error.errors)

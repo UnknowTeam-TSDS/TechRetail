@@ -13,7 +13,7 @@ const verificarSesion = (req, res, next) => {
   }
 
   // Si no hay sesión, redirigir a login
-  res.redirect('/login');S
+  res.redirect('/login');
 };
 
 // Middleware: verificar que sea admin

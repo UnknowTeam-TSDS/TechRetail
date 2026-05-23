@@ -31,7 +31,7 @@ const loginUsuario = async (req, res) => {
 
     // Si no existe el usuario
     if (!usuario) {
-      return res.status(401).render('login', {
+      return res.status(200).render('login', {
         titulo: 'Iniciar Sesión',
         error: 'Email o contraseña incorrectos'
       });
@@ -41,7 +41,7 @@ const loginUsuario = async (req, res) => {
     const contrasenaValida = await usuario.compararContrasena(contrasena);
 
     if (!contrasenaValida) {
-      return res.status(401).render('login', {
+      return res.status(200).render('login', {
         titulo: 'Iniciar Sesión',
         error: 'Email o contraseña incorrectos'
       });
@@ -93,7 +93,8 @@ const logout = (req, res) => {
     }
 
     console.log('✓ Logout exitoso');
-    res.redirect('/');
+    res.clearCookie('connect.sid'); // le dice al cliente que borre la cookie
+    res.redirect('/login');
   });
 };
 
