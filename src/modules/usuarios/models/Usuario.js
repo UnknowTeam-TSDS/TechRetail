@@ -1,50 +1,73 @@
 /*
- Clase Usuario - Modelo de datos para clientes/tiendas registradas
- TechRetail Solutions S.R.L.
+  Modelo Usuario - Schema de Mongoose para usuarios registrados
+  TechRetail Solutions S.R.L.
  */
 
-const PLANES_VALIDOS = ['Starter', 'Growth', 'Pro'];
-const usuarios = require('../storage/usuariosStorage');
+const mongoose = require('mongoose');
 
-class Usuario {
-  constructor({ id = null, nombre, email, plan = 'Starter', empresa = '' }) {
-    // Genera un ID autoincremental basado en el máximo ID existente en el JSON
-    this.id = id ?? (() => {
-      const l = usuarios.leerUsuarios();
-      return l.length === 0 ? 1 : Math.max(...l.map(u => u.id)) + 1;
-    })();
-    this.nombre = nombre;
-    this.email = email;
-    this.plan = plan;       // Plan contratado: Starter, Growth o Pro
-    this.empresa = empresa;
-    this.activo = true;     // Todo usuario nuevo se crea como activo por defecto
-    this.fechaRegistro = new Date().toISOString();
-  }
+// Define el esquema del usuario
+const usuarioSchema = new mongoose.Schema({
+  nombre: {
+    type: String,
+    required: [true, 'El nombre es obligatorio'],
+    trim: true,
+    minlength: [3, 'El nombre debe tener al menos 3 caracteres'],
+  },
+  email: {
+    type: String,
+    required: [true, 'El email es obligatorio'],
+    unique: true,
+    lowercase: true,
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Ingresa un email válido'],
+  },
+  empresa: {
+    type: String,
+    required: [true, 'El nombre de la empresa es obligatorio'],
+    trim: true,
+  },
+  telefono: {
+    type: String,
+    required: [true, 'El teléfono es obligatorio'],
+  },
+  planId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Plan',
+    required: [true, 'El usuario debe tener un plan'],
+  },
+  estado: {
+    type: String,
+    enum: ['activo', 'inactivo', 'suspendido'],
+    default: 'activo',
+  },
+  fechaRegistro: {
+    type: Date,
+    default: Date.now,
+  },
+  fechaActualizacion: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-  // Valida que el usuario tenga los datos mínimos requeridos
-  esValido() {
-    return (
-      this.nombre &&
-      this.email &&
-      this.email.includes('@') &&      // Verifica formato básico de email
-      PLANES_VALIDOS.includes(this.plan)
-    );
-  }
+// Middleware: actualizar fecha de modificación antes de guardar
+usuarioSchema.pre('save', function() {
+  this.fechaActualizacion = Date.now();
+});
 
-  // Retorna el precio mensual según el plan contratado
-  getPrecioMensual() {
-    const precios = {
-      Starter: 12000,
-      Growth: 28000,
-      Pro: 55000,
-    };
-    return precios[this.plan] ?? 0;
-  }
+// Middleware: poblar el plan al obtener un usuario
+usuarioSchema.pre(/^find/, function() {
+  this.populate({
+    path: 'planId',
+    select: 'nombre precio tipo',
+  });
+});
 
-  // Retorna representación resumida del usuario
-  resumen() {
-    return `[${this.id}] ${this.nombre} (${this.empresa}) - Plan: ${this.plan}`;
-  }
-}
+// Método personalizado: email formateado
+usuarioSchema.methods.emailFormato = function() {
+  return this.email.toLowerCase();
+};
+
+// Crear y exportar el modelo
+const Usuario = mongoose.model('Usuario', usuarioSchema);
 
 module.exports = Usuario;

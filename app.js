@@ -4,12 +4,13 @@
  
   Grupo 13: Melchiori, Zarate, Navarro, Choque
   
-  PFO1
+  Segundo Parcial - Backend con MongoDB y Mongoose
  */
 
 const express = require('express');
 const path = require('path');
 const logger = require('./src/middlewares/logger');
+const { conectarMongoDB } = require('./src/config/mongodb');
 const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
 
@@ -48,18 +49,35 @@ app.use((req, res) => {
   });
 });
 
-// ── Inicio del servidor ──────────────────────────────────────────────────────
-app.listen(PUERTO, () => {
-  console.log('');
-  console.log('  TechRetail Solutions S.R.L.');
-  console.log(`  Servidor corriendo en http://localhost:${PUERTO}`);
-  console.log('');
-  console.log('  Módulo Planes:');
-  console.log(`   Vista:    http://localhost:${PUERTO}/planes/vista`);
-  console.log(`   API REST: http://localhost:${PUERTO}/api/planes`);
-  console.log('');
-  console.log('  Módulo Usuarios:');
-  console.log(`   Vista:    http://localhost:${PUERTO}/usuarios/vista`);
-  console.log(`   API REST: http://localhost:${PUERTO}/api/usuarios`);
-  console.log('');
+// ── Manejo global de errores ─────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    ok: false,
+    mensaje: 'Error interno del servidor',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+  });
 });
+
+// ── Inicio del servidor ──────────────────────────────────────────────────────
+const iniciarServidor = async () => {
+  // Conectar a MongoDB primero
+  await conectarMongoDB();
+  
+  app.listen(PUERTO, () => {
+    console.log('');
+    console.log('  TechRetail Solutions S.R.L.');
+    console.log(`  Servidor corriendo en http://localhost:${PUERTO}`);
+    console.log('');
+    console.log('  Módulo Planes:');
+    console.log(`   Vista:    http://localhost:${PUERTO}/planes/vista`);
+    console.log(`   API REST: http://localhost:${PUERTO}/api/planes`);
+    console.log('');
+    console.log('  Módulo Usuarios:');
+    console.log(`   Vista:    http://localhost:${PUERTO}/usuarios/vista`);
+    console.log(`   API REST: http://localhost:${PUERTO}/api/usuarios`);
+    console.log('');
+  });
+};
+
+iniciarServidor();

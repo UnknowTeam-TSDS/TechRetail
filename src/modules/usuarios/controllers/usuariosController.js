@@ -1,90 +1,243 @@
 /*
- Controlador de Usuarios
- TechRetail Solutions S.R.L.
+  Controlador de Usuarios - Con async/await y MongoDB
+  TechRetail Solutions S.R.L.
  */
 
 const Usuario = require('../models/Usuario');
 const storage = require('../storage/usuariosStorage');
+const Plan = require('../../Planes/models/Plan');
 
 // GET /api/usuarios — Lista todos los usuarios
-const listarUsuarios = (req, res) => {
-  const usuarios = storage.leerUsuarios();
-  res.json({ ok: true, cantidad: usuarios.length, datos: usuarios });
-};
-
-// GET /api/usuarios/:id — Obtiene un usuario por ID (ruta dinámica)
-const obtenerUsuario = (req, res) => {
-  const { id } = req.params;
-  const usuario = storage.buscarPorId(id);
-
-  if (!usuario) {
-    return res.status(404).json({ ok: false, mensaje: `Usuario con id ${id} no encontrado.` });
-  }
-  res.json({ ok: true, datos: usuario });
-};
-
-// POST /api/usuarios — Registra un nuevo usuario
-const crearUsuario = (req, res) => {
-  const { nombre, email, plan, empresa } = req.body;
-  const nuevoUsuario = new Usuario({ nombre, email, plan, empresa });
-
-  if (!nuevoUsuario.esValido()) {
-    return res.status(400).json({
-      ok: false,
-      mensaje: 'Datos inválidos. Se requiere: nombre, email válido y plan (Starter, Growth o Pro).',
+const listarUsuarios = async (req, res) => {
+  try {
+    const usuarios = await storage.leerUsuarios();
+    res.json({ 
+      ok: true, 
+      cantidad: usuarios.length, 
+      datos: usuarios 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      ok: false, 
+      mensaje: 'Error al obtener usuarios',
+      error: error.message 
     });
   }
-
-  storage.agregar(nuevoUsuario);
-  res.status(201).json({ ok: true, mensaje: 'Usuario registrado.', datos: nuevoUsuario });
 };
 
-// PUT /api/usuarios/:id — Actualiza datos de un usuario
-const actualizarUsuario = (req, res) => {
-  const { id } = req.params;
-  const usuarioExistente = storage.buscarPorId(id);
-
-  if (!usuarioExistente) {
-    return res.status(404).json({ ok: false, mensaje: `Usuario con id ${id} no encontrado.` });
+// GET /api/usuarios/:id — Obtiene un usuario por ID
+const obtenerUsuario = async (req, res) => {
+  try {
+    const usuario = await storage.buscarPorId(req.params.id);
+    
+    if (!usuario) {
+      return res.status(404).json({ 
+        ok: false, 
+        mensaje: `Usuario con id ${req.params.id} no encontrado.` 
+      });
+    }
+    
+    res.json({ ok: true, datos: usuario });
+  } catch (error) {
+    res.status(500).json({ 
+      ok: false, 
+      mensaje: 'Error al obtener el usuario',
+      error: error.message 
+    });
   }
+};
 
-  const exito = storage.actualizar(id, req.body);
-  if (!exito) {
-    return res.status(500).json({ ok: false, mensaje: 'Error al actualizar el usuario.' });
+// POST /api/usuarios — Crea un nuevo usuario
+const crearUsuario = async (req, res) => {
+  try {
+    // Validar que no exista otro usuario con el mismo email
+    const usuarioExistente = await storage.buscarPorEmail(req.body.email);
+    if (usuarioExistente) {
+      return res.status(400).json({ 
+        ok: false, 
+        mensaje: 'Ya existe un usuario con ese email.' 
+      });
+    }
+    
+    // Crear el usuario
+    const usuarioGuardado = await storage.agregar(req.body);
+    
+    res.status(201).json({ 
+      ok: true, 
+      mensaje: 'Usuario creado correctamente.',
+      datos: usuarioGuardado 
+    });
+  } catch (error) {
+    if (error.errors) {
+      const mensajesError = Object.keys(error.errors)
+        .map(campo => error.errors[campo].message)
+        .join(', ');
+      return res.status(400).json({ 
+        ok: false, 
+        mensaje: `Error de validación: ${mensajesError}` 
+      });
+    }
+    
+    // Manejo de error de duplicado (email único)
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        ok: false, 
+        mensaje: 'Ya existe un usuario con ese email.' 
+      });
+    }
+    
+    res.status(500).json({ 
+      ok: false, 
+      mensaje: 'Error al crear el usuario',
+      error: error.message 
+    });
   }
+};
 
-  const actualizado = storage.buscarPorId(id);
-  res.json({ ok: true, mensaje: 'Usuario actualizado.', datos: actualizado });
+// PUT /api/usuarios/:id — Actualiza un usuario existente
+const actualizarUsuario = async (req, res) => {
+  try {
+    // Verificar que el usuario exista
+    const usuarioExistente = await storage.buscarPorId(req.params.id);
+    
+    if (!usuarioExistente) {
+      return res.status(404).json({ 
+        ok: false, 
+        mensaje: `Usuario con id ${req.params.id} no encontrado.` 
+      });
+    }
+    
+    // Si intenta cambiar el email, verificar que no exista
+    if (req.body.email && req.body.email !== usuarioExistente.email) {
+      const otroUsuario = await storage.buscarPorEmail(req.body.email);
+      if (otroUsuario) {
+        return res.status(400).json({ 
+          ok: false, 
+          mensaje: 'Ya existe otro usuario con ese email.' 
+        });
+      }
+    }
+    
+    // Actualizar el usuario
+    const usuarioActualizado = await storage.actualizar(req.params.id, req.body);
+    
+    res.json({ 
+      ok: true, 
+      mensaje: 'Usuario actualizado correctamente.',
+      datos: usuarioActualizado 
+    });
+  } catch (error) {
+    if (error.errors) {
+      const mensajesError = Object.keys(error.errors)
+        .map(campo => error.errors[campo].message)
+        .join(', ');
+      return res.status(400).json({ 
+        ok: false, 
+        mensaje: `Error de validación: ${mensajesError}` 
+      });
+    }
+    
+    res.status(500).json({ 
+      ok: false, 
+      mensaje: 'Error al actualizar el usuario',
+      error: error.message 
+    });
+  }
 };
 
 // DELETE /api/usuarios/:id — Elimina un usuario
-const eliminarUsuario = (req, res) => {
-  if (!storage.eliminar(req.params.id)) {
-    return res.status(404).json({ ok: false, mensaje: `Usuario ${req.params.id} no encontrado.` });
+const eliminarUsuario = async (req, res) => {
+  try {
+    const resultado = await storage.eliminar(req.params.id);
+    
+    if (!resultado) {
+      return res.status(404).json({ 
+        ok: false, 
+        mensaje: `Usuario ${req.params.id} no encontrado.` 
+      });
+    }
+    
+    res.json({ 
+      ok: true, 
+      mensaje: `Usuario ${req.params.id} eliminado correctamente.` 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      ok: false, 
+      mensaje: 'Error al eliminar el usuario',
+      error: error.message 
+    });
   }
-  res.json({ ok: true, mensaje: `Usuario ${req.params.id} eliminado.` });
 };
 
 // GET /usuarios/vista — Renderiza la vista Pug con el listado de usuarios
-const vistaUsuarios = (req, res) => {
-  const usuarios = storage.leerUsuarios();
-  res.render('usuarios', { titulo: 'Clientes Registrados', usuarios });
+const vistaUsuarios = async (req, res) => {
+  try {
+    const usuarios = await storage.leerUsuarios();
+    const planes = await Plan.find({}); // ← AGREGAR ESTA LÍNEA para obtener planes
+    
+    res.render('usuarios', { 
+      titulo: 'Gestión de Usuarios', 
+      usuarios: usuarios,
+      planes: planes  // ← PASAR PLANES A LA VISTA
+    });
+  } catch (error) {
+    res.status(500).render('usuarios', {
+      titulo: 'Gestión de Usuarios',
+      usuarios: [],
+      planes: [],  // ← PASAR ARRAY VACÍO EN ERROR
+      error: 'Error al cargar los usuarios'
+    });
+  }
 };
 
-// POST /usuarios/form — Registra un usuario desde el formulario HTML y redirige a la vista
-// Se usa el patrón PRG (Post/Redirect/Get) para evitar reenvíos duplicados al recargar
-const crearUsuarioForm = (req, res) => {
-  const nuevoUsuario = new Usuario(req.body);
-  if (nuevoUsuario.esValido()) storage.agregar(nuevoUsuario);
-  res.redirect('/usuarios/vista');
+// POST /usuarios/form — Crea un usuario desde el formulario HTML con PRG
+const crearUsuarioForm = async (req, res) => {
+  try {
+    // Obtener datos del formulario
+    const { nombre, email, empresa, telefono, plan } = req.body;
+
+    // Buscar el plan por nombre para obtener su ID
+    const planEncontrado = await Plan.findOne({ 
+      nombre: plan 
+    });
+
+    // Si no existe el plan, enviar error
+    if (!planEncontrado) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: `El plan "${plan}" no existe`,
+      });
+    }
+
+    // Crear el usuario con el planId correcto
+    const nuevoUsuario = await storage.agregar({
+      nombre,
+      email,
+      empresa,
+      telefono,
+      planId: planEncontrado._id,
+    });
+
+    // Redirigir a la vista de usuarios
+    res.redirect('/usuarios/vista');
+  } catch (error) {
+    console.error('Error al agregar usuario:', error.message);
+    res.status(400).json({
+      ok: false,
+      mensaje: 'Error al registrar usuario',
+      error: error.message,
+    });
+  }
 };
 
-module.exports = {
-  listarUsuarios,
-  obtenerUsuario,
-  crearUsuario,
-  crearUsuarioForm,
-  actualizarUsuario,
-  eliminarUsuario,
-  vistaUsuarios
+
+module.exports = { 
+  listarUsuarios, 
+  obtenerUsuario, 
+  crearUsuario, 
+  crearUsuarioForm, 
+  actualizarUsuario, 
+  eliminarUsuario, 
+  vistaUsuarios 
 };

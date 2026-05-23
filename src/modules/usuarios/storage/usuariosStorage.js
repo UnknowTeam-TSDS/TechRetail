@@ -1,65 +1,73 @@
-/*
- Storage de Usuarios - Persistencia en archivo JSON
- TechRetail Solutions S.R.L.
+/**
+  Storage de Usuarios - Persistencia en MongoDB con Mongoose
+  TechRetail Solutions S.R.L.
  */
 
-const fs = require('fs');
-const path = require('path');
+const Usuario = require('../models/Usuario');
 
-// Ruta absoluta al archivo de datos
-const RUTA_ARCHIVO = path.join(__dirname, '../data/usuarios.json');
-
-// Lee todos los usuarios desde el archivo JSON
-const leerUsuarios = () => {
+// Lee todos los usuarios desde la base de datos
+const leerUsuarios = async () => {
   try {
-    const datos = fs.readFileSync(RUTA_ARCHIVO, 'utf-8');
-    return JSON.parse(datos);
+    return await Usuario.find({}).sort({ fechaRegistro: -1 });
   } catch (error) {
-    console.error('Error al leer usuarios.json:', error.message);
-    return []; // Retorna array vacío si el archivo no existe o está dañado
+    console.error('Error al leer usuarios:', error.message);
+    return [];
   }
 };
 
-// Guarda el array completo de usuarios en el archivo JSON
-const guardarUsuarios = (usuarios) => {
+// Busca un usuario por ID
+const buscarPorId = async (id) => {
   try {
-    fs.writeFileSync(RUTA_ARCHIVO, JSON.stringify(usuarios, null, 2), 'utf-8');
-    return true;
+    return await Usuario.findById(id);
   } catch (error) {
-    console.error('Error al guardar usuarios.json:', error.message);
-    return false;
+    console.error('Error al buscar usuario:', error.message);
+    return null;
   }
 };
 
-// Busca un usuario por ID y retorna el objeto o null si no existe
-const buscarPorId = (id) => {
-  const usuarios = leerUsuarios();
-  return usuarios.find((u) => u.id === Number(id)) ?? null;
+// Busca un usuario por email
+const buscarPorEmail = async (email) => {
+  try {
+    return await Usuario.findOne({ email: email.toLowerCase() });
+  } catch (error) {
+    console.error('Error al buscar usuario por email:', error.message);
+    return null;
+  }
 };
 
-// Agrega un nuevo usuario al archivo JSON
-const agregar = (usuario) => {
-  const usuarios = leerUsuarios();
-  usuarios.push(usuario);
-  return guardarUsuarios(usuarios);
+// Agrega un nuevo usuario a la base de datos
+const agregar = async (datos) => {
+  try {
+    const nuevoUsuario = new Usuario(datos);
+    return await nuevoUsuario.save();
+  } catch (error) {
+    console.error('Error al agregar usuario:', error.message);
+    throw error;
+  }
 };
 
-// Actualiza un usuario existente fusionando los datos nuevos con los actuales
-const actualizar = (id, datosActualizados) => {
-  const usuarios = leerUsuarios();
-  const indice = usuarios.findIndex((u) => u.id === Number(id));
-  if (indice === -1) return false; // Retorna false si el usuario no existe
-
-  usuarios[indice] = { ...usuarios[indice], ...datosActualizados, id: Number(id) }; // Spread operator preserva campos no enviados
-  return guardarUsuarios(usuarios);
+// Actualiza un usuario existente
+const actualizar = async (id, datos) => {
+  try {
+    return await Usuario.findByIdAndUpdate(id, datos, {
+      new: true,
+      runValidators: true,
+    });
+  } catch (error) {
+    console.error('Error al actualizar usuario:', error.message);
+    throw error;
+  }
 };
 
-// Elimina un usuario por ID y retorna false si no existía
-const eliminar = (id) => {
-  const usuarios = leerUsuarios();
-  const filtrados = usuarios.filter((u) => u.id !== Number(id));
-  if (filtrados.length === usuarios.length) return false; // No se eliminó ninguno
-  return guardarUsuarios(filtrados);
+// Elimina un usuario
+const eliminar = async (id) => {
+  try {
+    const resultado = await Usuario.findByIdAndDelete(id);
+    return resultado !== null;
+  } catch (error) {
+    console.error('Error al eliminar usuario:', error.message);
+    throw error;
+  }
 };
 
-module.exports = { leerUsuarios, buscarPorId, agregar, actualizar, eliminar };
+module.exports = { leerUsuarios, buscarPorId, buscarPorEmail, agregar, actualizar, eliminar };

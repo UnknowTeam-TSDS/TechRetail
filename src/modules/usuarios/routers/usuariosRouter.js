@@ -1,29 +1,23 @@
-/**
- * Router de Usuarios
- * TechRetail Solutions S.R.L.
+/*
+    Router de Usuarios
+    TechRetail Solutions S.R.L.
  */
 
 const express = require('express');
+const controller = require('../controllers/usuariosController');
+
 const router = express.Router();
-const ctrl = require('../controllers/usuariosController');
 
-// Vista HTML (motor Pug)
-router.get('/vista', ctrl.vistaUsuarios);
+// Rutas para Vistas (PRIMERO - rutas específicas)
+router.get('/vista', controller.vistaUsuarios);        // GET  /usuarios/vista
+router.post('/form', controller.crearUsuarioForm);     // POST /usuarios/form
+router.post('/eliminar/:id', controller.eliminarUsuario); // POST /usuarios/eliminar/:id ← AGREGAR ESTA LÍNEA
 
-// Rutas de formulario HTML — usan POST y redirigen (patrón PRG)
-// Deben ir ANTES de las rutas con /:id para que Express no las confunda con un parámetro
-router.post('/eliminar/:id', ctrl.eliminarUsuario);
-router.post('/form', ctrl.crearUsuarioForm);
-
-// Ruta de registro nuevo usario
-router.post('/', ctrl.crearUsuario);
-
-// Ruta de listado de usuarios
-router.get('/', ctrl.listarUsuarios);
-
-// Rutas dinámicas con parámetro :id
-router.get('/:id', ctrl.obtenerUsuario);
-router.put('/:id', ctrl.actualizarUsuario);
-router.delete('/:id', ctrl.eliminarUsuario);
+// Rutas API REST (DESPUÉS - rutas parametrizadas)
+router.get('/', controller.listarUsuarios);            // GET  /api/usuarios
+router.post('/', controller.crearUsuario);             // POST /api/usuarios
+router.get('/:id', controller.obtenerUsuario);         // GET  /api/usuarios/:id
+router.put('/:id', controller.actualizarUsuario);      // PUT  /api/usuarios/:id
+router.delete('/:id', controller.eliminarUsuario);     // DELETE /api/usuarios/:id
 
 module.exports = router;

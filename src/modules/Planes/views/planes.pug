@@ -42,12 +42,12 @@ block contenido
       tbody
         each plan in soloPlanes
           tr(class="border-b border-gray-100 hover:bg-blue-50 transition-colors")
-            td(class="px-4 py-3 text-sm") #{plan.id}
+            td(class="px-4 py-3 text-sm") #{plan._id}
             td(class="px-4 py-3 text-sm font-medium") #{plan.nombre}
             td(class="px-4 py-3 text-xs text-gray-500 max-w-xs") #{plan.descripcion}
             td(class="px-4 py-3 text-sm") $#{plan.precio.toLocaleString('es-AR')}
             td(class="px-4 py-3")
-              form(action="/planes/eliminar/" + plan.id method="POST" onsubmit="return confirm('¿Eliminar este plan?')")
+              form(action="/planes/eliminar/" + plan._id method="POST" onsubmit="return confirm('¿Eliminar este plan?')")
                 button(type="submit" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-200 transition-colors") Eliminar
 
   // Sección Add-ons
@@ -64,10 +64,10 @@ block contenido
       tbody
         each addon in soloAddons
           tr(class="border-b border-gray-100 hover:bg-yellow-50 transition-colors")
-            td(class="px-4 py-3 text-sm") #{addon.id}
+            td(class="px-4 py-3 text-sm") #{addon._id}
             td(class="px-4 py-3 text-sm font-medium") #{addon.nombre}
             td(class="px-4 py-3 text-xs text-gray-500 max-w-xs") #{addon.descripcion}
             td(class="px-4 py-3 text-sm") $#{addon.precio.toLocaleString('es-AR')}
             td(class="px-4 py-3")
-              form(action="/planes/eliminar/" + addon.id method="POST" onsubmit="return confirm('¿Eliminar este add-on?')")
+              form(action="/planes/eliminar/" + addon._id method="POST" onsubmit="return confirm('¿Eliminar este add-on?')")
                 button(type="submit" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-200 transition-colors") Eliminar

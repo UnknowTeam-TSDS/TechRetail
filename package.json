@@ -1,16 +1,22 @@
 {
   "name": "techretail",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "TechRetail Solutions - E-commerce SaaS con MongoDB",
+  "main": "app.js",
   "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Grupo 13",
   "license": "ISC",
   "dependencies": {
     "express": "^5.2.1",
+    "mongoose": "^9.6.2",
     "pug": "^3.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

@@ -16,14 +16,18 @@ block contenido
           input(type="email" name="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
         div
           label(class="block text-sm text-gray-600 mb-1") Empresa
-          input(type="text" name="empresa" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+          input(type="text" name="empresa" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+        div
+          label(class="block text-sm text-gray-600 mb-1") Teléfono
+          input(type="tel" name="telefono" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
         div
           label(class="block text-sm text-gray-600 mb-1") Plan
           select(name="plan" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-            option(value="Starter") Starter
-            option(value="Growth") Growth
-            option(value="Pro") Pro
-      button(type="submit" class="mt-4 bg-blue-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors") + Registrar Usuario
+            option(value="") Seleccionar plan...
+            each plan in planes
+              option(value=plan.nombre) #{plan.nombre} - $#{plan.precio}
+        div
+          button(type="submit" class="mt-6 bg-blue-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors col-span-2") + Registrar Usuario
 
   // Tabla
   div(class="rounded-xl overflow-hidden shadow-md")
@@ -34,6 +38,7 @@ block contenido
           th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Nombre
           th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Email
           th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Empresa
+          th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Teléfono
           th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Plan
           th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Estado
           th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Fecha Registro
@@ -41,15 +46,16 @@ block contenido
       tbody
         each usuario in usuarios
           tr(class="border-b border-gray-100 hover:bg-blue-50 transition-colors")
-            td(class="px-4 py-3 text-sm") #{usuario.id}
+            td(class="px-4 py-3 text-sm") #{usuario._id}
             td(class="px-4 py-3 text-sm font-medium") #{usuario.nombre}
             td(class="px-4 py-3 text-sm text-gray-500") #{usuario.email}
             td(class="px-4 py-3 text-sm") #{usuario.empresa || '—'}
+            td(class="px-4 py-3 text-sm") #{usuario.telefono || '—'}
             td(class="px-4 py-3")
               - const colores = { starter: 'bg-green-100 text-green-800', growth: 'bg-blue-100 text-blue-800', pro: 'bg-purple-100 text-purple-800' }
-              - const colorBase = colores[usuario.plan.toLowerCase()] || 'bg-gray-100 text-gray-800'
+              - const colorBase = colores[usuario.planId.nombre.toLowerCase()] || 'bg-gray-100 text-gray-800'
               - const colorClass = 'inline-block px-3 py-1 rounded-full text-xs font-semibold ' + colorBase
-              span(class=colorClass) #{usuario.plan}
+              span(class=colorClass) #{usuario.planId.nombre}
             td(class="px-4 py-3 text-sm")
               if usuario.activo
                 span(class="text-green-600 font-medium") Activo
@@ -57,5 +63,5 @@ block contenido
                 span(class="text-red-500 font-medium") Inactivo
             td(class="px-4 py-3 text-sm text-gray-500")= new Date(usuario.fechaRegistro).toLocaleDateString('es-AR')
             td(class="px-4 py-3")
-              form(action="/usuarios/eliminar/" + usuario.id method="POST" onsubmit="return confirm('¿Eliminar este usuario?')")
+              form(action="/usuarios/eliminar/" + usuario._id method="POST" onsubmit="return confirm('¿Eliminar este usuario?')")
                 button(type="submit" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-200 transition-colors") Eliminar

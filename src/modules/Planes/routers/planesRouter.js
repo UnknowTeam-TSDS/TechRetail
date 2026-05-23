@@ -1,30 +1,23 @@
 /*
- Router de Planes
- TechRetail Solutions S.R.L.
+    Router de Planes
+    TechRetail Solutions S.R.L.
  */
 
 const express = require('express');
+const controller = require('../controllers/planesController');
+
 const router = express.Router();
-const ctrl = require('../controllers/planesController');
 
-// Vista HTML (motor Pug)
-router.get('/vista', ctrl.vistaPlanes);
+// Rutas para Vistas (PRIMERO - rutas específicas)
+router.get('/vista', controller.vistaPlanes);          // GET  /planes/vista
+router.post('/form', controller.crearPlanForm);        // POST /planes/form
+router.post('/eliminar/:id', controller.eliminarPlan); // POST /planes/eliminar/:id ← AGREGAR ESTA LÍNEA
 
-// Rutas de formulario HTML — usan POST y redirigen (patrón PRG)
-// Deben ir ANTES de las rutas con /:id para que Express no las confunda con un parámetro
-
-router.post('/eliminar/:id', ctrl.eliminarPlan);
-router.post('/form', ctrl.crearPlanForm);
-
-// Ruta para creacion de nuevo plan
-router.post('/', ctrl.crearPlan);
-
-// Ruta de listado de planes y add-ons disponibles
-router.get('/', ctrl.listarPlanes);
-
-// Rutas dinámicas con parámetro :id
-router.get('/:id', ctrl.obtenerPlan);
-router.put('/:id', ctrl.actualizarPlan);
-router.delete('/:id', ctrl.eliminarPlan);
+// Rutas API REST (DESPUÉS - rutas parametrizadas)
+router.get('/', controller.listarPlanes);              // GET  /api/planes
+router.post('/', controller.crearPlan);                // POST /api/planes
+router.get('/:id', controller.obtenerPlan);            // GET  /api/planes/:id
+router.put('/:id', controller.actualizarPlan);         // PUT  /api/planes/:id
+router.delete('/:id', controller.eliminarPlan);        // DELETE /api/planes/:id
 
 module.exports = router;
