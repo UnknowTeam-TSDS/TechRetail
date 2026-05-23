@@ -1,201 +1,303 @@
 # TechRetail Solutions S.R.L.
-### Plataforma SaaS de E-Commerce Emprendedores Digitales
+
+**Plataforma SaaS de Comercio Electrónico para PyMEs Argentinas**
+
+Proyecto académico del Segundo Parcial Backend | Grupo 13 | Tecnología Informática
 
 ---
 
-## UnknowTeam
+## 📋 Descripción
 
-| Integrante | Rol | Responsabilidades |
-|---|---|---|
-| **Melchiori Leandro** | Tech Lead / Arquitecto Backend | Definición de la arquitectura del sistema, toma de decisiones técnicas, organización del proyecto y coordinación del equipo de desarrollo |
-| **Zarate Carlos** | Desarrollador Frontend & UX/UI | Diseño de la experiencia de usuario, maquetado de interfaces, implementación de vistas y garantía de una navegación intuitiva para el cliente final |
-| **Navarro Javier** | Desarrollador Backend | Desarrollo de la lógica de negocio, gestión de datos, implementación de la API REST y garantía del correcto funcionamiento del servidor |
-| **Choque Heber** | QA / Tester & Documentación | Planificación y ejecución de pruebas funcionales, reporte de errores, documentación técnica del sistema y elaboración de manuales de uso |
+**TechRetail Solutions S.R.L.** es una plataforma SaaS escalable diseñada para ayudar a pequeñas y medianas empresas argentinas a gestionar su negocio de comercio electrónico. Permite la administración de planes de suscripción, registro de usuarios/clientes y un sistema de autenticación robusto.
 
----
+### Características Principales
 
-## Descripción del Proyecto
-
-TechRetail Solutions S.R.L. es una startup tecnológica fundada en 2025 en Buenos Aires, Argentina, orientada al segmento B2B. Su producto principal es una **plataforma SaaS de e-commerce** diseñada específicamente para emprendedores digitales argentinos que buscan vender online, automatizar su gestión de stock, pagos y envíos, y tener presencia web profesional sin depender de plataformas internacionales costosas.
-
-La plataforma se posiciona como una alternativa local a Shopify y Tienda Nube, con precios en ARS, soporte en español 24/7, e integraciones nativas con medios de pago y logística locales (MercadoPago, Correo Argentino, Andreani, OCA).
-
-El modelo de negocio combina suscripciones mensuales en tres niveles (Starter, Growth y Pro), comisiones por transacción y módulos adicionales opcionales (add-ons) como analytics avanzado, dominio propio y soporte prioritario con SLA garantizado.
-
-La infraestructura es 100% cloud-native sobre AWS São Paulo con CDN Cloudflare, y el go-to-market se basa en un modelo PLG (Product-Led Growth) con trial gratuito de 14 días y un programa de agencias web certificadas como canal de distribución.
+- ✅ **Sistema de Autenticación** con contraseñas hasheadas (bcryptjs)
+- ✅ **Gestión de Planes** (Starter, Growth, Pro)
+- ✅ **Registro y Gestión de Usuarios**
+- ✅ **Control de Roles** (Admin y Cliente) - implementación escalable
+- ✅ **Sesiones Seguras** con express-session
+- ✅ **API REST** con endpoints documentados
+- ✅ **Vistas Responsivas** con Tailwind CSS
 
 ---
 
-## Estructura del Proyecto
+## 🚀 Tecnología
+
+### Backend
+- **Node.js** - Runtime de JavaScript
+- **Express** - Framework web
+- **MongoDB** - Base de datos NoSQL
+- **Mongoose** - ODM para MongoDB
+- **bcryptjs** - Hash de contraseñas
+
+### Frontend
+- **Pug** - Motor de plantillas
+- **Tailwind CSS** (CDN) - Framework CSS
+
+### Herramientas
+- **Postman** - Testing de APIs
+- **Git** - Control de versiones
+
+---
+
+## 📁 Estructura del Proyecto
 
 ```
-techretail/
-├── app.js                          ← Punto de entrada del servidor
+TechRetail/
+├── src/
+│   ├── config/
+│   │   ├── mongodb.js           # Conexión a MongoDB
+│   │   └── seed.js              # Datos iniciales (planes, admin)
+│   │
+│   ├── middlewares/
+│   │   └── autenticacion.js     # Middleware de autenticación
+│   │   └── logger.js            # Middleware de logger
+│   │
+│   ├── modules/
+│   │   ├── auth/                # Módulo de Autenticación
+│   │   │   ├── controllers/
+│   │   │   │   └── authController.js
+│   │   │   ├── routers/
+│   │   │   │   └── authRouter.js
+│   │   │   └── views/
+│   │   │       └── login.pug
+│   │   │
+│   │   ├── Planes/              # Módulo de Planes
+│   │   │   ├── models/
+│   │   │   │   └── Plan.js
+│   │   │   ├── controllers/
+│   │   │   │   └── planesController.js
+│   │   │   ├── routers/
+│   │   │   │   └── planesRouter.js
+│   │   │   └── views/
+│   │   │   │   └── planes.pug
+│   │   │
+│   │   └── usuarios/            # Módulo de Usuarios
+│   │       ├── models/
+│   │       │   └── Usuario.js
+│   │       ├── controllers/
+│   │       │   └── usuariosController.js
+│   │       ├── routers/
+│   │       │   └── usuariosRouter.js
+│   │       └── views/
+│   │       │   └── usuarios.pug
+│   │
+│   ├── views/                   # Vistas globales
+│   │   ├── layout.pug           # Layout principal
+│   │   └── index.pug            # Dashboard
+│   │
+│   └── postman/                 # Colección de tests
+│       └── TechRetail - Test general.postman_collection.json
+│
+├── app.js                       # Punto de entrada
 ├── package.json
-├── README.md
-└── src/
-    ├── models/
-    │   ├── Plan.js                 ← Clase POO: Plan de suscripción
-    │   └── Usuario.js              ← Clase POO: Usuario/cliente
-    ├── storage/
-    │   ├── planesStorage.js        ← Persistencia JSON - Planes
-    │   └── usuariosStorage.js      ← Persistencia JSON - Usuarios
-    ├── controllers/
-    │   ├── planesController.js     ← Lógica de negocio - Planes
-    │   └── usuariosController.js   ← Lógica de negocio - Usuarios
-    ├── routers/
-    │   ├── planesRouter.js         ← Rutas - Planes
-    │   └── usuariosRouter.js       ← Rutas - Usuarios
-    ├── middlewares/
-    │   └── logger.js               ← Middleware: log de requests HTTP
-    ├── data/
-    │   ├── planes.json             ← Base de datos JSON - Planes
-    │   └── usuarios.json           ← Base de datos JSON - Usuarios
-    └── views/
-        ├── layout.pug              ← Layout base (herencia Pug)
-        ├── index.pug               ← Vista: inicio
-        ├── planes.pug              ← Vista: catálogo de planes
-        └── usuarios.pug            ← Vista: clientes registrados
+└── README.md
 ```
 
 ---
 
-## Instalación y Ejecución
+## 🔐 Autenticación y Roles
 
-### Requisitos previos
-- [Node.js](https://nodejs.org) v18 o superior (incluye npm)
+### Modelo Usuario
+
+El modelo `Usuario` contiene los siguientes campos:
+
+```javascript
+{
+  nombre: String,              // Nombre completo
+  email: String,               // Email único
+  empresa: String,             // Nombre de la empresa
+  telefono: String,            // Teléfono de contacto
+  contrasena: String,          // Contraseña hasheada (bcryptjs)
+  rol: Enum ['admin', 'cliente'], // Rol del usuario
+  planId: ObjectId,            // Referencia al plan suscrito
+  estado: Enum ['activo', 'inactivo', 'suspendido'],
+  fechaRegistro: Date,         // Fecha de creación
+  fechaActualizacion: Date     // Última actualización
+}
+```
+
+### Roles Disponibles
+
+| Rol | Acceso | Permisos |
+|-----|--------|----------|
+| **admin** | `/`, `/planes/vista`, `/usuarios/vista` | Gestiona planes y usuarios |
+| **cliente** | En desarrollo | Verá su información, plan y funciones habilitadas |
+
+---
+
+## ⚙️ Instalación
+
+### Requisitos
+- Node.js v18+
+- MongoDB local o Atlas
+- npm o yarn
 
 ### Pasos
 
-```bash
-# 1. Clonar o descomprimir el proyecto y entrar a la carpeta
-cd techretail
+1. **Clonar el repositorio**
+   ```bash
+   git clone <url-repositorio>
+   cd TechRetail
+   ```
 
-# 2. Instalar dependencias
+2. **Instalar dependencias**
+   ```bash
+   npm install
+   ```
+
+3. **Configurar variables de entorno**
+   
+   Crea un archivo `.env` en la raíz:
+   ```env
+   MONGO_URI=mongodb://localhost:27017/[DB_NAME]
+   PORT=[PORT]
+   ```
+
+4. **Iniciar servidor**
+   ```bash
+   npm start
+   ```
+
+5. **Acceder a la aplicación**
+   ```
+   http://localhost:3000/login
+   ```
+
+---
+
+## API Endpoints
+
+### Autenticación
+```
+POST   /login              Iniciar sesión
+POST   /logout             Cerrar sesión
+GET    /login              Ver formulario de login
+```
+
+### Planes (requiere autenticación)
+```
+GET    /api/planes         Listar todos los planes (JSON)
+GET    /planes/vista       Ver planes (HTML)
+POST   /api/planes         Crear nuevo plan
+PUT    /api/planes/:id     Actualizar plan
+DELETE /api/planes/:id     Eliminar plan
+```
+
+### Usuarios (requiere autenticación)
+```
+GET    /api/usuarios       Listar todos los usuarios (JSON)
+GET    /usuarios/vista     Ver usuarios (HTML)
+POST   /api/usuarios       Crear nuevo usuario
+PUT    /api/usuarios/:id   Actualizar usuario
+DELETE /api/usuarios/:id   Eliminar usuario
+```
+
+---
+
+## 🧪 Testing con Postman
+
+### Importar Colección
+
+1. Abre **Postman**
+2. Click en **Import**
+3. Selecciona: `src/postman/TechRetail - Test general.postman_collection.json`
+
+## 🔐 Seguridad
+
+### Implementaciones
+
+- ✅ **Contraseñas Hasheadas** con bcryptjs (salt: 10 rounds)
+- ✅ **Sesiones Seguras** con express-session
+- ✅ **Cookies HttpOnly** para sesiones
+- ✅ **Validación de Entrada** en modelos (Mongoose)
+- ✅ **Rutas Protegidas** con middleware de autenticación
+- ✅ **Emails Únicos** para evitar duplicados
+
+### Próximas Mejoras
+
+- 🔲 CSRF tokens
+- 🔲 Rate limiting
+- 🔲 Logs de auditoría
+- 🔲 Autenticación OAuth
+
+---
+
+## 📝 Configuración de la Base de Datos
+
+### Seed Automático
+
+Al iniciar la aplicación, se ejecutan automáticamente:
+
+1. **Planes por defecto**
+   - Starter: $15000/mes
+   - Growth: $45000/mes
+   - Pro: $80000/mes
+
+2. **Admin por defecto**
+   - Usuario: admin
+   - Email: admin@techretail.com
+   - Contraseña: 123456 (hasheada)
+
+### Conexión MongoDB
+
+```javascript
+// src/config/mongodb.js
+const MONGO_URI = process.env.MONGO_URI;
+
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✓ Conectado a MongoDB'))
+  .catch(err => console.error('✗ Error:', err));
+```
+
+---
+
+## 🛠️ Comandos Disponibles
+
+```bash
+# Instalar dependencias
 npm install
 
-# 3. Iniciar el servidor
-node app.js
-```
+# Iniciar servidor (desarrollo)
+npm start
 
-El servidor queda disponible en **http://localhost:3000**
+# Iniciar con nodemon (auto-reload)
+npm run dev  # si está configurado
+```
 
 ---
 
-## 🌐 Rutas disponibles
+## 👥 Equipo de Desarrollo
 
-### Vistas HTML (motor Pug + Tailwind CSS)
-
-| Ruta | Descripción |
-|---|---|
-| `GET /` | Página de inicio con acceso a los módulos |
-| `GET /planes/vista` | Catálogo de planes y add-ons con formulario de alta |
-| `GET /usuarios/vista` | Listado de clientes con formulario de registro |
-
-### API REST — Módulo Planes
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/planes` | Listar todos los planes |
-| GET | `/api/planes/:id` | Obtener plan por ID |
-| POST | `/api/planes` | Crear nuevo plan |
-| PUT | `/api/planes/:id` | Actualizar plan existente |
-| DELETE | `/api/planes/:id` | Eliminar plan |
-
-**Body para POST/PUT (JSON):**
-```json
-{
-  "nombre": "Plan Starter",
-  "descripcion": "Descripción del plan",
-  "precio": 12000,
-  "tipo": "plan"
-}
-```
-> Valores válidos para `tipo`: `plan` / `addon`
-
-### API REST — Módulo Usuarios
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/usuarios` | Listar todos los usuarios |
-| GET | `/api/usuarios/:id` | Obtener usuario por ID |
-| POST | `/api/usuarios` | Registrar nuevo usuario |
-| PUT | `/api/usuarios/:id` | Actualizar datos de usuario |
-| DELETE | `/api/usuarios/:id` | Eliminar usuario |
-
-**Body para POST/PUT (JSON):**
-```json
-{
-  "nombre": "María González",
-  "email": "maria@empresa.com",
-  "plan": "Starter",
-  "empresa": "Mi Empresa"
-}
-```
-> Planes válidos: `Starter` / `Growth` / `Pro`
+| Integrante | Rol |
+|------------|-----|
+| Sacha Melchiori | Tech Lead / Backend Architect |
+| Carlos Zarate | Frontend & UX/UI |
+| Javier Navarro | Backend Developer |
+| Heber Choque | QA/Tester & Documentation |
 
 ---
 
-## Conceptos aplicados
+## 📚 Stack Completo (Segundo Parcial)
 
-### Programación Orientada a Objetos (POO)
-Las clases `Plan` y `Usuario` encapsulan los datos y comportamientos de cada entidad:
-- `esValido()`: verifica que los campos requeridos estén presentes
-- `resumen()`: retorna una representación legible del objeto
-- `getPrecioMensual()` (Usuario): retorna el precio según el plan contratado
-- IDs autoincrementales generados a partir del máximo existente en el JSON
-
-### Módulos Node.js
-Cada capa es un módulo independiente con `require` / `module.exports`, siguiendo el patrón **MVC**:
-- **Model**: clases POO con lógica de negocio
-- **Storage**: lectura y escritura en disco con `fs`
-- **Controller**: manejo de requests y responses
-- **Router**: definición de rutas y métodos HTTP
-
-### Persistencia en JSON
-Se utilizan los módulos nativos `fs.readFileSync` y `fs.writeFileSync` para leer y escribir los archivos `planes.json` y `usuarios.json` como base de datos local.
-
-### Rutas dinámicas
-Las rutas con parámetros como `/api/planes/:id` permiten operar sobre recursos individuales usando el ID como identificador.
-
-### Middleware
-`logger.js` es un middleware personalizado que intercepta **todas las requests** antes de que lleguen a las rutas, registrando en consola el método HTTP, la URL y el timestamp en formato argentino.
-
-```
-[25/4/2026, 01:54:47] GET /planes/vista
-[25/4/2026, 01:57:10] POST /api/usuarios
-```
-
-### Motor de plantillas Pug
-Las vistas usan **herencia de layouts** con `extends layout` y `block contenido`. El layout base incluye el header, la navegación y el footer. Cada vista solo define su contenido específico.
+- ✅ **Backend:** Node.js/Express + MongoDB/Mongoose
+- ✅ **Frontend:** Pug + Tailwind CSS
+- ✅ **Autenticación:** Sesiones + Contraseñas Hasheadas
+- ✅ **Testing:** Postman (10+ tests)
+- ✅ **Documentación:** README + Código comentado
 
 ---
 
-## Pruebas con ThunderClient
+## 📖 Próximas Fases
 
-Ejemplos de requests para documentar como evidencia:
+- [ ] Dashboard por rol (Admin vs Cliente)
+- [ ] Carrito de compra
+- [ ] Pagos (integración Mercado Pago/Stripe)
+- [ ] Historial de órdenes
+- [ ] Sistema de notificaciones
+- [ ] API OAuth (Google, GitHub)
+- [ ] Reportes y analíticas
+- [ ] Soporte multiidioma
+- [ ] Deploy a producción (Heroku/AWS)
 
-| # | Método | URL | Body |
-|---|---|---|---|
-| 1 | GET | `http://localhost:3000/api/planes` | — |
-| 2 | GET | `http://localhost:3000/api/planes/1` | — |
-| 3 | POST | `http://localhost:3000/api/planes` | `{ "nombre": "Plan Enterprise", "descripcion": "Para grandes empresas", "precio": 95000, "tipo": "plan" }` |
-| 4 | PUT | `http://localhost:3000/api/planes/1` | `{ "precio": 13500 }` |
-| 5 | DELETE | `http://localhost:3000/api/planes/3` | — |
-| 6 | GET | `http://localhost:3000/api/usuarios` | — |
-| 7 | POST | `http://localhost:3000/api/usuarios` | `{ "nombre": "Juan López", "email": "juan@tienda.com", "plan": "Growth", "empresa": "Mi Tienda" }` |
-| 8 | GET | `http://localhost:3000/api/usuarios/9999` | — *(prueba 404)* |
-
----
-
-## Bibliografía
-
-- Documentación oficial de Node.js: https://nodejs.org/en/docs
-- Documentación oficial de Express.js: https://expressjs.com/en/guide/routing.html
-- Documentación de Pug: https://pugjs.org/api/getting-started.html
-- Tailwind CSS CDN: https://tailwindcss.com/docs/installation/play-cdn
-- MDN Web Docs — JavaScript Classes: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
-- MDN Web Docs — fs (File System): https://nodejs.org/api/fs.html
----
-
-*© 2025 TechRetail Solutions S.R.L.*
