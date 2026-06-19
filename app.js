@@ -1,12 +1,13 @@
 /*
   TechRetail Solutions S.R.L.
   Plataforma SaaS de E-Commerce para PyMEs y Emprendedores Digitales en Argentina
- 
-  Grupo 13: Melchiori, Zarate, Navarro, Choque
-  
-  Segundo Parcial - Backend con MongoDB y Mongoose
+
+  Grupo 13: Melchiori, Zarate, Navarro, Choque, Basarab
+
+  Entrega Final - Backend con MongoDB Atlas y variables de entorno
  */
 
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const logger = require('./src/middlewares/logger');
@@ -17,7 +18,7 @@ const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
 
 const app = express();
-const PUERTO = 3000;
+const PUERTO = process.env.PORT || 3000;
 
 // ── Motor de plantillas Pug ──────────────────────────────────────────────────
 app.set('view engine', 'pug');
@@ -35,7 +36,7 @@ app.use(logger);                                 // Logger: registra cada reques
 
 // ── Configuración de sesiones ───────────────────────────────────────────────
 app.use(session({
-  secret: 'techretail-secret-key-2026', // Cambiar en producción
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { 
