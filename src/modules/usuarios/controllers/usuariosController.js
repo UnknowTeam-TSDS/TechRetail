@@ -233,12 +233,24 @@ const crearUsuarioForm = async (req, res) => {
 };
 
 
-module.exports = { 
-  listarUsuarios, 
-  obtenerUsuario, 
-  crearUsuario, 
-  crearUsuarioForm, 
-  actualizarUsuario, 
-  eliminarUsuario, 
-  vistaUsuarios 
+// POST /usuarios/estado/:id — Cambia el estado de un usuario desde la vista
+const cambiarEstado = async (req, res) => {
+  try {
+    const { estado } = req.body;
+    await storage.actualizar(req.params.id, { estado });
+    res.redirect('/usuarios/vista');
+  } catch (error) {
+    res.redirect('/usuarios/vista');
+  }
+};
+
+module.exports = {
+  listarUsuarios,
+  obtenerUsuario,
+  crearUsuario,
+  crearUsuarioForm,
+  actualizarUsuario,
+  eliminarUsuario,
+  vistaUsuarios,
+  cambiarEstado,
 };

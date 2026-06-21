@@ -11,7 +11,8 @@ const router = express.Router();
 // Rutas para Vistas (PRIMERO - rutas específicas)
 router.get('/vista', controller.vistaUsuarios);        // GET  /usuarios/vista
 router.post('/form', controller.crearUsuarioForm);     // POST /usuarios/form
-router.post('/eliminar/:id', controller.eliminarUsuario); // POST /usuarios/eliminar/:id ← AGREGAR ESTA LÍNEA
+router.post('/eliminar/:id', controller.eliminarUsuario);
+router.post('/estado/:id', controller.cambiarEstado);     // POST /usuarios/estado/:id
 
 // Rutas API REST (DESPUÉS - rutas parametrizadas)
 router.get('/', controller.listarUsuarios);            // GET  /api/usuarios
