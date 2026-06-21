@@ -26,7 +26,7 @@ app.set('views', [
   path.join(__dirname, 'src/views'),                              // views index + layout compartido
   path.join(__dirname, 'src/modules/Planes/views'),               // views modulo planes
   path.join(__dirname, 'src/modules/usuarios/views'),             // views modulo usuarios
-  path.join(__dirname, 'src/modules/auth/views'),                 // views autenticacion
+  path.join(__dirname, 'src/modules/Auth/views'),                 // views autenticacion
 ]);
 
 // ── Middlewares globales ─────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ app.get('/', verificarAdmin, (req, res) => {
 });
 
 // ── Router de Autenticación ──────────────────────────────────────────────────
-const authRouter = require('./src/modules/auth/routers/authRouter');
+const authRouter = require('./src/modules/Auth/routers/authRouter');
 app.use('/', authRouter);  // GET /login, POST /login, POST /logout
 
 // ── Montaje de routers (PROTEGIDOS) ──────────────────────────────────────────
