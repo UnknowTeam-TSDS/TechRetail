@@ -9,6 +9,8 @@
 
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const path = require('path');
 const logger = require('./src/middlewares/logger');
 const { conectarMongoDB } = require('./src/config/mongodb');
@@ -18,7 +20,12 @@ const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 const PUERTO = process.env.PORT || 3000;
+
+// Guardar io en app para usarlo desde los controllers via req.app.get('io')
+app.set('io', io);
 
 // ── Motor de plantillas Pug ──────────────────────────────────────────────────
 app.set('view engine', 'pug');
@@ -85,12 +92,20 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ── WebSockets con Socket.io ─────────────────────────────────────────────────
+io.on('connection', (socket) => {
+  console.log(`  Socket conectado: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`  Socket desconectado: ${socket.id}`);
+  });
+});
+
 // ── Inicio del servidor ──────────────────────────────────────────────────────
 const iniciarServidor = async () => {
   // Conectar a MongoDB primero
   await conectarMongoDB();
-  
-  app.listen(PUERTO, () => {
+
+  server.listen(PUERTO, () => {
     console.log('');
     console.log('  TechRetail Solutions S.R.L.');
     console.log(`  Servidor corriendo en http://localhost:${PUERTO}`);

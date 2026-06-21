@@ -38,3 +38,24 @@ html(lang="es")
 
     footer(class="text-center text-gray-400 text-xs py-6 mt-10")
       p © 2025 TechRetail Solutions S.R.L. | Grupo 13 — Ingeniería de Software
+
+    script(src="/socket.io/socket.io.js")
+    script.
+      const socket = io();
+
+      function mostrarNotificacion(mensaje, tipo) {
+        const colores = { plan: 'bg-blue-600', usuario: 'bg-green-600' };
+        const notif = document.createElement('div');
+        notif.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold shadow-lg z-50 ' + (colores[tipo] || 'bg-gray-700');
+        notif.textContent = mensaje;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 4000);
+      }
+
+      socket.on('nuevo-plan', function(data) {
+        mostrarNotificacion('Nuevo plan: ' + data.nombre + ' ($' + data.precio.toLocaleString('es-AR') + ')', 'plan');
+      });
+
+      socket.on('nuevo-usuario', function(data) {
+        mostrarNotificacion('Nuevo usuario: ' + data.nombre + ' (' + data.email + ')', 'usuario');
+      });

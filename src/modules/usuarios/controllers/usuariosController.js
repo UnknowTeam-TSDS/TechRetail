@@ -57,7 +57,10 @@ const crearUsuario = async (req, res) => {
     
     // Crear el usuario
     const usuarioGuardado = await storage.agregar(req.body);
-    
+
+    // Notificar a todos los admins conectados via WebSocket
+    req.app.get('io').emit('nuevo-usuario', { nombre: usuarioGuardado.nombre, email: usuarioGuardado.email });
+
     res.status(201).json(usuarioGuardado);
   } catch (error) {
     if (error.errors) {
@@ -213,6 +216,9 @@ const crearUsuarioForm = async (req, res) => {
       planId: planEncontrado._id,
       rol: 'cliente', // ← Los usuarios registrados son clientes
     });
+
+    // Notificar via WebSocket
+    req.app.get('io').emit('nuevo-usuario', { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email });
 
     // Redirigir a la vista de usuarios
     res.redirect('/usuarios/vista');
