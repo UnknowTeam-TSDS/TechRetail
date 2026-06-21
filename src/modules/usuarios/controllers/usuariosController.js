@@ -233,6 +233,17 @@ const crearUsuarioForm = async (req, res) => {
 };
 
 
+// POST /usuarios/plan/:id — Reasigna el plan de un usuario desde la vista
+const cambiarPlan = async (req, res) => {
+  try {
+    const { planId } = req.body;
+    await storage.actualizar(req.params.id, { planId });
+    res.redirect('/usuarios/vista');
+  } catch (error) {
+    res.redirect('/usuarios/vista');
+  }
+};
+
 // POST /usuarios/estado/:id — Cambia el estado de un usuario desde la vista
 const cambiarEstado = async (req, res) => {
   try {
@@ -253,4 +264,5 @@ module.exports = {
   eliminarUsuario,
   vistaUsuarios,
   cambiarEstado,
+  cambiarPlan,
 };
