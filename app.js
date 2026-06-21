@@ -70,7 +70,7 @@ app.get('/', verificarAdmin, async (req, res) => {
       Usuario.countDocuments({ rol: 'cliente', estado: 'activo' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'inactivo' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'suspendido' }),
-      Usuario.countDocuments({ rol: 'cliente', planId: null, trialHasta: { $gt: ahora } }),
+      Usuario.countDocuments({ rol: 'cliente', trialHasta: { $gt: ahora } }),
       Plan.countDocuments({ tipo: 'plan' }),
       Plan.countDocuments({ tipo: 'addon' }),
       Usuario.find({ rol: 'cliente', estado: 'activo' }),

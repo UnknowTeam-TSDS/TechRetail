@@ -143,15 +143,32 @@ const logout = (req, res) => {
 // GET /elegir-plan
 const vistaElegirPlan = async (req, res) => {
   try {
-    const planes = await Plan.find({ tipo: 'plan', activo: true }).sort({ precio: 1 });
+    const [planes, usuarioActual] = await Promise.all([
+      Plan.find({ tipo: 'plan', activo: true }).sort({ precio: 1 }),
+      Usuario.findById(req.session.usuario.id),
+    ]);
+
+    let enTrial = false;
+    let diasTrial = null;
+    if (usuarioActual.trialHasta && new Date(usuarioActual.trialHasta) > new Date()) {
+      enTrial = true;
+      diasTrial = Math.ceil((new Date(usuarioActual.trialHasta) - new Date()) / (1000 * 60 * 60 * 24));
+    }
+
     res.render('elegir-plan', {
       titulo: 'Elegir plan',
       planes,
       usuario: req.session.usuario,
+      planActualId: usuarioActual.planId ? String(usuarioActual.planId) : null,
+      enTrial,
+      diasTrial,
     });
   } catch (error) {
     console.error('Error cargando planes:', error.message);
-    res.render('elegir-plan', { titulo: 'Elegir plan', planes: [], usuario: req.session.usuario });
+    res.render('elegir-plan', {
+      titulo: 'Elegir plan', planes: [], usuario: req.session.usuario,
+      planActualId: null, enTrial: false, diasTrial: null,
+    });
   }
 };
 

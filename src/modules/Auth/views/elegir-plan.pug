@@ -11,42 +11,66 @@ html(lang="es")
 
       // Header
       div(class="text-center mb-10")
-        h1(class="text-3xl font-bold text-white") Elegí tu plan
-        p(class="text-blue-200 mt-2") Bienvenido/a, #{usuario.nombre}. Comenzá hoy mismo.
+        h1(class="text-3xl font-bold text-white")
+          if planActualId
+            | Cambiar plan
+          else
+            | Elegí tu plan
+        p(class="text-blue-200 mt-2") #{usuario.nombre} — TechRetail Solutions
 
       // Cards de planes
       div(class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10")
 
         each plan in planes
+          - const esMiPlan = planActualId && String(plan._id) === planActualId
           - const esStarter = plan.nombre.toLowerCase() === 'starter'
-          - const borderClass = esStarter ? 'border-2 border-green-400' : 'border border-blue-800/40'
-          - const headerBg = esStarter ? 'bg-green-500' : 'bg-blue-800'
+          - const borderClass = esMiPlan ? 'border-2 border-blue-400 ring-2 ring-blue-300' : esStarter ? 'border-2 border-green-400' : 'border border-white/20'
           div(class=`bg-white rounded-2xl shadow-2xl overflow-hidden ${borderClass} relative`)
 
-            if esStarter
+            // Badge: Tu plan actual
+            if esMiPlan
+              div(class="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full") Tu plan actual
+
+            // Badge: Gratis (solo starter sin plan aún)
+            else if esStarter && !planActualId
               div(class="absolute top-3 right-3 bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full") GRATIS 14 días
 
+            // Header de la card
+            - const headerBg = esMiPlan ? 'bg-blue-700' : esStarter ? 'bg-green-500' : 'bg-blue-800'
             div(class=`${headerBg} text-white px-6 py-5`)
               h2(class="text-xl font-bold") #{plan.nombre}
               if esStarter
-                p(class="text-green-100 text-sm mt-1") Perfecto para empezar
+                p(class="text-sm mt-1 opacity-80") Perfecto para empezar
               else if plan.nombre.toLowerCase() === 'growth'
-                p(class="text-blue-200 text-sm mt-1") Para negocios en crecimiento
+                p(class="text-sm mt-1 opacity-80") Para negocios en crecimiento
               else
-                p(class="text-blue-200 text-sm mt-1") Para empresas consolidadas
+                p(class="text-sm mt-1 opacity-80") Para empresas consolidadas
 
             div(class="p-6")
-              if esStarter
+
+              // Precio
+              if esMiPlan && enTrial
+                div(class="mb-1")
+                  span(class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold") Período de prueba activo
+                p(class="text-3xl font-extrabold text-blue-900 mt-2") #{diasTrial} días restantes
+                p(class="text-sm text-gray-500 mt-1") Al vencer: $#{plan.precio.toLocaleString('es-AR')}/mes
+              else if esMiPlan
+                p(class="text-4xl font-extrabold text-blue-900")
+                  | $#{plan.precio.toLocaleString('es-AR')}
+                  span(class="text-sm font-normal text-gray-400") /mes
+                p(class="text-xs text-blue-600 font-semibold mt-2") Plan activo
+              else if esStarter && !planActualId
                 p(class="text-4xl font-extrabold text-green-600") GRATIS
                 p(class="text-sm text-gray-500 mt-1") por 14 días, luego $#{plan.precio.toLocaleString('es-AR')}/mes
-                p(class="text-xs text-green-700 font-semibold mt-2") Sin tarjeta de crédito ni débito requerida
+                p(class="text-xs text-green-700 font-semibold mt-2") Sin tarjeta requerida
               else
                 p(class="text-4xl font-extrabold text-blue-900")
                   | $#{plan.precio.toLocaleString('es-AR')}
                   span(class="text-sm font-normal text-gray-400") /mes (ARS)
 
+              // Features
               ul(class="mt-4 space-y-2 text-sm text-gray-600 mb-6")
-                if plan.nombre.toLowerCase() === 'starter'
+                if esStarter
                   li ✓ Hasta 100 productos
                   li ✓ 1 tienda online
                   li ✓ Soporte por email
@@ -64,24 +88,33 @@ html(lang="es")
                   li ✓ API personalizada
                   li ✓ Manager dedicado
 
-              if esStarter
-                // Starter: envío directo sin pago
+              // Botón de acción
+              if esMiPlan
+                a(href="/mi-cuenta"
+                  class="block w-full text-center bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold py-3 rounded-xl text-sm transition-colors")
+                  | Conservar plan actual
+
+              else if esStarter && !planActualId
+                // Primera vez: trial gratuito
                 form(action="/elegir-plan" method="POST")
                   input(type="hidden" name="planId" value=String(plan._id))
                   button(type="submit"
                     class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl text-sm transition-colors")
                     | Comenzar prueba gratuita
+
               else
-                // Growth / Pro: abrir modal de pago
+                // Cambio a plan pago (nuevo o upgrade)
                 button(
                   onclick=`abrirPago('${plan._id}', '${plan.nombre}', ${plan.precio})`
                   class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition-colors")
                   | Elegir #{plan.nombre} →
 
-      // Link volver
-      div(class="text-center")
+      // Volver / cerrar sesión
+      div(class="text-center space-x-4")
+        if planActualId
+          a(href="/mi-cuenta" class="text-blue-200 text-sm hover:text-white") ← Volver a mi cuenta
         form(action="/logout" method="POST" class="inline")
-          button(type="submit" class="text-blue-200 text-sm hover:text-white underline") Cerrar sesión
+          button(type="submit" class="text-blue-200 text-sm hover:text-white underline ml-4") Cerrar sesión
 
     // ── Modal de pago simulado ──────────────────────────────────────────────
     div(id="modal-pago" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4")
@@ -94,8 +127,9 @@ html(lang="es")
         div(class="bg-blue-50 rounded-xl p-4 mb-5")
           p(class="text-xs text-gray-500 uppercase font-semibold") Plan seleccionado
           p(id="modal-plan-nombre" class="text-lg font-bold text-blue-900 mt-1") —
-          p(id="modal-plan-precio" class="text-2xl font-extrabold text-blue-700") —
-          span(class="text-xs text-gray-400") /mes (ARS)
+          div(class="flex items-baseline gap-1 mt-1")
+            p(id="modal-plan-precio" class="text-2xl font-extrabold text-blue-700") —
+            span(class="text-xs text-gray-400") /mes (ARS)
 
         form(id="form-pago" action="/elegir-plan" method="POST" class="space-y-4")
           input(type="hidden" id="modal-plan-id" name="planId")
@@ -147,7 +181,6 @@ html(lang="es")
         input.value = val.replace(/(.{4})/g, '$1 ').trim();
       }
 
-      // Cerrar modal al clickear el fondo
       document.getElementById('modal-pago').addEventListener('click', function(e) {
         if (e.target === this) cerrarModal();
       });
