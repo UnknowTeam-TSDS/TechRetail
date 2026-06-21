@@ -41,7 +41,7 @@ const loginUsuario = async (req, res) => {
     const contrasenaValida = await usuario.compararContrasena(contrasena);
 
     if (!contrasenaValida) {
-      return res.status(200).render('login', {
+      return res.status(401).render('login', {
         titulo: 'Iniciar Sesión',
         error: 'Email o contraseña incorrectos'
       });
