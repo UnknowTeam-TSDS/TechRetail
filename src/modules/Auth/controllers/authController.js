@@ -31,7 +31,7 @@ const loginUsuario = async (req, res) => {
 
     // Si no existe el usuario
     if (!usuario) {
-      return res.status(200).render('login', {
+      return res.status(401).render('login', {
         titulo: 'Iniciar Sesión',
         error: 'Email o contraseña incorrectos'
       });

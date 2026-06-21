@@ -55,13 +55,18 @@ block contenido
             td(class="px-4 py-3 text-sm") #{usuario.empresa || '—'}
             td(class="px-4 py-3 text-sm") #{usuario.telefono || '—'}
             td(class="px-4 py-3")
-              - const colores = { starter: 'bg-green-100 text-green-800', growth: 'bg-blue-100 text-blue-800', pro: 'bg-purple-100 text-purple-800' }
-              - const colorBase = colores[usuario.planId.nombre.toLowerCase()] || 'bg-gray-100 text-gray-800'
-              - const colorClass = 'inline-block px-3 py-1 rounded-full text-xs font-semibold ' + colorBase
-              span(class=colorClass) #{usuario.planId.nombre}
+              if usuario.planId
+                - const colores = { starter: 'bg-green-100 text-green-800', growth: 'bg-blue-100 text-blue-800', pro: 'bg-purple-100 text-purple-800' }
+                - const colorBase = colores[usuario.planId.nombre.toLowerCase()] || 'bg-gray-100 text-gray-800'
+                - const colorClass = 'inline-block px-3 py-1 rounded-full text-xs font-semibold ' + colorBase
+                span(class=colorClass) #{usuario.planId.nombre}
+              else
+                span(class="text-gray-400 text-xs") Sin plan
             td(class="px-4 py-3 text-sm")
-              if usuario.activo
+              if usuario.estado === 'activo'
                 span(class="text-green-600 font-medium") Activo
+              else if usuario.estado === 'suspendido'
+                span(class="text-yellow-600 font-medium") Suspendido
               else
                 span(class="text-red-500 font-medium") Inactivo
             td(class="px-4 py-3 text-sm text-gray-500")= new Date(usuario.fechaRegistro).toLocaleDateString('es-AR')
