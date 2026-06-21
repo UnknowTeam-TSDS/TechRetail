@@ -1,13 +1,12 @@
 /*
   Controlador de Autenticación
   TechRetail Solutions S.R.L.
-  
- */
+*/
 
 const Usuario = require('../../usuarios/models/Usuario');
 const Plan = require('../../Planes/models/Plan');
 
-// GET /login — Renderiza la vista de login
+// GET /login
 const vistaLogin = (req, res) => {
   res.render('login', {
     titulo: 'Iniciar Sesión',
@@ -15,26 +14,19 @@ const vistaLogin = (req, res) => {
   });
 };
 
-// GET /registro — Renderiza la vista de registro público
-const vistaRegistro = async (req, res) => {
-  try {
-    const planes = await Plan.find({ tipo: 'plan', activo: true }).sort({ precio: 1 });
-    res.render('registro', { titulo: 'Crear cuenta', planes });
-  } catch (error) {
-    res.render('registro', { titulo: 'Crear cuenta', planes: [], error: 'Error al cargar los planes.' });
-  }
+// GET /registro
+const vistaRegistro = (req, res) => {
+  res.render('registro', { titulo: 'Crear cuenta' });
 };
 
-// POST /registro — Crea una cuenta de cliente
+// POST /registro — crea cuenta sin plan; el plan se elige al iniciar sesión
 const registrarUsuario = async (req, res) => {
-  const { nombre, email, empresa, telefono, contrasena, planSeleccionado } = req.body;
-  const getPlanes = () => Plan.find({ tipo: 'plan', activo: true }).sort({ precio: 1 }).catch(() => []);
+  const { nombre, email, empresa, telefono, contrasena } = req.body;
 
   try {
     if (!nombre || !email || !contrasena) {
       return res.status(400).render('registro', {
         titulo: 'Crear cuenta',
-        planes: await getPlanes(),
         error: 'Nombre, email y contraseña son obligatorios.',
       });
     }
@@ -43,19 +35,8 @@ const registrarUsuario = async (req, res) => {
     if (existente) {
       return res.status(400).render('registro', {
         titulo: 'Crear cuenta',
-        planes: await getPlanes(),
         error: 'Ya existe una cuenta con ese email.',
       });
-    }
-
-    let planId = null;
-    let trialHasta = null;
-
-    if (!planSeleccionado || planSeleccionado === 'trial') {
-      trialHasta = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-    } else {
-      const plan = await Plan.findById(planSeleccionado);
-      if (plan) planId = plan._id;
     }
 
     await Usuario.create({
@@ -64,8 +45,6 @@ const registrarUsuario = async (req, res) => {
       empresa: empresa?.trim(),
       telefono: telefono?.trim(),
       contrasena,
-      planId,
-      trialHasta,
       rol: 'cliente',
       estado: 'activo',
     });
@@ -75,55 +54,47 @@ const registrarUsuario = async (req, res) => {
     console.error('Error al registrar usuario:', error.message);
     res.status(400).render('registro', {
       titulo: 'Crear cuenta',
-      planes: await getPlanes(),
       error: 'Error al crear la cuenta. Verificá los datos ingresados.',
     });
   }
 };
 
-// POST /login — Valida credenciales y crea sesión
+// POST /login
 const loginUsuario = async (req, res) => {
   try {
     const { email, contrasena } = req.body;
 
-    // Validar que lleguen email y contraseña
     if (!email || !contrasena) {
       return res.status(400).render('login', {
         titulo: 'Iniciar Sesión',
-        error: 'Email y contraseña son obligatorios'
+        error: 'Email y contraseña son obligatorios',
       });
     }
 
-    // Buscar usuario por email (select: false para incluir contraseña)
     const usuario = await Usuario.findOne({ email: email.toLowerCase() }).select('+contrasena');
 
-    // Si no existe el usuario
     if (!usuario) {
       return res.status(401).render('login', {
         titulo: 'Iniciar Sesión',
-        error: 'Email o contraseña incorrectos'
+        error: 'Email o contraseña incorrectos',
       });
     }
 
-    // Comparar contraseña ingresada con la hasheada
     const contrasenaValida = await usuario.compararContrasena(contrasena);
-
     if (!contrasenaValida) {
       return res.status(401).render('login', {
         titulo: 'Iniciar Sesión',
-        error: 'Email o contraseña incorrectos'
+        error: 'Email o contraseña incorrectos',
       });
     }
 
-    // Validar que el usuario esté activo
     if (usuario.estado !== 'activo') {
       return res.status(403).render('login', {
         titulo: 'Iniciar Sesión',
-        error: 'Tu cuenta está inactiva'
+        error: 'Tu cuenta está inactiva',
       });
     }
 
-    // Crear sesión del usuario
     req.session.usuario = {
       id: usuario._id,
       email: usuario.email,
@@ -133,37 +104,102 @@ const loginUsuario = async (req, res) => {
 
     console.log(`✓ Login exitoso: ${usuario.email} (${usuario.rol})`);
 
-    // Redirigir según el rol
     if (usuario.rol === 'admin') {
-      res.redirect('/planes/vista');
+      return res.redirect('/planes/vista');
+    }
+
+    // Cliente: si tiene plan o trial activo → mi cuenta; si no → elegir plan
+    const tienePlan = !!(usuario.planId);
+    const tieneTrialActivo = usuario.trialHasta && new Date(usuario.trialHasta) > new Date();
+
+    if (tienePlan || tieneTrialActivo) {
+      res.redirect('/mi-cuenta');
     } else {
-      res.redirect('/');
+      res.redirect('/elegir-plan');
     }
 
   } catch (error) {
     console.error('Error al hacer login:', error.message);
     res.status(500).render('login', {
       titulo: 'Iniciar Sesión',
-      error: 'Error al iniciar sesión. Intenta nuevamente.'
+      error: 'Error al iniciar sesión. Intenta nuevamente.',
     });
   }
 };
 
-// POST /logout — Destruye la sesión
+// POST /logout
 const logout = (req, res) => {
   req.session.destroy((error) => {
     if (error) {
       console.error('Error al cerrar sesión:', error);
-      return res.status(500).json({
-        ok: false,
-        mensaje: 'Error al cerrar sesión'
-      });
+      return res.status(500).json({ ok: false, mensaje: 'Error al cerrar sesión' });
     }
-
     console.log('✓ Logout exitoso');
-    res.clearCookie('connect.sid'); // le dice al cliente que borre la cookie
+    res.clearCookie('connect.sid');
     res.redirect('/login');
   });
+};
+
+// GET /elegir-plan
+const vistaElegirPlan = async (req, res) => {
+  try {
+    const planes = await Plan.find({ tipo: 'plan', activo: true }).sort({ precio: 1 });
+    res.render('elegir-plan', {
+      titulo: 'Elegir plan',
+      planes,
+      usuario: req.session.usuario,
+    });
+  } catch (error) {
+    console.error('Error cargando planes:', error.message);
+    res.render('elegir-plan', { titulo: 'Elegir plan', planes: [], usuario: req.session.usuario });
+  }
+};
+
+// POST /elegir-plan — asigna plan al cliente logueado
+const seleccionarPlan = async (req, res) => {
+  const { planId } = req.body;
+  try {
+    const plan = await Plan.findById(planId);
+    if (!plan) return res.redirect('/elegir-plan');
+
+    const updates = { planId: plan._id };
+
+    // Starter tiene período de prueba de 14 días
+    if (plan.nombre.toLowerCase() === 'starter') {
+      updates.trialHasta = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    }
+
+    await Usuario.findByIdAndUpdate(req.session.usuario.id, updates);
+    res.redirect('/mi-cuenta');
+  } catch (error) {
+    console.error('Error al seleccionar plan:', error.message);
+    res.redirect('/elegir-plan');
+  }
+};
+
+// GET /mi-cuenta — dashboard del cliente
+const vistaCliente = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.session.usuario.id);
+
+    let diasTrial = null;
+    let enTrial = false;
+    if (usuario.trialHasta && new Date(usuario.trialHasta) > new Date()) {
+      enTrial = true;
+      diasTrial = Math.ceil((new Date(usuario.trialHasta) - new Date()) / (1000 * 60 * 60 * 24));
+    }
+
+    res.render('mi-cuenta', {
+      titulo: 'Mi cuenta',
+      usuario: req.session.usuario,
+      planActual: usuario.planId,
+      enTrial,
+      diasTrial,
+    });
+  } catch (error) {
+    console.error('Error cargando mi cuenta:', error.message);
+    res.redirect('/login');
+  }
 };
 
 module.exports = {
@@ -172,4 +208,7 @@ module.exports = {
   logout,
   vistaRegistro,
   registrarUsuario,
+  vistaElegirPlan,
+  seleccionarPlan,
+  vistaCliente,
 };

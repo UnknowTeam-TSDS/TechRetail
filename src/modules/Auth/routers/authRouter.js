@@ -1,18 +1,23 @@
 /*
   Router de Autenticación
   TechRetail Solutions S.R.L.
- */
+*/
 
 const express = require('express');
 const controller = require('../controllers/authController');
+const { verificarSesion } = require('../../../middlewares/autenticacion');
 
 const router = express.Router();
 
-// Rutas de autenticación
-router.get('/login', controller.vistaLogin);              // GET  /login
-router.post('/login', controller.loginUsuario);           // POST /login
-router.post('/logout', controller.logout);                // POST /logout
-router.get('/registro', controller.vistaRegistro);        // GET  /registro
-router.post('/registro', controller.registrarUsuario);    // POST /registro
+router.get('/login', controller.vistaLogin);
+router.post('/login', controller.loginUsuario);
+router.post('/logout', controller.logout);
+router.get('/registro', controller.vistaRegistro);
+router.post('/registro', controller.registrarUsuario);
+
+// Rutas del cliente (requieren sesión, no requieren ser admin)
+router.get('/elegir-plan', verificarSesion, controller.vistaElegirPlan);
+router.post('/elegir-plan', verificarSesion, controller.seleccionarPlan);
+router.get('/mi-cuenta', verificarSesion, controller.vistaCliente);
 
 module.exports = router;
