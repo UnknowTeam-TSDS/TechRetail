@@ -65,7 +65,12 @@ const usuarioSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  
+
+  trialHasta: {
+    type: Date,
+    default: null,
+  },
+
 });
 
 // Middleware: hashear contraseña antes de guardar

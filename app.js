@@ -64,11 +64,13 @@ app.use((req, res, next) => {
 // ── Dashboard Admin (PROTEGIDA) ──────────────────────────────────────────────
 app.get('/', verificarAdmin, async (req, res) => {
   try {
-    const [totalClientes, activos, inactivos, suspendidos, totalPlanes, totalAddons, usuariosActivos, todosClientes, recientes] = await Promise.all([
+    const ahora = new Date();
+    const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, usuariosActivos, todosClientes, recientes] = await Promise.all([
       Usuario.countDocuments({ rol: 'cliente' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'activo' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'inactivo' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'suspendido' }),
+      Usuario.countDocuments({ rol: 'cliente', planId: null, trialHasta: { $gt: ahora } }),
       Plan.countDocuments({ tipo: 'plan' }),
       Plan.countDocuments({ tipo: 'addon' }),
       Usuario.find({ rol: 'cliente', estado: 'activo' }),
@@ -76,19 +78,17 @@ app.get('/', verificarAdmin, async (req, res) => {
       Usuario.find({ rol: 'cliente' }).sort({ fechaRegistro: -1 }).limit(5),
     ]);
 
-    // MRR: suma de precios de planes de usuarios activos (planId ya viene populado por el middleware)
     const mrr = usuariosActivos.reduce((sum, u) => sum + (u.planId?.precio || 0), 0);
 
-    // Distribución de clientes por plan
     const distribucion = {};
     todosClientes.forEach(u => {
-      const nombre = u.planId?.nombre || 'Sin plan';
+      const nombre = u.planId?.nombre || (u.trialHasta && u.trialHasta > ahora ? 'Trial' : 'Sin plan');
       distribucion[nombre] = (distribucion[nombre] || 0) + 1;
     });
 
     res.render('index', {
       titulo: 'Panel de Gestión',
-      stats: { totalClientes, activos, inactivos, suspendidos, totalPlanes, totalAddons, mrr },
+      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr },
       distribucion,
       recientes,
     });

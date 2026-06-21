@@ -61,6 +61,12 @@ block contenido
                   - const colorBase = colores[usuario.planId.nombre.toLowerCase()] || 'bg-gray-100 text-gray-800'
                   - const colorClass = 'inline-block px-3 py-1 rounded-full text-xs font-semibold ' + colorBase
                   span(class=colorClass) #{usuario.planId.nombre}
+                else if usuario.trialHasta && new Date(usuario.trialHasta) > new Date()
+                  - const diasRestantes = Math.ceil((new Date(usuario.trialHasta) - new Date()) / (1000 * 60 * 60 * 24))
+                  span(class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800") Trial
+                  span(class="text-xs text-gray-400 ml-1") #{diasRestantes}d
+                else if usuario.trialHasta
+                  span(class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500") Trial vencido
                 else
                   span(class="text-gray-400 text-xs") Sin plan
                 form(action="/usuarios/plan/" + usuario._id method="POST" class="flex items-center gap-1 mt-1")

@@ -5,12 +5,80 @@
  */
 
 const Usuario = require('../../usuarios/models/Usuario');
+const Plan = require('../../Planes/models/Plan');
 
 // GET /login — Renderiza la vista de login
 const vistaLogin = (req, res) => {
-  res.render('login', { 
-    titulo: 'Iniciar Sesión' 
+  res.render('login', {
+    titulo: 'Iniciar Sesión',
+    registrado: req.query.registrado === '1',
   });
+};
+
+// GET /registro — Renderiza la vista de registro público
+const vistaRegistro = async (req, res) => {
+  try {
+    const planes = await Plan.find({ tipo: 'plan', activo: true }).sort({ precio: 1 });
+    res.render('registro', { titulo: 'Crear cuenta', planes });
+  } catch (error) {
+    res.render('registro', { titulo: 'Crear cuenta', planes: [], error: 'Error al cargar los planes.' });
+  }
+};
+
+// POST /registro — Crea una cuenta de cliente
+const registrarUsuario = async (req, res) => {
+  const { nombre, email, empresa, telefono, contrasena, planSeleccionado } = req.body;
+  const getPlanes = () => Plan.find({ tipo: 'plan', activo: true }).sort({ precio: 1 }).catch(() => []);
+
+  try {
+    if (!nombre || !email || !contrasena) {
+      return res.status(400).render('registro', {
+        titulo: 'Crear cuenta',
+        planes: await getPlanes(),
+        error: 'Nombre, email y contraseña son obligatorios.',
+      });
+    }
+
+    const existente = await Usuario.findOne({ email: email.toLowerCase() }).select('_id');
+    if (existente) {
+      return res.status(400).render('registro', {
+        titulo: 'Crear cuenta',
+        planes: await getPlanes(),
+        error: 'Ya existe una cuenta con ese email.',
+      });
+    }
+
+    let planId = null;
+    let trialHasta = null;
+
+    if (!planSeleccionado || planSeleccionado === 'trial') {
+      trialHasta = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    } else {
+      const plan = await Plan.findById(planSeleccionado);
+      if (plan) planId = plan._id;
+    }
+
+    await Usuario.create({
+      nombre: nombre.trim(),
+      email: email.toLowerCase().trim(),
+      empresa: empresa?.trim(),
+      telefono: telefono?.trim(),
+      contrasena,
+      planId,
+      trialHasta,
+      rol: 'cliente',
+      estado: 'activo',
+    });
+
+    res.redirect('/login?registrado=1');
+  } catch (error) {
+    console.error('Error al registrar usuario:', error.message);
+    res.status(400).render('registro', {
+      titulo: 'Crear cuenta',
+      planes: await getPlanes(),
+      error: 'Error al crear la cuenta. Verificá los datos ingresados.',
+    });
+  }
 };
 
 // POST /login — Valida credenciales y crea sesión
@@ -98,8 +166,10 @@ const logout = (req, res) => {
   });
 };
 
-module.exports = { 
-  vistaLogin, 
-  loginUsuario, 
-  logout 
+module.exports = {
+  vistaLogin,
+  loginUsuario,
+  logout,
+  vistaRegistro,
+  registrarUsuario,
 };
