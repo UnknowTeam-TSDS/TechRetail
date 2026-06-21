@@ -14,6 +14,7 @@ const usuarioSchema = new mongoose.Schema({
     trim: true,
     minlength: [3, 'El nombre debe tener al menos 3 caracteres'],
   },
+
   email: {
     type: String,
     required: [true, 'El email es obligatorio'],
@@ -21,41 +22,50 @@ const usuarioSchema = new mongoose.Schema({
     lowercase: true,
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Ingresa un email válido'],
   },
+
   contrasena: {
     type: String,
     required: [true, 'La contraseña es obligatoria'],
     minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
     select: false, // No incluir contraseña en queries por defecto
   },
+
   empresa: {
     type: String,
     trim: true,
   },
+
   telefono: {
     type: String,
   },
+
   planId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Plan',
   },
+
   rol: {
     type: String,
     enum: ['admin', 'cliente'],
     default: 'cliente',
   },
+
   estado: {
     type: String,
     enum: ['activo', 'inactivo', 'suspendido'],
     default: 'activo',
   },
+
   fechaRegistro: {
     type: Date,
     default: Date.now,
   },
+
   fechaActualizacion: {
     type: Date,
     default: Date.now,
   },
+  
 });
 
 // Middleware: hashear contraseña antes de guardar
