@@ -18,6 +18,8 @@ const session = require('express-session');
 const { verificarSesion, verificarAdmin } = require('./src/middlewares/autenticacion');
 const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
+const Usuario = require('./src/modules/usuarios/models/Usuario');
+const Plan = require('./src/modules/Planes/models/Plan');
 
 const app = express();
 const server = http.createServer(app);
@@ -60,8 +62,39 @@ app.use((req, res, next) => {
 });
 
 // ── Dashboard Admin (PROTEGIDA) ──────────────────────────────────────────────
-app.get('/', verificarAdmin, (req, res) => {
-  res.render('index', { titulo: 'Panel de Gestión' });
+app.get('/', verificarAdmin, async (req, res) => {
+  try {
+    const [totalClientes, activos, inactivos, suspendidos, totalPlanes, totalAddons, usuariosActivos, todosClientes, recientes] = await Promise.all([
+      Usuario.countDocuments({ rol: 'cliente' }),
+      Usuario.countDocuments({ rol: 'cliente', estado: 'activo' }),
+      Usuario.countDocuments({ rol: 'cliente', estado: 'inactivo' }),
+      Usuario.countDocuments({ rol: 'cliente', estado: 'suspendido' }),
+      Plan.countDocuments({ tipo: 'plan' }),
+      Plan.countDocuments({ tipo: 'addon' }),
+      Usuario.find({ rol: 'cliente', estado: 'activo' }),
+      Usuario.find({ rol: 'cliente' }),
+      Usuario.find({ rol: 'cliente' }).sort({ fechaRegistro: -1 }).limit(5),
+    ]);
+
+    // MRR: suma de precios de planes de usuarios activos (planId ya viene populado por el middleware)
+    const mrr = usuariosActivos.reduce((sum, u) => sum + (u.planId?.precio || 0), 0);
+
+    // Distribución de clientes por plan
+    const distribucion = {};
+    todosClientes.forEach(u => {
+      const nombre = u.planId?.nombre || 'Sin plan';
+      distribucion[nombre] = (distribucion[nombre] || 0) + 1;
+    });
+
+    res.render('index', {
+      titulo: 'Panel de Gestión',
+      stats: { totalClientes, activos, inactivos, suspendidos, totalPlanes, totalAddons, mrr },
+      distribucion,
+      recientes,
+    });
+  } catch (error) {
+    res.render('index', { titulo: 'Panel de Gestión', stats: null, distribucion: {}, recientes: [] });
+  }
 });
 
 // ── Router de Autenticación ──────────────────────────────────────────────────
