@@ -155,11 +155,17 @@ const vistaElegirPlan = async (req, res) => {
       diasTrial = Math.ceil((new Date(usuarioActual.trialHasta) - new Date()) / (1000 * 60 * 60 * 24));
     }
 
+    // planId puede estar populado (objeto) o ser solo un ObjectId
+    const rawPlanId = usuarioActual.planId;
+    const planActualId = rawPlanId
+      ? String(rawPlanId._id || rawPlanId)
+      : null;
+
     res.render('elegir-plan', {
       titulo: 'Elegir plan',
       planes,
       usuario: req.session.usuario,
-      planActualId: usuarioActual.planId ? String(usuarioActual.planId) : null,
+      planActualId,
       enTrial,
       diasTrial,
     });
