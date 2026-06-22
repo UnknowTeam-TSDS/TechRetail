@@ -33,6 +33,13 @@ const seedPlanes = async () => {
       },
       // Add-ons (módulos opcionales del relevamiento IS, sección 6.2)
       {
+        nombre: 'Guía de Onboarding',
+        descripcion: 'Sesión personalizada con un asesor de TechRetail para la puesta a punto inicial de tu tienda. Incluye configuración guiada, carga del catálogo y primera venta de prueba.',
+        precio: 0,
+        tipo: 'addon',
+        activo: true,
+      },
+      {
         nombre: 'Conector ERP',
         descripcion: 'Sincronización automática y bidireccional del catálogo con Tango Gestión y Bejerman. Actualiza precios y stock en tiempo real.',
         precio: 8000,

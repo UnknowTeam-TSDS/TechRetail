@@ -113,14 +113,26 @@ describe('Auth Controller', () => {
       req.body = { addonId: 'id-inexistente' };
       req.session.usuario = { id: 'user-id' };
       Plan.findOne = jest.fn().mockResolvedValue(null);
+      Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
       await agregarAddon(req, res);
       expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
     });
 
-    test('agrega el addon y redirige a /mi-cuenta', async () => {
+    test('redirige a /mi-cuenta si el usuario esta en trial', async () => {
+      req.body = { addonId: 'addon-id' };
+      req.session.usuario = { id: 'user-id' };
+      const trialFuturo = new Date(Date.now() + 86400000);
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon' });
+      Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: trialFuturo });
+      await agregarAddon(req, res);
+      expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
+    });
+
+    test('agrega el addon y redirige a /mi-cuenta si tiene plan pago', async () => {
       req.body = { addonId: 'addon-id' };
       req.session.usuario = { id: 'user-id' };
       Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon' });
+      Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
       Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
       await agregarAddon(req, res);
       expect(Usuario.findByIdAndUpdate).toHaveBeenCalledWith(

@@ -220,6 +220,8 @@ const vistaCliente = async (req, res) => {
       diasTrial = Math.ceil((new Date(usuario.trialHasta) - new Date()) / (1000 * 60 * 60 * 24));
     }
 
+    const planPago = !!(usuario.planId) && !enTrial;
+
     const idsContratados = (usuario.addons || []).map(a => String(a._id || a));
     const addonsDisponibles = todosLosAddons.filter(a => !idsContratados.includes(String(a._id)));
 
@@ -229,8 +231,10 @@ const vistaCliente = async (req, res) => {
       planActual: usuario.planId,
       enTrial,
       diasTrial,
+      planPago,
       addonsContratados: usuario.addons || [],
       addonsDisponibles,
+      onboardingSolicitado: req.query.onboarding === '1',
     });
   } catch (error) {
     console.error('Error cargando mi cuenta:', error.message);
@@ -242,14 +246,24 @@ const vistaCliente = async (req, res) => {
 const agregarAddon = async (req, res) => {
   const { addonId } = req.body;
   try {
-    const addon = await Plan.findOne({ _id: addonId, tipo: 'addon', activo: true });
+    const [addon, usuario] = await Promise.all([
+      Plan.findOne({ _id: addonId, tipo: 'addon', activo: true }),
+      Usuario.findById(req.session.usuario.id),
+    ]);
+
     if (!addon) return res.redirect('/mi-cuenta');
+
+    const enTrial = usuario.trialHasta && new Date(usuario.trialHasta) > new Date();
+    const planPago = !!(usuario.planId) && !enTrial;
+    if (!planPago) return res.redirect('/mi-cuenta');
 
     await Usuario.findByIdAndUpdate(
       req.session.usuario.id,
       { $addToSet: { addons: addon._id } }
     );
-    res.redirect('/mi-cuenta');
+
+    const redirect = addon.precio === 0 ? '/mi-cuenta?onboarding=1' : '/mi-cuenta';
+    res.redirect(redirect);
   } catch (error) {
     console.error('Error al agregar add-on:', error.message);
     res.redirect('/mi-cuenta');
