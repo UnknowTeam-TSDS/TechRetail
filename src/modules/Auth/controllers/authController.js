@@ -105,7 +105,7 @@ const loginUsuario = async (req, res) => {
     console.log(`✓ Login exitoso: ${usuario.email} (${usuario.rol})`);
 
     if (usuario.rol === 'admin') {
-      return res.redirect('/planes/vista');
+      return res.redirect('/');
     }
 
     // Cliente: si tiene plan o trial activo → mi cuenta; si no → elegir plan
