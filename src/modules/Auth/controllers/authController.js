@@ -108,6 +108,11 @@ const loginUsuario = async (req, res) => {
       return res.redirect('/');
     }
 
+    // Cliente: si el admin le creó la cuenta, debe cambiar contraseña primero
+    if (usuario.cambiarContrasena) {
+      return res.redirect('/cambiar-contrasena');
+    }
+
     // Cliente: si tiene plan o trial activo → mi cuenta; si no → elegir plan
     const tienePlan = !!(usuario.planId);
     const tieneTrialActivo = usuario.trialHasta && new Date(usuario.trialHasta) > new Date();
@@ -225,6 +230,52 @@ const vistaCliente = async (req, res) => {
   }
 };
 
+// GET /cambiar-contrasena
+const vistaCambiarContrasena = (req, res) => {
+  res.render('cambiar-contrasena', { titulo: 'Cambiar contraseña' });
+};
+
+// POST /cambiar-contrasena
+const actualizarContrasena = async (req, res) => {
+  const { contrasena, confirmar } = req.body;
+
+  if (!contrasena || contrasena.length < 6) {
+    return res.status(400).render('cambiar-contrasena', {
+      titulo: 'Cambiar contraseña',
+      error: 'La contraseña debe tener al menos 6 caracteres.',
+    });
+  }
+
+  if (contrasena !== confirmar) {
+    return res.status(400).render('cambiar-contrasena', {
+      titulo: 'Cambiar contraseña',
+      error: 'Las contraseñas no coinciden.',
+    });
+  }
+
+  try {
+    const usuario = await Usuario.findById(req.session.usuario.id).select('+contrasena');
+    usuario.contrasena = contrasena;
+    usuario.cambiarContrasena = false;
+    await usuario.save();
+
+    const tienePlan = !!(usuario.planId);
+    const tieneTrialActivo = usuario.trialHasta && new Date(usuario.trialHasta) > new Date();
+
+    if (tienePlan || tieneTrialActivo) {
+      res.redirect('/mi-cuenta');
+    } else {
+      res.redirect('/elegir-plan');
+    }
+  } catch (error) {
+    console.error('Error al cambiar contraseña:', error.message);
+    res.status(500).render('cambiar-contrasena', {
+      titulo: 'Cambiar contraseña',
+      error: 'Error al actualizar la contraseña. Intentá de nuevo.',
+    });
+  }
+};
+
 module.exports = {
   vistaLogin,
   loginUsuario,
@@ -234,4 +285,6 @@ module.exports = {
   vistaElegirPlan,
   seleccionarPlan,
   vistaCliente,
+  vistaCambiarContrasena,
+  actualizarContrasena,
 };

@@ -1,0 +1,39 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title TechRetail Solutions — Cambiar contraseña
+    script(src="https://cdn.tailwindcss.com")
+  body(class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen flex items-center justify-center font-sans px-4")
+
+    div(class="w-full max-w-md")
+
+      div(class="bg-white rounded-2xl shadow-2xl p-8")
+
+        div(class="text-center mb-6")
+          div(class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3")
+            span(class="text-2xl") 🔐
+          h1(class="text-xl font-bold text-blue-900") Cambiá tu contraseña
+          p(class="text-gray-500 text-sm mt-1") Tu cuenta fue creada por un administrador. Por seguridad, elegí una contraseña personal antes de continuar.
+
+        if error
+          div(class="bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg mb-5 text-sm") #{error}
+
+        form(action="/cambiar-contrasena" method="POST" class="space-y-4")
+
+          div
+            label(class="block text-sm font-semibold text-gray-700 mb-1") Nueva contraseña (mín. 6 caracteres)
+            input(type="password" name="contrasena" required minlength="6" placeholder="••••••••"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+          div
+            label(class="block text-sm font-semibold text-gray-700 mb-1") Confirmar contraseña
+            input(type="password" name="confirmar" required minlength="6" placeholder="••••••••"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+          button(type="submit"
+            class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition-colors mt-2")
+            | Guardar y continuar
+
+      p(class="text-center text-blue-200 text-xs mt-6") © 2025 TechRetail Solutions S.R.L.

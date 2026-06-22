@@ -19,5 +19,7 @@ router.post('/registro', controller.registrarUsuario);
 router.get('/elegir-plan', verificarSesion, controller.vistaElegirPlan);
 router.post('/elegir-plan', verificarSesion, controller.seleccionarPlan);
 router.get('/mi-cuenta', verificarSesion, controller.vistaCliente);
+router.get('/cambiar-contrasena', verificarSesion, controller.vistaCambiarContrasena);
+router.post('/cambiar-contrasena', verificarSesion, controller.actualizarContrasena);
 
 module.exports = router;

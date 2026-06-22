@@ -71,6 +71,11 @@ const usuarioSchema = new mongoose.Schema({
     default: null,
   },
 
+  cambiarContrasena: {
+    type: Boolean,
+    default: false,
+  },
+
 });
 
 // Middleware: hashear contraseña antes de guardar

@@ -193,6 +193,7 @@ const crearUsuarioForm = async (req, res) => {
     const { nombre, email, empresa, telefono, contrasena } = req.body;
 
     // Crear el usuario sin plan; lo elegirá al iniciar sesión
+    // cambiarContrasena: true obliga al cliente a cambiar la contraseña al primer login
     const nuevoUsuario = await storage.agregar({
       nombre,
       email,
@@ -200,6 +201,7 @@ const crearUsuarioForm = async (req, res) => {
       telefono,
       contrasena,
       rol: 'cliente',
+      cambiarContrasena: true,
     });
 
     // Notificar via WebSocket
