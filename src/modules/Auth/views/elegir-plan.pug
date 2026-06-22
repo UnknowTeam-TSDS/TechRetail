@@ -122,6 +122,34 @@ html(lang="es")
             p(id="modal-plan-precio" class="text-2xl font-extrabold text-blue-700") —
             span(class="text-xs text-gray-400") /mes (ARS)
 
+        p(class="text-sm font-semibold text-gray-700 mb-3") Método de pago
+
+        div(class="grid grid-cols-2 gap-2 mb-5")
+          div(class="flex items-center gap-2 border-2 border-blue-600 bg-blue-50 rounded-xl px-3 py-3 cursor-default")
+            div(class="w-4 h-4 rounded-full border-2 border-blue-600 flex items-center justify-center shrink-0")
+              div(class="w-2 h-2 rounded-full bg-blue-600")
+            div
+              p(class="text-xs font-bold text-blue-900 leading-tight") Tarjeta
+              p(class="text-xs text-blue-500 leading-tight") crédito / débito
+
+          div(class="flex items-center gap-2 border border-gray-200 bg-gray-50 rounded-xl px-3 py-3 opacity-50 cursor-not-allowed relative")
+            div(class="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0")
+            div
+              p(class="text-xs font-bold text-gray-400 leading-tight") MercadoPago
+              p(class="text-xs text-gray-300 leading-tight") Próximamente
+
+          div(class="flex items-center gap-2 border border-gray-200 bg-gray-50 rounded-xl px-3 py-3 opacity-50 cursor-not-allowed")
+            div(class="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0")
+            div
+              p(class="text-xs font-bold text-gray-400 leading-tight") Modo
+              p(class="text-xs text-gray-300 leading-tight") Próximamente
+
+          div(class="flex items-center gap-2 border border-gray-200 bg-gray-50 rounded-xl px-3 py-3 opacity-50 cursor-not-allowed")
+            div(class="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0")
+            div
+              p(class="text-xs font-bold text-gray-400 leading-tight") Transferencia
+              p(class="text-xs text-gray-300 leading-tight") Próximamente
+
         form(id="form-pago" action="/elegir-plan" method="POST" class="space-y-4")
           input(type="hidden" id="modal-plan-id" name="planId")
 
