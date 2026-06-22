@@ -190,31 +190,16 @@ const vistaUsuarios = async (req, res) => {
 // POST /usuarios/form — Crea un usuario desde el formulario HTML con PRG
 const crearUsuarioForm = async (req, res) => {
   try {
-    // Obtener datos del formulario
-    const { nombre, email, empresa, telefono, contrasena, plan } = req.body;
+    const { nombre, email, empresa, telefono, contrasena } = req.body;
 
-    // Buscar el plan por nombre para obtener su ID
-    const planEncontrado = await Plan.findOne({ 
-      nombre: plan 
-    });
-
-    // Si no existe el plan, enviar error
-    if (!planEncontrado) {
-      return res.status(400).json({
-        ok: false,
-        mensaje: `El plan "${plan}" no existe`,
-      });
-    }
-
-    // Crear el usuario con todos los datos (incluyendo contraseña)
+    // Crear el usuario sin plan; lo elegirá al iniciar sesión
     const nuevoUsuario = await storage.agregar({
       nombre,
       email,
       empresa,
       telefono,
-      contrasena,  // ← AGREGAR CONTRASEÑA
-      planId: planEncontrado._id,
-      rol: 'cliente', // ← Los usuarios registrados son clientes
+      contrasena,
+      rol: 'cliente',
     });
 
     // Notificar via WebSocket
