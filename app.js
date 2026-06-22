@@ -19,9 +19,11 @@ const { verificarSesion, verificarAdmin } = require('./src/middlewares/autentica
 const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
 const tiendaRouter = require('./src/modules/Tienda/routers/tiendaRouter');
+const productosRouter = require('./src/modules/Productos/routers/productosRouter');
 const Usuario = require('./src/modules/usuarios/models/Usuario');
 const Plan = require('./src/modules/Planes/models/Plan');
 const Tienda = require('./src/modules/Tienda/models/Tienda');
+const Producto = require('./src/modules/Productos/models/Producto');
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +41,7 @@ app.set('views', [
   path.join(__dirname, 'src/modules/usuarios/views'),             // views modulo usuarios
   path.join(__dirname, 'src/modules/Auth/views'),                 // views autenticacion
   path.join(__dirname, 'src/modules/Tienda/views'),               // views modulo tienda
+  path.join(__dirname, 'src/modules/Productos/views'),            // views modulo productos
 ]);
 
 // ── Middlewares globales ─────────────────────────────────────────────────────
@@ -68,7 +71,7 @@ app.use((req, res, next) => {
 app.get('/', verificarAdmin, async (req, res) => {
   try {
     const ahora = new Date();
-    const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, totalTiendas, usuariosActivos, todosClientes, recientes] = await Promise.all([
+    const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, totalTiendas, totalProductos, usuariosActivos, todosClientes, recientes] = await Promise.all([
       Usuario.countDocuments({ rol: 'cliente' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'activo' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'inactivo' }),
@@ -77,6 +80,7 @@ app.get('/', verificarAdmin, async (req, res) => {
       Plan.countDocuments({ tipo: 'plan' }),
       Plan.countDocuments({ tipo: 'addon' }),
       Tienda.countDocuments(),
+      Producto.countDocuments(),
       Usuario.find({ rol: 'cliente', estado: 'activo' }),
       Usuario.find({ rol: 'cliente' }),
       Usuario.find({ rol: 'cliente' }).sort({ fechaRegistro: -1 }).limit(5),
@@ -97,7 +101,7 @@ app.get('/', verificarAdmin, async (req, res) => {
 
     res.render('index', {
       titulo: 'Panel de Gestión',
-      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados, totalTiendas },
+      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados, totalTiendas, totalProductos },
       distribucion,
       recientes,
     });
@@ -116,6 +120,7 @@ app.use('/api/usuarios', verificarAdmin, usuariosRouter);  // Proteger API
 app.use('/planes', verificarAdmin, planesRouter);          // Proteger vistas
 app.use('/usuarios', verificarAdmin, usuariosRouter);      // Proteger vistas
 app.use('/', tiendaRouter);                                // GET/POST /mi-tienda
+app.use('/', productosRouter);                             // GET/POST /mis-productos
 
 // ── Manejo de rutas no encontradas (404) ─────────────────────────────────────
 app.use((req, res) => {
