@@ -78,7 +78,12 @@ app.get('/', verificarAdmin, async (req, res) => {
       Usuario.find({ rol: 'cliente' }).sort({ fechaRegistro: -1 }).limit(5),
     ]);
 
-    const mrr = usuariosActivos.reduce((sum, u) => sum + (u.planId?.precio || 0), 0);
+    const mrr = usuariosActivos.reduce((sum, u) => {
+      const enTrialU = u.trialHasta && u.trialHasta > ahora;
+      return sum + (!enTrialU && u.planId ? u.planId.precio : 0);
+    }, 0);
+
+    const addonsContratados = todosClientes.reduce((sum, u) => sum + (u.addons?.length || 0), 0);
 
     const distribucion = {};
     todosClientes.forEach(u => {
@@ -88,7 +93,7 @@ app.get('/', verificarAdmin, async (req, res) => {
 
     res.render('index', {
       titulo: 'Panel de Gestión',
-      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr },
+      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados },
       distribucion,
       recientes,
     });
