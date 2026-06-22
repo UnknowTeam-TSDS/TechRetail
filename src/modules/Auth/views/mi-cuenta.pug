@@ -5,81 +5,85 @@ html(lang="es")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title TechRetail Solutions — Mi cuenta
     script(src="https://cdn.tailwindcss.com")
-  body(class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen flex items-center justify-center font-sans py-10 px-4")
+  body(class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen font-sans py-10 px-4")
 
-    div(class="w-full max-w-md")
+    div(class="max-w-lg mx-auto")
 
       div(class="text-center mb-6")
         h1(class="text-2xl font-bold text-white") TechRetail Solutions
         p(class="text-blue-200 text-sm") Panel del cliente
 
-      div(class="bg-white rounded-2xl shadow-2xl p-8")
+      div(class="bg-white rounded-2xl shadow-2xl p-8 mb-4")
 
-        // Avatar + nombre
         div(class="text-center mb-6")
           div(class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3")
             span(class="text-3xl font-bold text-blue-900") #{usuario.nombre.charAt(0).toUpperCase()}
           h2(class="text-xl font-bold text-blue-900") #{usuario.nombre}
-          p(class="text-gray-500 text-sm") #{usuario.email}
+          p(class="text-gray-400 text-sm") #{usuario.email}
 
-        // Info del plan
-        div(class="bg-gray-50 rounded-xl p-5 mb-6")
+        div(class="border-t border-gray-100 pt-5 mb-5")
           p(class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3") Mi plan actual
 
           if planActual
             if enTrial
-              div(class="flex items-center gap-2 mb-2")
+              div(class="flex items-center gap-2 mb-3")
                 span(class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold") Período de prueba
                 span(class="text-green-600 font-semibold text-sm") #{diasTrial} días restantes
               p(class="text-2xl font-extrabold text-blue-900") #{planActual.nombre}
-              p(class="text-sm text-gray-500 mt-1")
-                | Al vencer el trial: $#{planActual.precio.toLocaleString('es-AR')}/mes
-              p(class="text-xs text-green-700 mt-2") Sin tarjeta requerida durante el período de prueba
+              p(class="text-sm text-gray-400 mt-1") Al vencer: $#{planActual.precio.toLocaleString('es-AR')}/mes
+              p(class="text-xs text-green-600 font-medium mt-1") Sin tarjeta requerida durante el período de prueba
             else
               p(class="text-2xl font-extrabold text-blue-900") #{planActual.nombre}
               p(class="text-3xl font-bold text-blue-700 mt-1")
                 | $#{planActual.precio.toLocaleString('es-AR')}
                 span(class="text-sm font-normal text-gray-400") /mes (ARS)
-              div(class="mt-2")
-                span(class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-semibold") Plan activo
+              span(class="inline-block mt-2 bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-semibold") Plan activo
           else
             div(class="text-center py-4")
-              p(class="text-gray-400 text-sm") No tenés un plan activo
+              p(class="text-gray-400 text-sm mb-2") No tenés un plan activo
               a(href="/elegir-plan" class="text-blue-700 font-semibold text-sm hover:underline") Elegir plan ahora
 
-        // Add-ons contratados
         if addonsContratados && addonsContratados.length > 0
-          div(class="mb-6")
+          div(class="border-t border-gray-100 pt-5 mb-5")
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3") Add-ons activos
             div(class="space-y-2")
               each addon in addonsContratados
-                div(class="flex items-center justify-between bg-indigo-50 rounded-lg px-4 py-3")
-                  div
-                    p(class="text-sm font-semibold text-indigo-900") #{addon.nombre}
-                    p(class="text-xs text-indigo-500") $#{addon.precio.toLocaleString('es-AR')}/mes
+                div(class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3")
+                  div(class="flex items-center gap-3")
+                    span(class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0") ✓
+                    div
+                      p(class="text-sm font-semibold text-indigo-900") #{addon.nombre}
+                      p(class="text-xs text-indigo-400") $#{addon.precio.toLocaleString('es-AR')}/mes
                   form(action="/mis-addons/quitar" method="POST")
                     input(type="hidden" name="addonId" value=String(addon._id))
-                    button(type="submit" class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors") Cancelar
+                    button(type="submit" class="text-xs text-gray-400 hover:text-red-500 font-medium transition-colors") Cancelar
 
-        // Add-ons disponibles
         if addonsDisponibles && addonsDisponibles.length > 0
-          div(class="mb-6")
+          div(class="border-t border-gray-100 pt-5 mb-5")
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3") Add-ons disponibles
-            div(class="space-y-2")
+            div(class="space-y-3")
               each addon in addonsDisponibles
-                div(class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3")
-                  div
-                    p(class="text-sm font-semibold text-gray-800") #{addon.nombre}
-                    p(class="text-xs text-gray-400") #{addon.descripcion}
-                    p(class="text-xs text-blue-700 font-medium mt-1") $#{addon.precio.toLocaleString('es-AR')}/mes
-                  form(action="/mis-addons/agregar" method="POST")
-                    input(type="hidden" name="addonId" value=String(addon._id))
-                    button(type="submit" class="text-xs bg-blue-900 hover:bg-blue-800 text-white px-3 py-1 rounded-lg font-medium transition-colors") Contratar
+                div(class="rounded-xl border border-gray-200 px-4 py-4")
+                  div(class="flex items-start justify-between gap-3")
+                    div(class="flex-1")
+                      p(class="text-sm font-bold text-gray-800") #{addon.nombre}
+                      p(class="text-xs text-gray-400 mt-0.5 leading-relaxed") #{addon.descripcion}
+                      p(class="text-sm font-bold text-blue-700 mt-2") $#{addon.precio.toLocaleString('es-AR')}/mes
+                    - const addonIdStr = String(addon._id)
+                    - const addonNombre = addon.nombre
+                    - const addonPrecio = addon.precio
+                    button(
+                      type="button"
+                      data-addon-id=addonIdStr
+                      data-addon-nombre=addonNombre
+                      data-addon-precio=addonPrecio
+                      onclick="abrirPagoAddon(this)"
+                      class="shrink-0 bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors mt-1")
+                      | Contratar
 
-        // Acciones
-        div(class="space-y-3")
+        div(class="border-t border-gray-100 pt-5 space-y-3")
           a(href="/elegir-plan"
-            class="block w-full text-center bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition-colors")
+            class="block w-full text-center border border-blue-200 hover:bg-blue-50 text-blue-900 font-semibold py-2.5 rounded-xl text-sm transition-colors")
             | Cambiar plan
 
           form(action="/logout" method="POST")
@@ -87,4 +91,63 @@ html(lang="es")
               class="w-full text-gray-400 hover:text-red-500 text-sm py-2 transition-colors")
               | Cerrar sesión
 
-      p(class="text-center text-blue-200 text-xs mt-6") © 2025 TechRetail Solutions S.R.L.
+    p(class="text-center text-blue-200 text-xs mt-4") © 2025 TechRetail Solutions S.R.L.
+
+    div(id="modal-addon" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4")
+      div(class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full")
+
+        h3(class="text-xl font-bold text-blue-900 mb-1") Contratar add-on
+        div(class="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 rounded-lg mb-5")
+          | Entorno de pruebas — no se realizará ningún cobro real
+
+        div(class="bg-indigo-50 rounded-xl p-4 mb-5")
+          p(class="text-xs text-gray-500 uppercase font-semibold") Add-on seleccionado
+          p(id="modal-addon-nombre" class="text-lg font-bold text-indigo-900 mt-1") —
+          div(class="flex items-baseline gap-1 mt-1")
+            p(id="modal-addon-precio" class="text-2xl font-extrabold text-indigo-700") —
+            span(class="text-xs text-gray-400") /mes (ARS)
+
+        form(id="form-addon" action="/mis-addons/agregar" method="POST" class="space-y-4")
+          input(type="hidden" id="modal-addon-id" name="addonId")
+
+          div
+            label(class="block text-sm font-semibold text-gray-700 mb-1") Nombre en la tarjeta
+            input(type="text" placeholder="NOMBRE APELLIDO" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+          div
+            label(class="block text-sm font-semibold text-gray-700 mb-1") Número de tarjeta
+            input(type="text" placeholder="•••• •••• •••• ••••" maxlength="19" required oninput="formatearTarjeta(this)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+          div(class="grid grid-cols-2 gap-3")
+            div
+              label(class="block text-sm font-semibold text-gray-700 mb-1") Vencimiento
+              input(type="text" placeholder="MM/AA" maxlength="5" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+            div
+              label(class="block text-sm font-semibold text-gray-700 mb-1") CVV
+              input(type="text" placeholder="•••" maxlength="3" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+          div(class="flex gap-3 pt-2")
+            button(type="button" onclick="cerrarModal()" class="flex-1 border border-gray-300 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors") Cancelar
+            button(type="submit" class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl text-sm transition-colors") Confirmar pago
+
+    script.
+      function abrirPagoAddon(btn) {
+        document.getElementById('modal-addon-id').value = btn.dataset.addonId;
+        document.getElementById('modal-addon-nombre').textContent = btn.dataset.addonNombre;
+        document.getElementById('modal-addon-precio').textContent =
+          '$' + Number(btn.dataset.addonPrecio).toLocaleString('es-AR');
+        document.getElementById('modal-addon').classList.remove('hidden');
+      }
+
+      function cerrarModal() {
+        document.getElementById('modal-addon').classList.add('hidden');
+      }
+
+      function formatearTarjeta(input) {
+        var val = input.value.replace(/\D/g, '').substring(0, 16);
+        input.value = val.replace(/(.{4})/g, '$1 ').trim();
+      }
+
+      document.getElementById('modal-addon').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModal();
+      });
