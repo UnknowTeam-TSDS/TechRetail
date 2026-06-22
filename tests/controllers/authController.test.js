@@ -1,13 +1,20 @@
 jest.mock('../../src/modules/usuarios/models/Usuario');
+jest.mock('../../src/modules/Planes/models/Plan');
 
 const Usuario = require('../../src/modules/usuarios/models/Usuario');
-const { vistaLogin, loginUsuario } = require('../../src/modules/Auth/controllers/authController');
+const Plan = require('../../src/modules/Planes/models/Plan');
+const {
+  vistaLogin,
+  loginUsuario,
+  agregarAddon,
+  quitarAddon,
+} = require('../../src/modules/Auth/controllers/authController');
 
 describe('Auth Controller', () => {
   let req, res;
 
   beforeEach(() => {
-    req = { body: {}, session: {} };
+    req = { body: {}, session: {}, query: {} };
     res = {
       status: jest.fn().mockReturnThis(),
       render: jest.fn(),
@@ -19,7 +26,7 @@ describe('Auth Controller', () => {
   describe('vistaLogin', () => {
     test('renderiza la vista login con titulo correcto', () => {
       vistaLogin(req, res);
-      expect(res.render).toHaveBeenCalledWith('login', { titulo: 'Iniciar Sesión' });
+      expect(res.render).toHaveBeenCalledWith('login', expect.objectContaining({ titulo: 'Iniciar Sesión' }));
     });
   });
 
@@ -64,7 +71,7 @@ describe('Auth Controller', () => {
       expect(res.render).toHaveBeenCalledWith('login', expect.objectContaining({ error: expect.any(String) }));
     });
 
-    test('redirige a /planes/vista si el admin hace login exitoso', async () => {
+    test('redirige a / si el admin hace login exitoso', async () => {
       req.body = { email: 'admin@test.com', contrasena: '123456' };
       const mockUsuario = {
         _id: 'mock-id',
@@ -80,7 +87,7 @@ describe('Auth Controller', () => {
       await loginUsuario(req, res);
       expect(req.session.usuario).toBeDefined();
       expect(req.session.usuario.rol).toBe('admin');
-      expect(res.redirect).toHaveBeenCalledWith('/planes/vista');
+      expect(res.redirect).toHaveBeenCalledWith('/');
     });
 
     test('devuelve 403 si el usuario esta inactivo', async () => {
@@ -98,6 +105,43 @@ describe('Auth Controller', () => {
       });
       await loginUsuario(req, res);
       expect(res.status).toHaveBeenCalledWith(403);
+    });
+  });
+
+  describe('agregarAddon', () => {
+    test('redirige a /mi-cuenta si el addon no existe', async () => {
+      req.body = { addonId: 'id-inexistente' };
+      req.session.usuario = { id: 'user-id' };
+      Plan.findOne = jest.fn().mockResolvedValue(null);
+      await agregarAddon(req, res);
+      expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
+    });
+
+    test('agrega el addon y redirige a /mi-cuenta', async () => {
+      req.body = { addonId: 'addon-id' };
+      req.session.usuario = { id: 'user-id' };
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon' });
+      Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+      await agregarAddon(req, res);
+      expect(Usuario.findByIdAndUpdate).toHaveBeenCalledWith(
+        'user-id',
+        { $addToSet: { addons: 'addon-id' } }
+      );
+      expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
+    });
+  });
+
+  describe('quitarAddon', () => {
+    test('quita el addon y redirige a /mi-cuenta', async () => {
+      req.body = { addonId: 'addon-id' };
+      req.session.usuario = { id: 'user-id' };
+      Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+      await quitarAddon(req, res);
+      expect(Usuario.findByIdAndUpdate).toHaveBeenCalledWith(
+        'user-id',
+        { $pull: { addons: 'addon-id' } }
+      );
+      expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
     });
   });
 });

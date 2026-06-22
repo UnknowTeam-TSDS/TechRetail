@@ -47,6 +47,35 @@ html(lang="es")
               p(class="text-gray-400 text-sm") No tenés un plan activo
               a(href="/elegir-plan" class="text-blue-700 font-semibold text-sm hover:underline") Elegir plan ahora
 
+        // Add-ons contratados
+        if addonsContratados && addonsContratados.length > 0
+          div(class="mb-6")
+            p(class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3") Add-ons activos
+            div(class="space-y-2")
+              each addon in addonsContratados
+                div(class="flex items-center justify-between bg-indigo-50 rounded-lg px-4 py-3")
+                  div
+                    p(class="text-sm font-semibold text-indigo-900") #{addon.nombre}
+                    p(class="text-xs text-indigo-500") $#{addon.precio.toLocaleString('es-AR')}/mes
+                  form(action="/mis-addons/quitar" method="POST")
+                    input(type="hidden" name="addonId" value=String(addon._id))
+                    button(type="submit" class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors") Cancelar
+
+        // Add-ons disponibles
+        if addonsDisponibles && addonsDisponibles.length > 0
+          div(class="mb-6")
+            p(class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3") Add-ons disponibles
+            div(class="space-y-2")
+              each addon in addonsDisponibles
+                div(class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3")
+                  div
+                    p(class="text-sm font-semibold text-gray-800") #{addon.nombre}
+                    p(class="text-xs text-gray-400") #{addon.descripcion}
+                    p(class="text-xs text-blue-700 font-medium mt-1") $#{addon.precio.toLocaleString('es-AR')}/mes
+                  form(action="/mis-addons/agregar" method="POST")
+                    input(type="hidden" name="addonId" value=String(addon._id))
+                    button(type="submit" class="text-xs bg-blue-900 hover:bg-blue-800 text-white px-3 py-1 rounded-lg font-medium transition-colors") Contratar
+
         // Acciones
         div(class="space-y-3")
           a(href="/elegir-plan"

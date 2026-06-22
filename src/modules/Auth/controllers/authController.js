@@ -208,7 +208,10 @@ const seleccionarPlan = async (req, res) => {
 // GET /mi-cuenta — dashboard del cliente
 const vistaCliente = async (req, res) => {
   try {
-    const usuario = await Usuario.findById(req.session.usuario.id);
+    const [usuario, todosLosAddons] = await Promise.all([
+      Usuario.findById(req.session.usuario.id),
+      Plan.find({ tipo: 'addon', activo: true }),
+    ]);
 
     let diasTrial = null;
     let enTrial = false;
@@ -217,16 +220,54 @@ const vistaCliente = async (req, res) => {
       diasTrial = Math.ceil((new Date(usuario.trialHasta) - new Date()) / (1000 * 60 * 60 * 24));
     }
 
+    const idsContratados = (usuario.addons || []).map(a => String(a._id || a));
+    const addonsDisponibles = todosLosAddons.filter(a => !idsContratados.includes(String(a._id)));
+
     res.render('mi-cuenta', {
       titulo: 'Mi cuenta',
       usuario: req.session.usuario,
       planActual: usuario.planId,
       enTrial,
       diasTrial,
+      addonsContratados: usuario.addons || [],
+      addonsDisponibles,
     });
   } catch (error) {
     console.error('Error cargando mi cuenta:', error.message);
     res.redirect('/login');
+  }
+};
+
+// POST /mis-addons/agregar
+const agregarAddon = async (req, res) => {
+  const { addonId } = req.body;
+  try {
+    const addon = await Plan.findOne({ _id: addonId, tipo: 'addon', activo: true });
+    if (!addon) return res.redirect('/mi-cuenta');
+
+    await Usuario.findByIdAndUpdate(
+      req.session.usuario.id,
+      { $addToSet: { addons: addon._id } }
+    );
+    res.redirect('/mi-cuenta');
+  } catch (error) {
+    console.error('Error al agregar add-on:', error.message);
+    res.redirect('/mi-cuenta');
+  }
+};
+
+// POST /mis-addons/quitar
+const quitarAddon = async (req, res) => {
+  const { addonId } = req.body;
+  try {
+    await Usuario.findByIdAndUpdate(
+      req.session.usuario.id,
+      { $pull: { addons: addonId } }
+    );
+    res.redirect('/mi-cuenta');
+  } catch (error) {
+    console.error('Error al quitar add-on:', error.message);
+    res.redirect('/mi-cuenta');
   }
 };
 
@@ -285,6 +326,8 @@ module.exports = {
   vistaElegirPlan,
   seleccionarPlan,
   vistaCliente,
+  agregarAddon,
+  quitarAddon,
   vistaCambiarContrasena,
   actualizarContrasena,
 };

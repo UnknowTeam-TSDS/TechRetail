@@ -47,4 +47,10 @@ describe('Modelo Usuario - validaciones de schema', () => {
       await expect(usuario.validate()).resolves.toBeUndefined();
     }
   });
+
+  test('el campo addons es un array vacio por defecto', () => {
+    const usuario = new Usuario({ nombre: 'Test User', email: 'test@test.com', contrasena: '123456' });
+    expect(Array.isArray(usuario.addons)).toBe(true);
+    expect(usuario.addons).toHaveLength(0);
+  });
 });

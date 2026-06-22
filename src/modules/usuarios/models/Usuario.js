@@ -44,6 +44,11 @@ const usuarioSchema = new mongoose.Schema({
     ref: 'Plan',
   },
 
+  addons: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Plan',
+  }],
+
   rol: {
     type: String,
     enum: ['admin', 'cliente'],
@@ -99,12 +104,10 @@ usuarioSchema.pre('save', function() {
   this.fechaActualizacion = Date.now();
 });
 
-// Middleware: poblar el plan al obtener un usuario
+// Middleware: poblar el plan y los add-ons al obtener un usuario
 usuarioSchema.pre(/^find/, function() {
-  this.populate({
-    path: 'planId',
-    select: 'nombre precio tipo',
-  });
+  this.populate({ path: 'planId', select: 'nombre precio tipo' })
+      .populate({ path: 'addons', select: 'nombre precio tipo' });
 });
 
 // Método: comparar contraseña ingresada con la hasheada

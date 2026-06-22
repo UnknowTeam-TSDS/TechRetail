@@ -8,41 +8,62 @@ const Usuario = require('../modules/usuarios/models/Usuario');
 
 const seedPlanes = async () => {
   try {
-    const planesExistentes = await Plan.countDocuments();
-    
-    if (planesExistentes > 0) {
-      console.log('✓ Planes ya existen en la BD');
-      return;
-    }
-
-    const planesDefault = [
+    const catalogoCanónico = [
+      // Planes de suscripción (del relevamiento IS, sección 3.2)
       {
         nombre: 'Starter',
-        descripcion: 'Plan básico para empezar tu negocio digital',
-        precio: 15000,
+        descripcion: 'Plan inicial para emprendedores digitales. Incluye tienda online, catálogo de hasta 100 productos y soporte por chat.',
+        precio: 12000,
         tipo: 'plan',
         activo: true,
       },
       {
         nombre: 'Growth',
-        descripcion: 'Plan para crecer y escalar tu negocio',
-        precio: 45000,
+        descripcion: 'Plan para PyMEs en crecimiento. Catálogo ilimitado, reportes de ventas, integración con métodos de pago y soporte prioritario.',
+        precio: 32000,
         tipo: 'plan',
         activo: true,
       },
       {
         nombre: 'Pro',
-        descripcion: 'Plan profesional con todas las features',
-        precio: 80000,
+        descripcion: 'Plan avanzado para negocios establecidos. Todas las funciones, multi-usuario, API de integración y soporte dedicado.',
+        precio: 55000,
         tipo: 'plan',
+        activo: true,
+      },
+      // Add-ons (módulos opcionales del relevamiento IS, sección 6.2)
+      {
+        nombre: 'Conector ERP',
+        descripcion: 'Sincronización automática y bidireccional del catálogo con Tango Gestión y Bejerman. Actualiza precios y stock en tiempo real.',
+        precio: 8000,
+        tipo: 'addon',
+        activo: true,
+      },
+      {
+        nombre: 'Facturación Electrónica ARCA',
+        descripcion: 'Emisión automática de Facturas A, B y C con CAE mediante WSFEv1. Cumplimiento fiscal garantizado ante cada venta.',
+        precio: 5000,
+        tipo: 'addon',
         activo: true,
       },
     ];
 
-    await Plan.insertMany(planesDefault);
-    console.log('✓ Planes por defecto creados correctamente');
+    // Eliminar planes/add-ons que no están en el catálogo canónico
+    const nombresCanónicos = catalogoCanónico.map(p => p.nombre);
+    await Plan.deleteMany({ nombre: { $nin: nombresCanónicos } });
+
+    // Upsert por nombre: actualiza si ya existe, crea si no existe
+    for (const datos of catalogoCanónico) {
+      await Plan.findOneAndUpdate(
+        { nombre: datos.nombre },
+        datos,
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+      );
+    }
+
+    console.log(`✓ Catálogo de planes y add-ons sincronizado (${catalogoCanónico.length} items)`);
   } catch (error) {
-    console.error('✗ Error al crear planes por defecto:', error.message);
+    console.error('✗ Error al sincronizar planes:', error.message);
   }
 };
 

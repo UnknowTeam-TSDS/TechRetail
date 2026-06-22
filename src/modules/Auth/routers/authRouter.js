@@ -19,6 +19,8 @@ router.post('/registro', controller.registrarUsuario);
 router.get('/elegir-plan', verificarSesion, controller.vistaElegirPlan);
 router.post('/elegir-plan', verificarSesion, controller.seleccionarPlan);
 router.get('/mi-cuenta', verificarSesion, controller.vistaCliente);
+router.post('/mis-addons/agregar', verificarSesion, controller.agregarAddon);
+router.post('/mis-addons/quitar', verificarSesion, controller.quitarAddon);
 router.get('/cambiar-contrasena', verificarSesion, controller.vistaCambiarContrasena);
 router.post('/cambiar-contrasena', verificarSesion, controller.actualizarContrasena);
 
