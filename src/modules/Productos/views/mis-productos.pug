@@ -7,7 +7,7 @@ html(lang="es")
     script(src="https://cdn.tailwindcss.com")
   body(class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen font-sans py-10 px-4")
 
-    div(class="max-w-4xl mx-auto")
+    div(class="max-w-5xl mx-auto")
 
       div(class="text-center mb-6")
         h1(class="text-2xl font-bold text-white") TechRetail Solutions
@@ -16,26 +16,69 @@ html(lang="es")
           p(class="text-blue-200 text-sm") #{tienda.nombre}
 
       div(class="bg-white rounded-2xl shadow-2xl p-6 mb-6")
-        h3(class="text-base font-bold text-blue-900 mb-4") Agregar producto
+        h3(class="text-base font-bold text-blue-900 mb-5") Agregar producto
         form(action="/mis-productos/form" method="POST")
-          div(class="grid grid-cols-1 md:grid-cols-2 gap-4")
+
+          p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Datos del producto
+          div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5")
             div
-              label(class="block text-sm text-gray-600 mb-1") Nombre
+              label(class="block text-sm text-gray-600 mb-1") Nombre *
               input(type="text" name="nombre" required minlength="3" placeholder="Ej: Remera básica negra" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
             div
               label(class="block text-sm text-gray-600 mb-1") Categoría
               input(type="text" name="categoria" placeholder="Ej: Indumentaria" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-            div
-              label(class="block text-sm text-gray-600 mb-1") Precio (ARS)
-              input(type="number" name="precio" required min="0" step="0.01" placeholder="0.00" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-            div
-              label(class="block text-sm text-gray-600 mb-1") Stock
-              input(type="number" name="stock" min="0" placeholder="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
             div(class="md:col-span-2")
               label(class="block text-sm text-gray-600 mb-1") Descripción
               textarea(name="descripcion" rows="2" placeholder="Descripción breve del producto" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none")
             div
-              button(type="submit" class="mt-2 bg-blue-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors") + Agregar producto
+              label(class="block text-sm text-gray-600 mb-1") Tipo
+              select(name="tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+                option(value="fisico") Físico
+                option(value="digital") Digital / descarga
+                option(value="servicio") Servicio
+
+          p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Precio e inventario
+          div(class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5")
+            div
+              label(class="block text-sm text-gray-600 mb-1") Precio (ARS) *
+              input(type="number" name="precio" required min="0" step="0.01" placeholder="0.00" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+            div
+              label(class="block text-sm text-gray-600 mb-1") Precio promocional
+              input(type="number" name="precioPromocional" min="0" step="0.01" placeholder="Dejar vacío si no aplica" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+            div
+              label(class="block text-sm text-gray-600 mb-1") Stock
+              input(type="number" name="stock" min="0" placeholder="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+          p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Clasificación
+          div(class="flex flex-wrap gap-6 mb-5")
+            label(class="flex items-center gap-2 cursor-pointer")
+              input(type="checkbox" name="destacado" class="w-4 h-4 rounded accent-blue-700")
+              span(class="text-sm text-gray-700") Destacado
+            label(class="flex items-center gap-2 cursor-pointer")
+              input(type="checkbox" name="esNovedad" class="w-4 h-4 rounded accent-blue-700")
+              span(class="text-sm text-gray-700") Novedad
+            label(class="flex items-center gap-2 cursor-pointer")
+              input(type="checkbox" name="esOferta" class="w-4 h-4 rounded accent-blue-700")
+              span(class="text-sm text-gray-700") Oferta
+
+          p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Imágenes
+          div(class="mb-5")
+            label(class="block text-sm text-gray-600 mb-1") URLs de imágenes (una por línea)
+            textarea(name="imagenes" rows="3" placeholder="https://ejemplo.com/foto1.jpg&#10;https://ejemplo.com/foto2.jpg" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none font-mono text-xs")
+
+          p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") SEO
+          div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5")
+            div(class="md:col-span-2")
+              label(class="block text-sm text-gray-600 mb-1") Tags (separados por coma)
+              input(type="text" name="tags" placeholder="Ej: remera, algodón, mujer, talle grande" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+            div
+              label(class="block text-sm text-gray-600 mb-1") Título SEO
+              input(type="text" name="tituloSEO" maxlength="70" placeholder="Máx. 70 caracteres" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+            div
+              label(class="block text-sm text-gray-600 mb-1") Descripción SEO
+              input(type="text" name="descripcionSEO" maxlength="160" placeholder="Máx. 160 caracteres" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+          button(type="submit" class="bg-blue-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors") + Agregar producto
 
       div(class="bg-white rounded-2xl shadow-2xl overflow-hidden")
         if productos.length === 0
@@ -46,8 +89,7 @@ html(lang="es")
           table(class="w-full border-collapse")
             thead
               tr
-                th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Nombre
-                th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Categoría
+                th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Producto
                 th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Precio
                 th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Stock
                 th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") Estado
@@ -56,11 +98,28 @@ html(lang="es")
               each producto in productos
                 tr(class="border-b border-gray-100 hover:bg-blue-50 transition-colors")
                   td(class="px-4 py-3")
-                    p(class="text-sm font-medium text-gray-900") #{producto.nombre}
-                    if producto.descripcion
-                      p(class="text-xs text-gray-400 mt-0.5 truncate max-w-xs") #{producto.descripcion}
-                  td(class="px-4 py-3 text-sm text-gray-500") #{producto.categoria || '—'}
-                  td(class="px-4 py-3 text-sm font-semibold text-blue-900") $#{producto.precio.toLocaleString('es-AR')}
+                    div(class="flex items-start gap-3")
+                      if producto.imagenes && producto.imagenes.length > 0
+                        img(src=producto.imagenes[0] alt=producto.nombre class="w-12 h-12 object-cover rounded-lg border border-gray-100 shrink-0")
+                      div
+                        p(class="text-sm font-medium text-gray-900") #{producto.nombre}
+                        if producto.categoria
+                          p(class="text-xs text-gray-400 mt-0.5") #{producto.categoria}
+                        div(class="flex flex-wrap gap-1 mt-1")
+                          if producto.tipo !== 'fisico'
+                            span(class="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded") #{producto.tipo}
+                          if producto.destacado
+                            span(class="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded") Destacado
+                          if producto.esNovedad
+                            span(class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded") Novedad
+                          if producto.esOferta
+                            span(class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded") Oferta
+                  td(class="px-4 py-3")
+                    if producto.precioPromocional
+                      p(class="text-sm font-bold text-red-600") $#{producto.precioPromocional.toLocaleString('es-AR')}
+                      p(class="text-xs text-gray-400 line-through") $#{producto.precio.toLocaleString('es-AR')}
+                    else
+                      p(class="text-sm font-semibold text-blue-900") $#{producto.precio.toLocaleString('es-AR')}
                   td(class="px-4 py-3 text-sm text-gray-700") #{producto.stock}
                   td(class="px-4 py-3")
                     if producto.activo

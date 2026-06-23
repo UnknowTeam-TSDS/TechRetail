@@ -22,6 +22,16 @@ const productoSchema = new mongoose.Schema({
     required: [true, 'El precio es obligatorio'],
     min: [0, 'El precio no puede ser negativo'],
   },
+  precioPromocional: {
+    type: Number,
+    min: [0, 'El precio promocional no puede ser negativo'],
+    default: null,
+  },
+  tipo: {
+    type: String,
+    enum: ['fisico', 'digital', 'servicio'],
+    default: 'fisico',
+  },
   stock: {
     type: Number,
     default: 0,
@@ -31,6 +41,26 @@ const productoSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: '',
+  },
+  imagenes: [{
+    type: String,
+    trim: true,
+  }],
+  destacado: { type: Boolean, default: false },
+  esNovedad: { type: Boolean, default: false },
+  esOferta:  { type: Boolean, default: false },
+  tags: [{ type: String, trim: true }],
+  tituloSEO: {
+    type: String,
+    trim: true,
+    default: '',
+    maxlength: [70, 'El título SEO no puede superar los 70 caracteres'],
+  },
+  descripcionSEO: {
+    type: String,
+    trim: true,
+    default: '',
+    maxlength: [160, 'La descripción SEO no puede superar los 160 caracteres'],
   },
   activo: {
     type: Boolean,

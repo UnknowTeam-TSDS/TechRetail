@@ -27,15 +27,25 @@ const crearProducto = async (req, res) => {
     const tienda = await tiendaStorage.buscarPorUsuario(req.session.usuario.id);
     if (!tienda) return res.redirect('/mi-tienda');
 
-    const { nombre, descripcion, precio, stock, categoria } = req.body;
+    const { nombre, descripcion, precio, precioPromocional, tipo, stock, categoria,
+            imagenes, destacado, esNovedad, esOferta, tags, tituloSEO, descripcionSEO } = req.body;
 
     await storage.agregar({
       tiendaId: tienda._id,
       nombre: nombre?.trim(),
       descripcion: descripcion?.trim(),
       precio: parseFloat(precio),
+      precioPromocional: precioPromocional ? parseFloat(precioPromocional) : null,
+      tipo: tipo || 'fisico',
       stock: parseInt(stock) || 0,
       categoria: categoria?.trim(),
+      imagenes: imagenes ? imagenes.split('\n').map(u => u.trim()).filter(Boolean) : [],
+      destacado: destacado === 'on',
+      esNovedad: esNovedad === 'on',
+      esOferta:  esOferta  === 'on',
+      tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+      tituloSEO: tituloSEO?.trim(),
+      descripcionSEO: descripcionSEO?.trim(),
     });
 
     res.redirect('/mis-productos');
