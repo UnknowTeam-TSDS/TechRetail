@@ -105,6 +105,52 @@ html(lang="es")
                 option(value="activa" selected=tienda && tienda.estado === 'activa') Activa
                 option(value="inactiva" selected=tienda && tienda.estado === 'inactiva') Inactiva
 
+          div(class="border-t border-gray-100 pt-5")
+            p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1") Información de contacto
+            p(class="text-xs text-gray-400 mb-4") Obligatoria por ley (Res. 104/2005 — Defensa del Consumidor).
+
+            div(class="space-y-4")
+              div
+                label(class="block text-sm font-semibold text-gray-700 mb-1") Email de contacto *
+                input(
+                  type="email"
+                  name="emailContacto"
+                  required
+                  value=tienda && tienda.emailContacto ? tienda.emailContacto : ''
+                  placeholder="Ej: contacto@minegoicio.com"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+              div
+                label(class="block text-sm font-semibold text-gray-700 mb-1") Teléfono *
+                input(
+                  type="tel"
+                  name="telefono"
+                  required
+                  value=tienda && tienda.telefono ? tienda.telefono : ''
+                  placeholder="Ej: +54 9 11 1234-5678"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+              div
+                label(class="block text-sm font-semibold text-gray-700 mb-1") Dirección *
+                input(
+                  type="text"
+                  name="direccion"
+                  required
+                  value=tienda && tienda.direccion ? tienda.direccion : ''
+                  placeholder="Ej: Av. Corrientes 1234, CABA"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+
+              div
+                label(class="block text-sm font-semibold text-gray-700 mb-1") WhatsApp
+                  span(class="text-gray-400 font-normal text-xs ml-1") (opcional)
+                input(
+                  type="tel"
+                  name="whatsapp"
+                  value=tienda && tienda.whatsapp ? tienda.whatsapp : ''
+                  placeholder="Ej: +54 9 11 1234-5678"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+                p(class="text-xs text-gray-400 mt-1") Si lo cargás, tus clientes verán un botón para contactarte por WhatsApp.
+
           div(class="pt-2")
             button(
               type="submit"

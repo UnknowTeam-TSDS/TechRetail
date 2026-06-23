@@ -28,7 +28,8 @@ const vistaTienda = async (req, res) => {
 // POST /mi-tienda
 const guardarTienda = async (req, res) => {
   try {
-    const { nombre, descripcion, rubro, colorPrimario, estado } = req.body;
+    const { nombre, descripcion, rubro, colorPrimario, estado,
+            emailContacto, telefono, direccion, whatsapp } = req.body;
 
     const usuario = await Usuario.findById(req.session.usuario.id);
     const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
@@ -41,6 +42,10 @@ const guardarTienda = async (req, res) => {
       rubro,
       colorPrimario: colorPrimario || '#1D4ED8',
       estado: estadoFinal,
+      emailContacto: emailContacto?.trim(),
+      telefono: telefono?.trim(),
+      direccion: direccion?.trim(),
+      whatsapp: whatsapp?.trim() || '',
     });
 
     res.redirect('/mi-tienda');
