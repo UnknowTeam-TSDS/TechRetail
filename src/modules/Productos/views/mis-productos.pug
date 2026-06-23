@@ -17,7 +17,7 @@ html(lang="es")
 
       div(class="bg-white rounded-2xl shadow-2xl p-6 mb-6")
         h3(class="text-base font-bold text-blue-900 mb-5") Agregar producto
-        form(action="/mis-productos/form" method="POST")
+        form(action="/mis-productos/form" method="POST" enctype="multipart/form-data")
 
           p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Datos del producto
           div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5")
@@ -26,7 +26,10 @@ html(lang="es")
               input(type="text" name="nombre" required minlength="3" placeholder="Ej: Remera básica negra" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
             div
               label(class="block text-sm text-gray-600 mb-1") Categoría
-              input(type="text" name="categoria" placeholder="Ej: Indumentaria" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+              input(type="text" name="categoria" list="lista-categorias" placeholder="Ej: Indumentaria" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+              datalist#lista-categorias
+                each cat in categorias
+                  option(value=cat)
             div(class="md:col-span-2")
               label(class="block text-sm text-gray-600 mb-1") Descripción
               textarea(name="descripcion" rows="2" placeholder="Descripción breve del producto" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none")
@@ -63,8 +66,8 @@ html(lang="es")
 
           p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Imágenes
           div(class="mb-5")
-            label(class="block text-sm text-gray-600 mb-1") URLs de imágenes (una por línea)
-            textarea(name="imagenes" rows="3" placeholder="https://ejemplo.com/foto1.jpg&#10;https://ejemplo.com/foto2.jpg" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none font-mono text-xs")
+            label(class="block text-sm text-gray-600 mb-1") Fotos del producto (máx. 5 archivos, 5 MB c/u)
+            input(type="file" name="imagenes" multiple accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-800 hover:file:bg-blue-200")
 
           p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") SEO
           div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5")

@@ -24,4 +24,9 @@ const contarTodos = async () => {
   return Producto.countDocuments();
 };
 
-module.exports = { listarPorTienda, agregar, eliminar, cambiarEstado, contarTodos };
+const categoriasPorTienda = async (tiendaId) => {
+  const cats = await Producto.distinct('categoria', { tiendaId, categoria: { $ne: '' } });
+  return cats.filter(Boolean).sort();
+};
+
+module.exports = { listarPorTienda, agregar, eliminar, cambiarEstado, contarTodos, categoriasPorTienda };

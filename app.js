@@ -45,6 +45,7 @@ app.set('views', [
 ]);
 
 // ── Middlewares globales ─────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public'))); // Archivos estáticos (imágenes subidas)
 app.use(express.json());                         // Parsear body JSON en requests POST/PUT
 app.use(express.urlencoded({ extended: true })); // Parsear form data
 app.use(logger);                                 // Logger: registra cada request

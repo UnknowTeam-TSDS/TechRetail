@@ -7,13 +7,17 @@ const vistaProductos = async (req, res) => {
     const tienda = await tiendaStorage.buscarPorUsuario(req.session.usuario.id);
     if (!tienda) return res.redirect('/mi-tienda');
 
-    const productos = await storage.listarPorTienda(tienda._id);
+    const [productos, categorias] = await Promise.all([
+      storage.listarPorTienda(tienda._id),
+      storage.categoriasPorTienda(tienda._id),
+    ]);
 
     res.render('mis-productos', {
       titulo: 'Mis productos',
       usuario: req.session.usuario,
       tienda,
       productos,
+      categorias,
     });
   } catch (error) {
     console.error('Error cargando productos:', error.message);
@@ -28,7 +32,7 @@ const crearProducto = async (req, res) => {
     if (!tienda) return res.redirect('/mi-tienda');
 
     const { nombre, descripcion, precio, precioPromocional, tipo, stock, categoria,
-            imagenes, destacado, esNovedad, esOferta, tags, tituloSEO, descripcionSEO } = req.body;
+            destacado, esNovedad, esOferta, tags, tituloSEO, descripcionSEO } = req.body;
 
     await storage.agregar({
       tiendaId: tienda._id,
@@ -39,7 +43,9 @@ const crearProducto = async (req, res) => {
       tipo: tipo || 'fisico',
       stock: parseInt(stock) || 0,
       categoria: categoria?.trim(),
-      imagenes: imagenes ? imagenes.split('\n').map(u => u.trim()).filter(Boolean) : [],
+      imagenes: req.files && req.files.length > 0
+        ? req.files.map(f => '/uploads/productos/' + f.filename)
+        : [],
       destacado: destacado === 'on',
       esNovedad: esNovedad === 'on',
       esOferta:  esOferta  === 'on',
