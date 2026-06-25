@@ -13,27 +13,6 @@ html(lang="es")
         h1(class="text-2xl font-bold text-white") TechRetail Solutions
         p(class="text-blue-200 text-sm") Configuración de tu tienda
 
-      if tienda
-        div(class="bg-white rounded-2xl shadow-2xl overflow-hidden mb-6")
-          div(class="h-3" style=`background-color:${tienda.colorPrimario}`)
-          div(class="p-6")
-            div(class="flex items-start justify-between gap-3")
-              div
-                p(class="text-xs text-gray-400 uppercase tracking-wide mb-1") Vista previa
-                h2(class="text-xl font-bold text-gray-900") #{tienda.nombre}
-                if tienda.descripcion
-                  p(class="text-sm text-gray-500 mt-1") #{tienda.descripcion}
-                div(class="flex items-center gap-2 mt-3")
-                  div(class="w-4 h-4 rounded-full border border-gray-200" style=`background-color:${tienda.colorPrimario}`)
-                  span(class="text-xs text-gray-400 capitalize") #{tienda.rubro}
-              div(class="shrink-0")
-                if tienda.estado === 'activa'
-                  span(class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1.5 rounded-full") Activa
-                else if tienda.estado === 'inactiva'
-                  span(class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full") Inactiva
-                else
-                  span(class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full") En construcción
-
       div(class="bg-white rounded-2xl shadow-2xl p-8 mb-4")
         h2(class="text-lg font-bold text-blue-900 mb-1")
           if tienda
