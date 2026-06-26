@@ -59,7 +59,7 @@ describe('Tienda Controller', () => {
 
   describe('guardarTienda', () => {
     test('guarda la tienda y redirige a /mi-tienda', async () => {
-      req.body = { nombre: 'Tienda Test', descripcion: 'Desc', rubro: 'moda', colorPrimario: '#FF0000', estado: 'activa' };
+      req.body = { nombre: 'Tienda Test', descripcion: 'Desc', rubro: 'moda', estado: 'activa' };
       Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
       storage.guardarTienda = jest.fn().mockResolvedValue({});
 

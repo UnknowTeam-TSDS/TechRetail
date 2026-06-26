@@ -23,6 +23,7 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "mongoose": "^9.6.2",
+    "multer": "^2.2.0",
     "pug": "^3.0.4",
     "socket.io": "^4.8.3"
   },

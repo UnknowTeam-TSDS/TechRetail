@@ -1,0 +1,96 @@
+<svg viewBox="0 0 870 470" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, monospace">
+  <rect width="870" height="470" fill="#f8fafc"/>
+  <text x="435" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1e293b">Modelo de Datos — MongoDB + Mongoose</text>
+  <text x="435" y="46" text-anchor="middle" font-size="10" fill="#94a3b8">Colecciones: plans · usuarios</text>
+  <!-- Plan -->
+  <rect x="28" y="60" width="270" height="300" rx="8" fill="#fff" stroke="#1e3a5f" stroke-width="2"/>
+  <rect x="28" y="60" width="270" height="34" rx="8" fill="#1e3a5f"/>
+  <rect x="28" y="74" width="270" height="20" fill="#1e3a5f"/>
+  <text x="163" y="80" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Plan</text>
+  <text x="163" y="93" text-anchor="middle" font-size="9" fill="#93c5fd">colección: plans</text>
+  <rect x="28" y="94" width="270" height="16" fill="#f1f5f9"/>
+  <text x="46" y="105" font-size="8" font-weight="600" fill="#64748b">Campo</text>
+  <text x="165" y="105" font-size="8" font-weight="600" fill="#64748b">Tipo</text>
+  <text x="228" y="105" font-size="8" font-weight="600" fill="#64748b">Restricciones</text>
+  <line x1="28" y1="110" x2="298" y2="110" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="46" y="122" font-size="9" fill="#64748b">_id</text><text x="165" y="122" font-size="9" fill="#475569">ObjectId</text><text x="228" y="122" font-size="8" fill="#0ea5e9">PK</text>
+  <line x1="28" y1="128" x2="298" y2="128" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="46" y="140" font-size="9" fill="#1e293b">nombre</text><text x="165" y="140" font-size="9" fill="#475569">String</text><text x="228" y="140" font-size="8" fill="#dc2626">req, min:3</text>
+  <line x1="28" y1="146" x2="298" y2="146" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="46" y="158" font-size="9" fill="#1e293b">descripcion</text><text x="165" y="158" font-size="9" fill="#475569">String</text><text x="228" y="158" font-size="8" fill="#dc2626">requerido</text>
+  <line x1="28" y1="164" x2="298" y2="164" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="46" y="176" font-size="9" fill="#1e293b">precio</text><text x="165" y="176" font-size="9" fill="#475569">Number</text><text x="228" y="176" font-size="8" fill="#dc2626">req, min:1</text>
+  <line x1="28" y1="182" x2="298" y2="182" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="46" y="194" font-size="9" fill="#1e293b">tipo</text><text x="165" y="194" font-size="9" fill="#475569">String</text><text x="228" y="194" font-size="8" fill="#7c3aed">plan | addon</text>
+  <line x1="28" y1="200" x2="298" y2="200" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="46" y="212" font-size="9" fill="#1e293b">activo</text><text x="165" y="212" font-size="9" fill="#475569">Boolean</text><text x="228" y="212" font-size="8" fill="#64748b">default: true</text>
+  <line x1="28" y1="218" x2="298" y2="218" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="46" y="230" font-size="9" fill="#94a3b8">createdAt</text><text x="165" y="230" font-size="9" fill="#94a3b8">Date</text><text x="228" y="230" font-size="8" fill="#94a3b8">timestamps</text>
+  <line x1="28" y1="236" x2="298" y2="236" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="46" y="248" font-size="9" fill="#94a3b8">updatedAt</text><text x="165" y="248" font-size="9" fill="#94a3b8">Date</text><text x="228" y="248" font-size="8" fill="#94a3b8">timestamps</text>
+  <line x1="28" y1="254" x2="298" y2="254" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="163" y="270" text-anchor="middle" font-size="9" font-weight="600" fill="#64748b">Datos iniciales (seed)</text>
+  <text x="163" y="286" text-anchor="middle" font-size="9" fill="#475569">Starter  —  $15.000 ARS</text>
+  <text x="163" y="300" text-anchor="middle" font-size="9" fill="#475569">Growth  —  $45.000 ARS</text>
+  <text x="163" y="314" text-anchor="middle" font-size="9" fill="#475569">Pro      —  $80.000 ARS</text>
+  <text x="163" y="332" text-anchor="middle" font-size="8" fill="#94a3b8">+ admin@techretail.com</text>
+  <text x="163" y="346" text-anchor="middle" font-size="8" fill="#94a3b8">Creados si la BD está vacía</text>
+  <!-- Relation -->
+  <line x1="298" y1="250" x2="432" y2="250" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#ab)"/>
+  <rect x="308" y="236" width="112" height="17" rx="4" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1"/>
+  <text x="364" y="248" text-anchor="middle" font-size="8" fill="#0369a1">planId → ref:'Plan'</text>
+  <text x="304" y="233" font-size="9" font-weight="700" fill="#0ea5e9">1</text>
+  <text x="424" y="233" font-size="9" font-weight="700" fill="#0ea5e9">N</text>
+  <!-- Usuario -->
+  <rect x="438" y="60" width="400" height="380" rx="8" fill="#fff" stroke="#1e3a5f" stroke-width="2"/>
+  <rect x="438" y="60" width="400" height="34" rx="8" fill="#1e3a5f"/>
+  <rect x="438" y="74" width="400" height="20" fill="#1e3a5f"/>
+  <text x="638" y="80" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Usuario</text>
+  <text x="638" y="93" text-anchor="middle" font-size="9" fill="#93c5fd">colección: usuarios</text>
+  <rect x="438" y="94" width="400" height="16" fill="#f1f5f9"/>
+  <text x="458" y="105" font-size="8" font-weight="600" fill="#64748b">Campo</text>
+  <text x="590" y="105" font-size="8" font-weight="600" fill="#64748b">Tipo</text>
+  <text x="690" y="105" font-size="8" font-weight="600" fill="#64748b">Restricciones</text>
+  <line x1="438" y1="110" x2="838" y2="110" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="458" y="122" font-size="9" fill="#64748b">_id</text><text x="590" y="122" font-size="9" fill="#475569">ObjectId</text><text x="690" y="122" font-size="8" fill="#0ea5e9">PK</text>
+  <line x1="438" y1="128" x2="838" y2="128" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="140" font-size="9" fill="#1e293b">nombre</text><text x="590" y="140" font-size="9" fill="#475569">String</text><text x="690" y="140" font-size="8" fill="#dc2626">requerido, min:3</text>
+  <line x1="438" y1="146" x2="838" y2="146" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="158" font-size="9" fill="#1e293b">email</text><text x="590" y="158" font-size="9" fill="#475569">String</text><text x="690" y="158" font-size="8" fill="#dc2626">requerido, único</text>
+  <line x1="438" y1="164" x2="838" y2="164" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="176" font-size="9" fill="#1e293b">contrasena</text><text x="590" y="176" font-size="9" fill="#475569">String</text><text x="690" y="176" font-size="8" fill="#7c3aed">bcrypt, select:false</text>
+  <line x1="438" y1="182" x2="838" y2="182" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="194" font-size="9" fill="#1e293b">empresa</text><text x="590" y="194" font-size="9" fill="#475569">String</text><text x="690" y="194" font-size="8" fill="#94a3b8">opcional</text>
+  <line x1="438" y1="200" x2="838" y2="200" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="212" font-size="9" fill="#1e293b">telefono</text><text x="590" y="212" font-size="9" fill="#475569">String</text><text x="690" y="212" font-size="8" fill="#94a3b8">opcional</text>
+  <line x1="438" y1="218" x2="838" y2="218" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="230" font-size="9" fill="#0ea5e9" font-weight="600">planId</text><text x="590" y="230" font-size="9" fill="#0ea5e9">ObjectId</text><text x="690" y="230" font-size="8" fill="#0ea5e9">FK → Plan (populate)</text>
+  <line x1="438" y1="236" x2="838" y2="236" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="248" font-size="9" fill="#1e293b">rol</text><text x="590" y="248" font-size="9" fill="#475569">String</text><text x="690" y="248" font-size="8" fill="#7c3aed">admin | cliente</text>
+  <line x1="438" y1="254" x2="838" y2="254" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="266" font-size="9" fill="#1e293b">estado</text><text x="590" y="266" font-size="9" fill="#475569">String</text><text x="690" y="266" font-size="8" fill="#7c3aed">activo | inactivo</text>
+  <text x="690" y="278" font-size="8" fill="#7c3aed">| suspendido</text>
+  <line x1="438" y1="284" x2="838" y2="284" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="296" font-size="9" fill="#1e293b">fechaRegistro</text><text x="590" y="296" font-size="9" fill="#475569">Date</text><text x="690" y="296" font-size="8" fill="#94a3b8">default: now</text>
+  <line x1="438" y1="302" x2="838" y2="302" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="314" font-size="9" fill="#94a3b8">createdAt</text><text x="590" y="314" font-size="9" fill="#94a3b8">Date</text><text x="690" y="314" font-size="8" fill="#94a3b8">timestamps</text>
+  <line x1="438" y1="320" x2="838" y2="320" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="458" y="332" font-size="9" fill="#94a3b8">updatedAt</text><text x="590" y="332" font-size="9" fill="#94a3b8">Date</text><text x="690" y="332" font-size="8" fill="#94a3b8">timestamps</text>
+  <line x1="438" y1="338" x2="838" y2="338" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="638" y="354" text-anchor="middle" font-size="8" font-weight="600" fill="#64748b">Middlewares del schema</text>
+  <text x="638" y="368" text-anchor="middle" font-size="8" fill="#475569">pre('save') — hashea contrasena con bcrypt (10 rounds)</text>
+  <text x="638" y="382" text-anchor="middle" font-size="8" fill="#475569">pre(/^find/) — populate planId automáticamente</text>
+  <text x="638" y="396" text-anchor="middle" font-size="8" fill="#475569">compararContrasena() — método de instancia (bcrypt.compare)</text>
+  <text x="638" y="410" text-anchor="middle" font-size="8" fill="#94a3b8">Para recuperar hash en login: .select('+contrasena')</text>
+  <text x="638" y="424" text-anchor="middle" font-size="8" fill="#94a3b8">Contraseña nunca retornada por defecto en queries</text>
+  <!-- Legend -->
+  <text x="28" y="455" font-size="8" fill="#dc2626">■ </text><text x="38" y="455" font-size="8" fill="#475569">requerido</text>
+  <text x="115" y="455" font-size="8" fill="#7c3aed">■ </text><text x="125" y="455" font-size="8" fill="#475569">enum</text>
+  <text x="178" y="455" font-size="8" fill="#0ea5e9">■ </text><text x="188" y="455" font-size="8" fill="#475569">FK / populate</text>
+  <text x="290" y="455" font-size="8" fill="#94a3b8">■ </text><text x="300" y="455" font-size="8" fill="#475569">generado automáticamente</text>
+  <defs>
+    <marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#0ea5e9"/>
+    </marker>
+  </defs>
+</svg>

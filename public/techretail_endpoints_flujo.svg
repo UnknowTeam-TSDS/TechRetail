@@ -1,0 +1,133 @@
+<svg viewBox="0 0 910 590" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, monospace">
+  <rect width="910" height="590" fill="#f8fafc"/>
+  <text x="455" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1e293b">Endpoints y Flujo de Autenticación</text>
+  <!-- Table -->
+  <text x="28" y="50" font-size="11" font-weight="700" fill="#1e293b">Rutas del sistema</text>
+  <rect x="20" y="56" width="472" height="20" rx="4" fill="#1e3a5f"/>
+  <text x="32" y="69" font-size="8" font-weight="600" fill="#fff">Módulo</text>
+  <text x="108" y="69" font-size="8" font-weight="600" fill="#fff">Método</text>
+  <text x="158" y="69" font-size="8" font-weight="600" fill="#fff">Ruta</text>
+  <text x="305" y="69" font-size="8" font-weight="600" fill="#fff">Descripción</text>
+  <!-- AUTH -->
+  <rect x="20" y="76" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="87" font-size="8" fill="#64748b">Auth</text><rect x="106" y="78" width="30" height="11" rx="2" fill="#dcfce7"/><text x="121" y="87" text-anchor="middle" font-size="7" fill="#166534">GET</text>
+  <text x="158" y="87" font-size="8" fill="#475569">/login</text><text x="305" y="87" font-size="8" fill="#475569">Vista del formulario de login</text>
+  <rect x="20" y="91" width="472" height="15" fill="#fff"/>
+  <text x="32" y="102" font-size="8" fill="#64748b">Auth</text><rect x="106" y="93" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="102" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="102" font-size="8" fill="#475569">/login</text><text x="305" y="102" font-size="8" fill="#475569">Autenticar y crear sesión</text>
+  <rect x="20" y="106" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="117" font-size="8" fill="#64748b">Auth</text><rect x="106" y="108" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="117" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="117" font-size="8" fill="#475569">/logout</text><text x="305" y="117" font-size="8" fill="#475569">Destruir sesión activa</text>
+  <line x1="20" y1="121" x2="492" y2="121" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- PLANES HTML -->
+  <rect x="20" y="121" width="472" height="15" fill="#fff"/>
+  <text x="32" y="132" font-size="8" fill="#1e3a5f" font-weight="600">Planes</text><rect x="106" y="123" width="30" height="11" rx="2" fill="#dcfce7"/><text x="121" y="132" text-anchor="middle" font-size="7" fill="#166534">GET</text>
+  <text x="158" y="132" font-size="8" fill="#475569">/planes/vista</text><text x="305" y="132" font-size="8" fill="#475569">Vista HTML con lista de planes</text>
+  <rect x="20" y="136" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="147" font-size="8" fill="#1e3a5f" font-weight="600">Planes</text><rect x="106" y="138" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="147" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="147" font-size="8" fill="#475569">/planes/form</text><text x="305" y="147" font-size="8" fill="#475569">Crear plan — formulario (PRG)</text>
+  <rect x="20" y="151" width="472" height="15" fill="#fff"/>
+  <text x="32" y="162" font-size="8" fill="#1e3a5f" font-weight="600">Planes</text><rect x="106" y="153" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="162" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="162" font-size="8" fill="#475569">/planes/eliminar/:id</text><text x="305" y="162" font-size="8" fill="#475569">Eliminar plan — formulario (PRG)</text>
+  <line x1="20" y1="166" x2="492" y2="166" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- PLANES API -->
+  <rect x="20" y="166" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="177" font-size="8" fill="#1e3a5f" font-weight="600">Planes API</text><rect x="106" y="168" width="30" height="11" rx="2" fill="#dcfce7"/><text x="121" y="177" text-anchor="middle" font-size="7" fill="#166534">GET</text>
+  <text x="158" y="177" font-size="8" fill="#475569">/api/planes</text><text x="305" y="177" font-size="8" fill="#475569">Listar todos los planes</text>
+  <rect x="20" y="181" width="472" height="15" fill="#fff"/>
+  <text x="32" y="192" font-size="8" fill="#1e3a5f" font-weight="600">Planes API</text><rect x="106" y="183" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="192" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="192" font-size="8" fill="#475569">/api/planes</text><text x="305" y="192" font-size="8" fill="#475569">Crear plan — emite WebSocket</text>
+  <rect x="20" y="196" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="207" font-size="8" fill="#1e3a5f" font-weight="600">Planes API</text><rect x="106" y="198" width="30" height="11" rx="2" fill="#dcfce7"/><text x="121" y="207" text-anchor="middle" font-size="7" fill="#166534">GET</text>
+  <text x="158" y="207" font-size="8" fill="#475569">/api/planes/:id</text><text x="305" y="207" font-size="8" fill="#475569">Obtener plan por ID</text>
+  <rect x="20" y="211" width="472" height="15" fill="#fff"/>
+  <text x="32" y="222" font-size="8" fill="#1e3a5f" font-weight="600">Planes API</text><rect x="106" y="213" width="30" height="11" rx="2" fill="#dbeafe"/><text x="121" y="222" text-anchor="middle" font-size="7" fill="#1e40af">PUT</text>
+  <text x="158" y="222" font-size="8" fill="#475569">/api/planes/:id</text><text x="305" y="222" font-size="8" fill="#475569">Actualizar plan existente</text>
+  <rect x="20" y="226" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="237" font-size="8" fill="#1e3a5f" font-weight="600">Planes API</text><rect x="106" y="228" width="30" height="11" rx="2" fill="#fee2e2"/><text x="121" y="237" text-anchor="middle" font-size="7" fill="#991b1b">DELETE</text>
+  <text x="158" y="237" font-size="8" fill="#475569">/api/planes/:id</text><text x="305" y="237" font-size="8" fill="#475569">Eliminar plan</text>
+  <line x1="20" y1="241" x2="492" y2="241" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- USUARIOS HTML -->
+  <rect x="20" y="241" width="472" height="15" fill="#fff"/>
+  <text x="32" y="252" font-size="8" fill="#475569">Usuarios</text><rect x="106" y="243" width="30" height="11" rx="2" fill="#dcfce7"/><text x="121" y="252" text-anchor="middle" font-size="7" fill="#166534">GET</text>
+  <text x="158" y="252" font-size="8" fill="#475569">/usuarios/vista</text><text x="305" y="252" font-size="8" fill="#475569">Vista HTML con lista de clientes</text>
+  <rect x="20" y="256" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="267" font-size="8" fill="#475569">Usuarios</text><rect x="106" y="258" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="267" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="267" font-size="8" fill="#475569">/usuarios/form</text><text x="305" y="267" font-size="8" fill="#475569">Registrar usuario (PRG)</text>
+  <rect x="20" y="271" width="472" height="15" fill="#fff"/>
+  <text x="32" y="282" font-size="8" fill="#475569">Usuarios</text><rect x="106" y="273" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="282" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="282" font-size="8" fill="#475569">/usuarios/estado/:id</text><text x="305" y="282" font-size="8" fill="#475569">Cambiar estado — activar/suspender</text>
+  <rect x="20" y="286" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="297" font-size="8" fill="#475569">Usuarios</text><rect x="106" y="288" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="297" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="297" font-size="8" fill="#475569">/usuarios/plan/:id</text><text x="305" y="297" font-size="8" fill="#475569">Reasignar plan (PRG)</text>
+  <rect x="20" y="301" width="472" height="15" fill="#fff"/>
+  <text x="32" y="312" font-size="8" fill="#475569">Usuarios</text><rect x="106" y="303" width="30" height="11" rx="2" fill="#fef9c3"/><text x="121" y="312" text-anchor="middle" font-size="7" fill="#854d0e">POST</text>
+  <text x="158" y="312" font-size="8" fill="#475569">/usuarios/eliminar/:id</text><text x="305" y="312" font-size="8" fill="#475569">Eliminar usuario (PRG)</text>
+  <line x1="20" y1="316" x2="492" y2="316" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- USUARIOS API -->
+  <rect x="20" y="316" width="472" height="15" fill="#f8fafc"/>
+  <text x="32" y="327" font-size="8" fill="#475569">Usuarios API</text>
+  <text x="158" y="327" font-size="8" fill="#64748b">/api/usuarios</text><text x="305" y="327" font-size="8" fill="#64748b">Listar y crear (GET, POST)</text>
+  <rect x="20" y="331" width="472" height="15" fill="#fff"/>
+  <text x="32" y="342" font-size="8" fill="#475569">Usuarios API</text>
+  <text x="158" y="342" font-size="8" fill="#64748b">/api/usuarios/:id</text><text x="305" y="342" font-size="8" fill="#64748b">Leer, editar y eliminar (GET/PUT/DEL)</text>
+  <line x1="20" y1="346" x2="492" y2="346" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- DASHBOARD -->
+  <rect x="20" y="346" width="472" height="15" fill="#f5f3ff"/>
+  <text x="32" y="357" font-size="8" fill="#6d28d9" font-weight="600">Dashboard</text><rect x="106" y="348" width="30" height="11" rx="2" fill="#dcfce7"/><text x="121" y="357" text-anchor="middle" font-size="7" fill="#166534">GET</text>
+  <text x="158" y="357" font-size="8" fill="#6d28d9">/</text><text x="305" y="357" font-size="8" fill="#6d28d9">MRR, estadísticas y últimos clientes</text>
+  <rect x="20" y="56" width="472" height="305" rx="4" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- WebSocket note -->
+  <rect x="20" y="374" width="472" height="28" rx="6" fill="#312e81"/>
+  <text x="256" y="388" text-anchor="middle" font-size="9" font-weight="600" fill="#a5b4fc">WebSocket (Socket.io) — notificaciones en tiempo real</text>
+  <text x="256" y="399" text-anchor="middle" font-size="8" fill="#c7d2fe">Eventos: nuevo-plan · nuevo-usuario → toast 4s en el cliente</text>
+  <!-- Auth flow -->
+  <text x="522" y="50" font-size="11" font-weight="700" fill="#1e293b">Flujo de autenticación</text>
+  <rect x="510" y="60" width="370" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="695" y="75" text-anchor="middle" font-size="9" font-weight="600" fill="#1e293b">POST /login</text>
+  <text x="695" y="88" text-anchor="middle" font-size="8" fill="#64748b">{ email, contrasena } en el body</text>
+  <line x1="695" y1="94" x2="695" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arf)"/>
+  <rect x="510" y="110" width="370" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="695" y="125" text-anchor="middle" font-size="9" fill="#1e293b">Validar campos obligatorios</text>
+  <text x="695" y="138" text-anchor="middle" font-size="8" fill="#64748b">Falta email o contraseña → 400</text>
+  <line x1="695" y1="144" x2="695" y2="160" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arf)"/>
+  <rect x="510" y="160" width="370" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="695" y="175" text-anchor="middle" font-size="9" fill="#1e293b">Usuario.findOne({ email })</text>
+  <text x="695" y="188" text-anchor="middle" font-size="8" fill="#64748b">.select('+contrasena')</text>
+  <line x1="695" y1="194" x2="695" y2="210" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arf)"/>
+  <polygon points="695,210 778,233 695,256 612,233" fill="#fef9c3" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="695" y="237" text-anchor="middle" font-size="8" fill="#854d0e">¿Usuario existe?</text>
+  <line x1="612" y1="233" x2="542" y2="233" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arfr)"/>
+  <rect x="510" y="225" width="28" height="16" rx="3" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="524" y="237" text-anchor="middle" font-size="7" fill="#991b1b">401</text>
+  <text x="597" y="227" font-size="7" fill="#ef4444">No</text>
+  <text x="702" y="260" font-size="7" fill="#16a34a">Sí</text>
+  <line x1="695" y1="256" x2="695" y2="272" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arf)"/>
+  <rect x="510" y="272" width="370" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="695" y="287" text-anchor="middle" font-size="9" fill="#1e293b">bcrypt.compare(input, hash)</text>
+  <text x="695" y="300" text-anchor="middle" font-size="8" fill="#64748b">Compara con contraseña almacenada</text>
+  <line x1="695" y1="306" x2="695" y2="322" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arf)"/>
+  <polygon points="695,322 778,345 695,368 612,345" fill="#fef9c3" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="695" y="349" text-anchor="middle" font-size="8" fill="#854d0e">¿Contraseña válida?</text>
+  <line x1="612" y1="345" x2="542" y2="345" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arfr)"/>
+  <rect x="510" y="337" width="28" height="16" rx="3" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="524" y="349" text-anchor="middle" font-size="7" fill="#991b1b">401</text>
+  <text x="597" y="339" font-size="7" fill="#ef4444">No</text>
+  <text x="702" y="372" font-size="7" fill="#16a34a">Sí</text>
+  <line x1="695" y1="368" x2="695" y2="384" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arf)"/>
+  <rect x="510" y="384" width="370" height="34" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+  <text x="695" y="399" text-anchor="middle" font-size="9" fill="#166534">Crear sesión</text>
+  <text x="695" y="412" text-anchor="middle" font-size="8" fill="#166534">req.session.usuario = { id, nombre, rol }</text>
+  <line x1="695" y1="418" x2="695" y2="434" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arf)"/>
+  <rect x="510" y="434" width="370" height="34" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="695" y="449" text-anchor="middle" font-size="9" fill="#1e40af">Redirect → /planes/vista  (admin)</text>
+  <text x="695" y="462" text-anchor="middle" font-size="8" fill="#1e40af">Redirect → /  (otros roles)</text>
+  <rect x="510" y="480" width="370" height="48" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="695" y="496" text-anchor="middle" font-size="9" font-weight="600" fill="#6d28d9">Middleware verificarAdmin</text>
+  <text x="695" y="509" text-anchor="middle" font-size="8" fill="#7c3aed">Protege todas las rutas del panel admin.</text>
+  <text x="695" y="521" text-anchor="middle" font-size="8" fill="#7c3aed">req.session.usuario.rol === 'admin'</text>
+  <defs>
+    <marker id="arf" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/></marker>
+    <marker id="arfr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ef4444"/></marker>
+  </defs>
+</svg>
