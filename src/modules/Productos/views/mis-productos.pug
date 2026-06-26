@@ -20,15 +20,28 @@ html(lang="es")
             p(class="text-3xl font-extrabold") #{productos.length}
 
     main(class="max-w-6xl mx-auto px-5 py-8")
+      - const editando = !!productoEditando
+      - const accionFormulario = editando ? '/mis-productos/editar/' + productoEditando._id : '/mis-productos/form'
+      - const tagsEditando = editando && productoEditando.tags ? productoEditando.tags.join(', ') : ''
 
       div(class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start")
 
         section(class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden")
           div(class="px-6 py-5 border-b border-slate-100")
-            h2(class="text-xl font-bold text-blue-950") Agregar producto
-            p(class="text-sm text-slate-500 mt-1") Completa lo esencial primero. Las imagenes y SEO ayudan a mejorar como se ve el producto.
+            h2(class="text-xl font-bold text-blue-950")
+              if editando
+                | Editar producto
+              else
+                | Agregar producto
+            p(class="text-sm text-slate-500 mt-1")
+              if editando
+                | Actualiza los datos del producto sin perder sus imagenes cargadas.
+              else
+                | Completa lo esencial primero. Las imagenes y SEO ayudan a mejorar como se ve el producto.
+            if editando
+              a(href="/mis-productos" class="inline-block mt-3 text-sm font-semibold text-blue-700 hover:underline") Cancelar edicion
 
-          form(action="/mis-productos/form" method="POST" enctype="multipart/form-data" class="p-6 space-y-6")
+          form(action=accionFormulario method="POST" enctype="multipart/form-data" class="p-6 space-y-6")
 
             div(class="border border-slate-200 rounded-xl p-5")
               div(class="flex items-center gap-3 mb-4")
@@ -40,7 +53,7 @@ html(lang="es")
               div(class="grid grid-cols-1 md:grid-cols-2 gap-4")
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Nombre *
-                  input(type="text" name="nombre" required minlength="3" placeholder="Ej: Tetera de ceramica" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                  input(type="text" name="nombre" required minlength="3" value=editando ? productoEditando.nombre : '' placeholder="Ej: Tetera de ceramica" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
 
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Categoria
@@ -48,7 +61,7 @@ html(lang="es")
                     select(id="select-categoria" name="categoria" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
                       option(value="") Seleccionar categoria
                       each cat in categorias
-                        option(value=cat) #{cat}
+                        option(value=cat selected=editando && productoEditando.categoria === cat) #{cat}
                     button(type="button" onclick="mostrarNuevaCategoria()" class="shrink-0 border border-blue-200 text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg text-xs font-bold transition-colors") + Nueva
                   div(id="nueva-categoria-box" class="hidden mt-2 flex gap-2")
                     input(id="nueva-categoria-input" type="text" placeholder="Ej: Hogar y deco" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
@@ -57,13 +70,15 @@ html(lang="es")
                 div(class="md:col-span-2")
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Descripcion
                   textarea(name="descripcion" rows="3" placeholder="Contale al cliente que es, para que sirve y que lo hace distinto." class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 resize-none")
+                    if editando && productoEditando.descripcion
+                      | #{productoEditando.descripcion}
 
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Tipo
-                  select(name="tipo" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
-                    option(value="fisico") Fisico
-                    option(value="digital") Digital / descarga
-                    option(value="servicio") Servicio
+                  select(id="tipo-producto" name="tipo" onchange="actualizarLogistica()" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                    option(value="fisico" selected=!editando || productoEditando.tipo === 'fisico') Fisico
+                    option(value="digital" selected=editando && productoEditando.tipo === 'digital') Digital / descarga
+                    option(value="servicio" selected=editando && productoEditando.tipo === 'servicio') Servicio
 
             div(class="border border-slate-200 rounded-xl p-5")
               div(class="flex items-center gap-3 mb-4")
@@ -75,19 +90,40 @@ html(lang="es")
               div(class="grid grid-cols-1 md:grid-cols-3 gap-4")
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Precio (ARS) *
-                  input(type="number" name="precio" required min="0" step="0.01" placeholder="0.00" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                  input(type="number" name="precio" required min="0" step="0.01" value=editando ? productoEditando.precio : '' placeholder="0.00" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
 
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Precio promocional
-                  input(type="number" name="precioPromocional" min="0" step="0.01" placeholder="Opcional" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                  input(type="number" name="precioPromocional" min="0" step="0.01" value=editando && productoEditando.precioPromocional ? productoEditando.precioPromocional : '' placeholder="Opcional" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
 
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Stock
-                  input(type="number" name="stock" min="0" placeholder="0" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                  input(type="number" name="stock" min="0" value=editando ? productoEditando.stock : '' placeholder="0" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+
+            div(id="bloque-logistica" class="border border-slate-200 rounded-xl p-5")
+              div(class="flex items-center gap-3 mb-4")
+                span(class="w-8 h-8 rounded-lg bg-blue-900 text-white text-sm font-bold flex items-center justify-center") 3
+                div
+                  h3(class="text-sm font-bold text-slate-900") Envio
+                  p(class="text-xs text-slate-500") Peso y dimensiones para calcular envios de productos fisicos.
+
+              div(class="grid grid-cols-1 md:grid-cols-4 gap-4")
+                div
+                  label(class="block text-sm font-semibold text-slate-700 mb-1") Peso (kg) *
+                  input(data-logistica="true" type="number" name="pesoKg" min="0.01" step="0.01" value=editando && productoEditando.pesoKg ? productoEditando.pesoKg : '' placeholder="0.50" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                div
+                  label(class="block text-sm font-semibold text-slate-700 mb-1") Alto (cm) *
+                  input(data-logistica="true" type="number" name="altoCm" min="0.01" step="0.01" value=editando && productoEditando.dimensiones ? productoEditando.dimensiones.altoCm : '' placeholder="10" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                div
+                  label(class="block text-sm font-semibold text-slate-700 mb-1") Ancho (cm) *
+                  input(data-logistica="true" type="number" name="anchoCm" min="0.01" step="0.01" value=editando && productoEditando.dimensiones ? productoEditando.dimensiones.anchoCm : '' placeholder="20" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                div
+                  label(class="block text-sm font-semibold text-slate-700 mb-1") Largo (cm) *
+                  input(data-logistica="true" type="number" name="largoCm" min="0.01" step="0.01" value=editando && productoEditando.dimensiones ? productoEditando.dimensiones.largoCm : '' placeholder="30" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
 
             div(class="border border-slate-200 rounded-xl p-5")
               div(class="flex items-center gap-3 mb-4")
-                span(class="w-8 h-8 rounded-lg bg-blue-900 text-white text-sm font-bold flex items-center justify-center") 3
+                span(class="w-8 h-8 rounded-lg bg-blue-900 text-white text-sm font-bold flex items-center justify-center") 4
                 div
                   h3(class="text-sm font-bold text-slate-900") Imagenes y etiquetas
                   p(class="text-xs text-slate-500") Ayudan a destacar productos y ordenar la tienda.
@@ -103,19 +139,19 @@ html(lang="es")
                   p(class="block text-sm font-semibold text-slate-700 mb-2") Clasificacion
                   div(class="flex flex-wrap gap-3")
                     label(class="inline-flex items-center gap-2 border border-slate-200 rounded-full px-3 py-2 cursor-pointer hover:bg-slate-50")
-                      input(type="checkbox" name="destacado" class="w-4 h-4 rounded accent-blue-700")
+                      input(type="checkbox" name="destacado" checked=editando && productoEditando.destacado class="w-4 h-4 rounded accent-blue-700")
                       span(class="text-sm text-slate-700") Destacado
                     label(class="inline-flex items-center gap-2 border border-slate-200 rounded-full px-3 py-2 cursor-pointer hover:bg-slate-50")
-                      input(type="checkbox" name="esNovedad" class="w-4 h-4 rounded accent-blue-700")
+                      input(type="checkbox" name="esNovedad" checked=editando && productoEditando.esNovedad class="w-4 h-4 rounded accent-blue-700")
                       span(class="text-sm text-slate-700") Novedad
                     label(class="inline-flex items-center gap-2 border border-slate-200 rounded-full px-3 py-2 cursor-pointer hover:bg-slate-50")
-                      input(type="checkbox" name="esOferta" class="w-4 h-4 rounded accent-blue-700")
+                      input(type="checkbox" name="esOferta" checked=editando && productoEditando.esOferta class="w-4 h-4 rounded accent-blue-700")
                       span(class="text-sm text-slate-700") Oferta
 
             details(class="border border-slate-200 rounded-xl p-5")
               summary(class="cursor-pointer list-none")
                 div(class="flex items-center gap-3")
-                  span(class="w-8 h-8 rounded-lg bg-slate-800 text-white text-sm font-bold flex items-center justify-center") 4
+                  span(class="w-8 h-8 rounded-lg bg-slate-800 text-white text-sm font-bold flex items-center justify-center") 5
                   div
                     h3(class="text-sm font-bold text-slate-900") SEO y busqueda
                     p(class="text-xs text-slate-500") Opcional. Sirve para ordenar y mejorar como se muestra el producto.
@@ -123,17 +159,21 @@ html(lang="es")
               div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5")
                 div(class="md:col-span-2")
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Tags
-                  input(type="text" name="tags" placeholder="Ej: ceramica, cocina, regalo" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                  input(type="text" name="tags" value=tagsEditando placeholder="Ej: ceramica, cocina, regalo" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Titulo SEO
-                  input(type="text" name="tituloSEO" maxlength="70" placeholder="Max. 70 caracteres" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                  input(type="text" name="tituloSEO" maxlength="70" value=editando ? productoEditando.tituloSEO : '' placeholder="Max. 70 caracteres" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
                 div
                   label(class="block text-sm font-semibold text-slate-700 mb-1") Descripcion SEO
-                  input(type="text" name="descripcionSEO" maxlength="160" placeholder="Max. 160 caracteres" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
+                  input(type="text" name="descripcionSEO" maxlength="160" value=editando ? productoEditando.descripcionSEO : '' placeholder="Max. 160 caracteres" class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400")
 
             div(class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-2")
               p(class="text-xs text-slate-400") Despues de guardar, podras activar o desactivar el producto desde la tabla.
-              button(type="submit" class="bg-blue-900 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-800 transition-colors") + Agregar producto
+              button(type="submit" class="bg-blue-900 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-800 transition-colors")
+                if editando
+                  | Guardar cambios
+                else
+                  | + Agregar producto
 
         aside(class="space-y-4 lg:sticky lg:top-6")
           div(class="bg-white rounded-xl shadow-sm border border-slate-200 p-5")
@@ -210,6 +250,7 @@ html(lang="es")
                         span(class="inline-block bg-slate-100 text-slate-500 text-xs font-semibold px-2 py-0.5 rounded-full") Inactivo
                     td(class="px-4 py-3")
                       div(class="flex gap-2")
+                        a(href="/mis-productos/editar/" + producto._id class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-semibold hover:bg-slate-200 transition-colors") Editar
                         form(action="/mis-productos/estado/" + producto._id method="POST")
                           input(type="hidden" name="activo" value=producto.activo ? 'false' : 'true')
                           button(type="submit" class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold hover:bg-blue-200 transition-colors")
@@ -250,5 +291,20 @@ html(lang="es")
         input.value = '';
         document.getElementById('nueva-categoria-box').classList.add('hidden');
       }
+
+      function actualizarLogistica() {
+        const tipo = document.getElementById('tipo-producto').value;
+        const bloque = document.getElementById('bloque-logistica');
+        const inputs = document.querySelectorAll('[data-logistica="true"]');
+        const esFisico = tipo === 'fisico';
+
+        bloque.classList.toggle('opacity-50', !esFisico);
+        inputs.forEach(function(input) {
+          input.required = esFisico;
+          input.disabled = !esFisico;
+        });
+      }
+
+      actualizarLogistica();
 
     p(class="text-center text-slate-400 text-xs pb-8") © 2025 TechRetail Solutions S.R.L.

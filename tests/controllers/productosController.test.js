@@ -5,7 +5,9 @@ const storage = require('../../src/modules/Productos/storage/productosStorage');
 const tiendaStorage = require('../../src/modules/Tienda/storage/tiendaStorage');
 const {
   vistaProductos,
+  vistaEditarProducto,
   crearProducto,
+  actualizarProducto,
   eliminarProducto,
   cambiarEstadoProducto,
 } = require('../../src/modules/Productos/controllers/productosController');
@@ -15,7 +17,7 @@ describe('Productos Controller', () => {
   const mockTienda = { _id: 'tienda-id', nombre: 'Mi Tienda', colorPrimario: '#1D4ED8' };
 
   beforeEach(() => {
-    req = { body: {}, params: {}, session: { usuario: { id: 'user-id' } } };
+    req = { body: {}, params: {}, files: [], session: { usuario: { id: 'user-id' } } };
     res = {
       render: jest.fn(),
       redirect: jest.fn(),
@@ -34,12 +36,41 @@ describe('Productos Controller', () => {
       const mockProductos = [{ nombre: 'Remera', precio: 1500 }];
       tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
       storage.listarPorTienda = jest.fn().mockResolvedValue(mockProductos);
+      storage.categoriasPorTienda = jest.fn().mockResolvedValue(['Ropa']);
 
       await vistaProductos(req, res);
 
       expect(res.render).toHaveBeenCalledWith('mis-productos', expect.objectContaining({
         tienda: mockTienda,
         productos: mockProductos,
+        productoEditando: null,
+      }));
+    });
+  });
+
+  describe('vistaEditarProducto', () => {
+    test('redirige a /mis-productos si el producto no pertenece a la tienda', async () => {
+      req.params = { id: 'producto-id' };
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue(null);
+
+      await vistaEditarProducto(req, res);
+
+      expect(res.redirect).toHaveBeenCalledWith('/mis-productos');
+    });
+
+    test('renderiza mis-productos con productoEditando', async () => {
+      req.params = { id: 'producto-id' };
+      const mockProducto = { _id: 'producto-id', nombre: 'Remera' };
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue(mockProducto);
+      storage.listarPorTienda = jest.fn().mockResolvedValue([mockProducto]);
+      storage.categoriasPorTienda = jest.fn().mockResolvedValue(['Ropa']);
+
+      await vistaEditarProducto(req, res);
+
+      expect(res.render).toHaveBeenCalledWith('mis-productos', expect.objectContaining({
+        productoEditando: mockProducto,
       }));
     });
   });
@@ -52,7 +83,18 @@ describe('Productos Controller', () => {
     });
 
     test('crea el producto y redirige a /mis-productos', async () => {
-      req.body = { nombre: 'Remera', descripcion: 'Algodón', precio: '1500', stock: '10', categoria: 'Ropa' };
+      req.body = {
+        nombre: 'Remera',
+        descripcion: 'Algodon',
+        precio: '1500',
+        stock: '10',
+        categoria: 'Ropa',
+        tipo: 'fisico',
+        pesoKg: '0.5',
+        altoCm: '10',
+        anchoCm: '20',
+        largoCm: '30',
+      };
       tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
       storage.agregar = jest.fn().mockResolvedValue({});
 
@@ -63,6 +105,37 @@ describe('Productos Controller', () => {
         nombre: 'Remera',
         precio: 1500,
         stock: 10,
+        pesoKg: 0.5,
+        dimensiones: { altoCm: 10, anchoCm: 20, largoCm: 30 },
+      }));
+      expect(res.redirect).toHaveBeenCalledWith('/mis-productos');
+    });
+  });
+
+  describe('actualizarProducto', () => {
+    test('actualiza el producto de la tienda y conserva imagenes anteriores', async () => {
+      req.params = { id: 'producto-id' };
+      req.body = {
+        nombre: 'Remera editada',
+        precio: '2000',
+        stock: '5',
+        tipo: 'fisico',
+        pesoKg: '0.7',
+        altoCm: '11',
+        anchoCm: '21',
+        largoCm: '31',
+      };
+      req.files = [{ filename: 'nueva.jpg' }];
+      const productoActual = { _id: 'producto-id', imagenes: ['/uploads/productos/vieja.jpg'] };
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue(productoActual);
+      storage.actualizar = jest.fn().mockResolvedValue({});
+
+      await actualizarProducto(req, res);
+
+      expect(storage.actualizar).toHaveBeenCalledWith('producto-id', 'tienda-id', expect.objectContaining({
+        nombre: 'Remera editada',
+        imagenes: ['/uploads/productos/vieja.jpg', '/uploads/productos/nueva.jpg'],
       }));
       expect(res.redirect).toHaveBeenCalledWith('/mis-productos');
     });

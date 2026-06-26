@@ -32,6 +32,40 @@ const productoSchema = new mongoose.Schema({
     enum: ['fisico', 'digital', 'servicio'],
     default: 'fisico',
   },
+  pesoKg: {
+    type: Number,
+    min: [0.01, 'El peso debe ser mayor a 0'],
+    required: [
+      function() { return this.tipo === 'fisico'; },
+      'El peso es obligatorio para productos fisicos',
+    ],
+  },
+  dimensiones: {
+    altoCm: {
+      type: Number,
+      min: [0.01, 'El alto debe ser mayor a 0'],
+      required: [
+        function() { return this.tipo === 'fisico'; },
+        'El alto es obligatorio para productos fisicos',
+      ],
+    },
+    anchoCm: {
+      type: Number,
+      min: [0.01, 'El ancho debe ser mayor a 0'],
+      required: [
+        function() { return this.tipo === 'fisico'; },
+        'El ancho es obligatorio para productos fisicos',
+      ],
+    },
+    largoCm: {
+      type: Number,
+      min: [0.01, 'El largo debe ser mayor a 0'],
+      required: [
+        function() { return this.tipo === 'fisico'; },
+        'El largo es obligatorio para productos fisicos',
+      ],
+    },
+  },
   stock: {
     type: Number,
     default: 0,

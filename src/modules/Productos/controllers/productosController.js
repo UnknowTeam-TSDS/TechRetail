@@ -1,11 +1,88 @@
 const storage = require('../storage/productosStorage');
 const tiendaStorage = require('../../Tienda/storage/tiendaStorage');
 
-// GET /mis-productos
+const obtenerTiendaDelUsuario = async (req) => {
+  return tiendaStorage.buscarPorUsuario(req.session.usuario.id);
+};
+
+const normalizarProducto = (body, tiendaId, files = [], imagenesActuales = []) => {
+  const { nombre, descripcion, precio, precioPromocional, tipo, stock, categoria,
+          destacado, esNovedad, esOferta, tags, tituloSEO, descripcionSEO,
+          pesoKg, altoCm, anchoCm, largoCm } = body;
+
+  const tipoProducto = tipo || 'fisico';
+  const nuevasImagenes = files.length > 0
+    ? files.map(f => '/uploads/productos/' + f.filename)
+    : [];
+
+  const datos = {
+    tiendaId,
+    nombre: nombre?.trim(),
+    descripcion: descripcion?.trim(),
+    precio: parseFloat(precio),
+    precioPromocional: precioPromocional ? parseFloat(precioPromocional) : null,
+    tipo: tipoProducto,
+    stock: parseInt(stock) || 0,
+    categoria: categoria?.trim(),
+    imagenes: [...imagenesActuales, ...nuevasImagenes],
+    destacado: destacado === 'on',
+    esNovedad: esNovedad === 'on',
+    esOferta: esOferta === 'on',
+    tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+    tituloSEO: tituloSEO?.trim(),
+    descripcionSEO: descripcionSEO?.trim(),
+  };
+
+  if (tipoProducto === 'fisico') {
+    datos.pesoKg = parseFloat(pesoKg);
+    datos.dimensiones = {
+      altoCm: parseFloat(altoCm),
+      anchoCm: parseFloat(anchoCm),
+      largoCm: parseFloat(largoCm),
+    };
+  } else {
+    datos.pesoKg = undefined;
+    datos.dimensiones = undefined;
+  }
+
+  return datos;
+};
+
+const renderProductos = async (req, res, productoEditando = null) => {
+  const tienda = await obtenerTiendaDelUsuario(req);
+  if (!tienda) return res.redirect('/mi-tienda');
+
+  const [productos, categorias] = await Promise.all([
+    storage.listarPorTienda(tienda._id),
+    storage.categoriasPorTienda(tienda._id),
+  ]);
+
+  return res.render('mis-productos', {
+    titulo: 'Mis productos',
+    usuario: req.session.usuario,
+    tienda,
+    productos,
+    categorias,
+    productoEditando,
+  });
+};
+
 const vistaProductos = async (req, res) => {
   try {
-    const tienda = await tiendaStorage.buscarPorUsuario(req.session.usuario.id);
+    await renderProductos(req, res);
+  } catch (error) {
+    console.error('Error cargando productos:', error.message);
+    res.redirect('/mi-tienda');
+  }
+};
+
+const vistaEditarProducto = async (req, res) => {
+  try {
+    const tienda = await obtenerTiendaDelUsuario(req);
     if (!tienda) return res.redirect('/mi-tienda');
+
+    const producto = await storage.buscarPorId(req.params.id, tienda._id);
+    if (!producto) return res.redirect('/mis-productos');
 
     const [productos, categorias] = await Promise.all([
       storage.listarPorTienda(tienda._id),
@@ -13,47 +90,25 @@ const vistaProductos = async (req, res) => {
     ]);
 
     res.render('mis-productos', {
-      titulo: 'Mis productos',
+      titulo: 'Editar producto',
       usuario: req.session.usuario,
       tienda,
       productos,
       categorias,
+      productoEditando: producto,
     });
   } catch (error) {
-    console.error('Error cargando productos:', error.message);
-    res.redirect('/mi-tienda');
+    console.error('Error cargando producto para editar:', error.message);
+    res.redirect('/mis-productos');
   }
 };
 
-// POST /mis-productos/form
 const crearProducto = async (req, res) => {
   try {
-    const tienda = await tiendaStorage.buscarPorUsuario(req.session.usuario.id);
+    const tienda = await obtenerTiendaDelUsuario(req);
     if (!tienda) return res.redirect('/mi-tienda');
 
-    const { nombre, descripcion, precio, precioPromocional, tipo, stock, categoria,
-            destacado, esNovedad, esOferta, tags, tituloSEO, descripcionSEO } = req.body;
-
-    await storage.agregar({
-      tiendaId: tienda._id,
-      nombre: nombre?.trim(),
-      descripcion: descripcion?.trim(),
-      precio: parseFloat(precio),
-      precioPromocional: precioPromocional ? parseFloat(precioPromocional) : null,
-      tipo: tipo || 'fisico',
-      stock: parseInt(stock) || 0,
-      categoria: categoria?.trim(),
-      imagenes: req.files && req.files.length > 0
-        ? req.files.map(f => '/uploads/productos/' + f.filename)
-        : [],
-      destacado: destacado === 'on',
-      esNovedad: esNovedad === 'on',
-      esOferta:  esOferta  === 'on',
-      tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      tituloSEO: tituloSEO?.trim(),
-      descripcionSEO: descripcionSEO?.trim(),
-    });
-
+    await storage.agregar(normalizarProducto(req.body, tienda._id, req.files || []));
     res.redirect('/mis-productos');
   } catch (error) {
     console.error('Error creando producto:', error.message);
@@ -61,10 +116,28 @@ const crearProducto = async (req, res) => {
   }
 };
 
-// POST /mis-productos/eliminar/:id
+const actualizarProducto = async (req, res) => {
+  try {
+    const tienda = await obtenerTiendaDelUsuario(req);
+    if (!tienda) return res.redirect('/mi-tienda');
+
+    const producto = await storage.buscarPorId(req.params.id, tienda._id);
+    if (!producto) return res.redirect('/mis-productos');
+
+    const imagenesActuales = producto.imagenes || [];
+    const datos = normalizarProducto(req.body, tienda._id, req.files || [], imagenesActuales);
+
+    await storage.actualizar(req.params.id, tienda._id, datos);
+    res.redirect('/mis-productos');
+  } catch (error) {
+    console.error('Error actualizando producto:', error.message);
+    res.redirect('/mis-productos/editar/' + req.params.id);
+  }
+};
+
 const eliminarProducto = async (req, res) => {
   try {
-    const tienda = await tiendaStorage.buscarPorUsuario(req.session.usuario.id);
+    const tienda = await obtenerTiendaDelUsuario(req);
     if (!tienda) return res.redirect('/mi-tienda');
 
     await storage.eliminar(req.params.id, tienda._id);
@@ -75,10 +148,9 @@ const eliminarProducto = async (req, res) => {
   }
 };
 
-// POST /mis-productos/estado/:id
 const cambiarEstadoProducto = async (req, res) => {
   try {
-    const tienda = await tiendaStorage.buscarPorUsuario(req.session.usuario.id);
+    const tienda = await obtenerTiendaDelUsuario(req);
     if (!tienda) return res.redirect('/mi-tienda');
 
     const activo = req.body.activo === 'true';
@@ -90,4 +162,11 @@ const cambiarEstadoProducto = async (req, res) => {
   }
 };
 
-module.exports = { vistaProductos, crearProducto, eliminarProducto, cambiarEstadoProducto };
+module.exports = {
+  vistaProductos,
+  vistaEditarProducto,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
+  cambiarEstadoProducto,
+};

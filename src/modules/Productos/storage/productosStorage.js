@@ -8,6 +8,18 @@ const agregar = async (datos) => {
   return Producto.create(datos);
 };
 
+const buscarPorId = async (id, tiendaId) => {
+  return Producto.findOne({ _id: id, tiendaId });
+};
+
+const actualizar = async (id, tiendaId, datos) => {
+  return Producto.findOneAndUpdate(
+    { _id: id, tiendaId },
+    datos,
+    { returnDocument: 'after', runValidators: true }
+  );
+};
+
 const eliminar = async (id, tiendaId) => {
   return Producto.findOneAndDelete({ _id: id, tiendaId });
 };
@@ -29,4 +41,13 @@ const categoriasPorTienda = async (tiendaId) => {
   return cats.filter(Boolean).sort();
 };
 
-module.exports = { listarPorTienda, agregar, eliminar, cambiarEstado, contarTodos, categoriasPorTienda };
+module.exports = {
+  listarPorTienda,
+  agregar,
+  buscarPorId,
+  actualizar,
+  eliminar,
+  cambiarEstado,
+  contarTodos,
+  categoriasPorTienda,
+};
