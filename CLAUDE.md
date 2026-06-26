@@ -2,11 +2,15 @@
 
 ## Contexto del proyecto
 
-Trabajo práctico del **2° Parcial** de la materia **Desarrollo Web Backend** (Técnicatura en Programación, IFST 29).
+Trabajo práctico de la **Entrega Final** de la materia **Desarrollo Web Backend** (Técnicatura en Programación, IFST 29).
 
 El proyecto está basado en el relevamiento de empresa que el mismo grupo (Grupo 13) entregó para **Ingeniería de Software** (PFO1). La empresa ficticia es **TechRetail Solutions S.R.L.**, una plataforma SaaS de e-commerce para PyMEs y emprendedores digitales en Argentina.
 
-**El backend implementa el panel de administración interno** de la plataforma: gestión de planes de suscripción y clientes. NO incluye el storefront para compradores finales, checkout, logística ni facturación electrónica — esos módulos pertenecen al sistema completo de IS, no al alcance del parcial de backend.
+**El backend implementa:**
+- Panel de administración interno (gestión de planes, clientes, métricas)
+- Panel de cliente (mi cuenta, tienda propia, catálogo de productos)
+
+El 3° parcial/entrega final **permite módulos extra** siempre que se documenten y justifiquen. Los módulos Tienda y Productos fueron agregados por eso.
 
 ### Grupo 13 — Comisión E
 
@@ -18,18 +22,6 @@ El proyecto está basado en el relevamiento de empresa que el mismo grupo (Grupo
 | Choque Heber | Squad Finanzas — Conciliación (RF-03) |
 | Basarab Lautaro | Squad Logística — Integración logística (RF-04) |
 
-### Criterios de evaluación del parcial
-
-El docente evalúa los **contenidos vistos en clase** hasta la fecha, no funcionalidades extra. Los temas cubiertos por los bloques del material son:
-
-- Bloque 3: Organización MVC modular
-- Bloque 5.1–5.2: Middleware en Express + motor de vistas Pug
-- Bloque 6.2–6.3: Peticiones HTTP, CORS, códigos de estado HTTP
-- Bloque 7.1–7.3: MongoDB con Mongoose (schemas, operadores)
-- Bloque 8.0: Gestión de usuarios y seguridad (sesiones, bcrypt)
-
-**Importante**: El docente advierte explícitamente contra el overengineering. No agregar funcionalidades, arquitecturas ni tecnologías más allá de lo pedido. Mantener el código claro y coherente con lo visto en clase.
-
 ---
 
 ## Stack tecnológico
@@ -38,19 +30,21 @@ El docente evalúa los **contenidos vistos en clase** hasta la fecha, no funcion
 |------|-----------|
 | Runtime | Node.js |
 | Framework | Express 5.x |
-| Base de datos | MongoDB + Mongoose 9.x |
+| Base de datos | MongoDB Atlas + Mongoose 9.x |
 | Autenticación | express-session + bcryptjs |
 | Vistas | Pug 3.x + Tailwind CSS (CDN) |
+| Uploads | multer (imágenes a `public/uploads/`) |
 | Dev | nodemon |
+| Tests | Jest |
 
 ---
 
 ## Cómo correr el proyecto
 
 ```bash
-# Requiere MongoDB corriendo localmente en el puerto 27017
 npm run dev    # nodemon, recarga automática
 npm start      # node app.js
+npm test       # jest --forceExit
 ```
 
 Servidor en: `http://localhost:3000`
@@ -59,7 +53,7 @@ Servidor en: `http://localhost:3000`
 - Email: `admin@techretail.com`
 - Password: `123456`
 
-El seed crea automáticamente 3 planes (Starter $15.000, Growth $45.000, Pro $80.000) y el usuario admin si la base está vacía.
+El seed crea automáticamente 3 planes (Starter $15.000, Growth $45.000, Pro $80.000), 4 add-ons y el usuario admin si la base está vacía.
 
 ---
 
@@ -69,35 +63,55 @@ Patrón **MVC modular**: cada módulo tiene su propia carpeta con router → con
 
 ```
 TechRetail/
-├── app.js                          # Entry point: Express, sesiones, middlewares globales, montaje de routers
+├── app.js
+├── public/
+│   └── uploads/productos/          # Imágenes subidas con multer (no committeadas)
 ├── src/
 │   ├── config/
-│   │   ├── mongodb.js              # Conexión a MongoDB
-│   │   └── seed.js                 # Datos iniciales (planes + admin)
+│   │   ├── mongodb.js
+│   │   ├── multer.js               # Configuración multer (diskStorage, 5MB, solo imágenes)
+│   │   └── seed.js
 │   ├── middlewares/
 │   │   ├── autenticacion.js        # verificarSesion(), verificarAdmin()
-│   │   └── logger.js               # Log de cada request
+│   │   └── logger.js
 │   ├── modules/
-│   │   ├── Auth/                   # Login / Logout
+│   │   ├── Auth/                   # Login / Logout / Mi cuenta / Mis add-ons
 │   │   │   ├── controllers/authController.js
 │   │   │   ├── routers/authRouter.js
-│   │   │   └── views/login.pug
-│   │   ├── Planes/                 # CRUD planes y add-ons
+│   │   │   └── views/
+│   │   │       ├── login.pug
+│   │   │       ├── mi-cuenta.pug   # Panel del cliente: plan, add-ons, trial
+│   │   │       └── registro.pug
+│   │   ├── Planes/                 # CRUD planes y add-ons (admin)
 │   │   │   ├── controllers/planesController.js
 │   │   │   ├── routers/planesRouter.js
 │   │   │   ├── storage/planesStorage.js
 │   │   │   ├── models/Plan.js
 │   │   │   └── views/planes.pug
-│   │   └── usuarios/               # CRUD usuarios/clientes
+│   │   ├── Tienda/                 # Configuración de tienda por cliente
+│   │   │   ├── controllers/tiendaController.js
+│   │   │   ├── routers/tiendaRouter.js
+│   │   │   ├── storage/tiendaStorage.js
+│   │   │   ├── models/Tienda.js
+│   │   │   └── views/mi-tienda.pug
+│   │   ├── Productos/              # Catálogo de productos por tienda
+│   │   │   ├── controllers/productosController.js
+│   │   │   ├── routers/productosRouter.js
+│   │   │   ├── storage/productosStorage.js
+│   │   │   ├── models/Producto.js
+│   │   │   └── views/mis-productos.pug
+│   │   └── usuarios/               # CRUD usuarios/clientes (admin)
 │   │       ├── controllers/usuariosController.js
 │   │       ├── routers/usuariosRouter.js
 │   │       ├── storage/usuariosStorage.js
 │   │       ├── models/Usuario.js
 │   │       └── views/usuarios.pug
 │   └── views/
-│       ├── layout.pug              # Template base con nav, header, footer
+│       ├── layout.pug
 │       └── index.pug               # Dashboard admin
-└── material_tecnicatura/           # PDFs de la cátedra (no parte del código)
+└── tests/
+    ├── controllers/
+    └── models/
 ```
 
 ---
@@ -105,77 +119,86 @@ TechRetail/
 ## Módulos
 
 ### Auth
-- `GET /login` — Renderiza formulario de login
-- `POST /login` — Valida email/password con bcrypt, crea sesión
+- `GET /login` — Formulario de login
+- `POST /login` — Valida con bcrypt, crea sesión → redirige según rol
 - `POST /logout` — Destruye sesión
+- `GET /mi-cuenta` — Panel del cliente: plan activo, add-ons disponibles/contratados, trial
+- `POST /mis-addons/agregar` — Contrata un add-on (requiere plan pago, no trial)
 
-### Planes (`/planes` y `/api/planes`)
-Gestión de planes de suscripción y add-ons de la plataforma.
+### Planes (`/planes` y `/api/planes`) — solo admin
+Gestión de planes de suscripción y add-ons.
 
-Vistas HTML (PRG pattern):
-- `GET /planes/vista` — Lista planes y add-ons
-- `POST /planes/form` — Crea plan desde formulario
-- `POST /planes/eliminar/:id` — Elimina plan desde formulario
+Vistas HTML (PRG): `GET /planes/vista`, `POST /planes/form`, `POST /planes/eliminar/:id`
 
-API REST (JSON):
-- `GET /api/planes`
-- `POST /api/planes`
-- `GET /api/planes/:id`
-- `PUT /api/planes/:id`
-- `DELETE /api/planes/:id`
+API REST: `GET|POST /api/planes`, `GET|PUT|DELETE /api/planes/:id`
 
-Schema Plan: `nombre` (req, min 3), `descripcion` (req), `precio` (req, >0), `tipo` (enum: `'plan'|'addon'`), `activo` (bool), timestamps.
+Schema Plan: `nombre` (req, min 3), `descripcion` (req), `precio` (req, ≥0), `tipo` (enum: `'plan'|'addon'`), `activo` (bool), timestamps.
 
-### Usuarios (`/usuarios` y `/api/usuarios`)
-Gestión de cuentas de clientes de la plataforma.
+### Usuarios (`/usuarios` y `/api/usuarios`) — solo admin
+Gestión de cuentas de clientes.
 
-Vistas HTML (PRG pattern):
-- `GET /usuarios/vista` — Lista clientes (excluye admins)
-- `POST /usuarios/form` — Registra usuario desde formulario
-- `POST /usuarios/eliminar/:id` — Elimina usuario desde formulario
+Vistas HTML (PRG): `GET /usuarios/vista`, `POST /usuarios/form`, `POST /usuarios/eliminar/:id`
 
-API REST (JSON):
-- `GET /api/usuarios`
-- `POST /api/usuarios`
-- `GET /api/usuarios/:id`
-- `PUT /api/usuarios/:id`
-- `DELETE /api/usuarios/:id`
+API REST: `GET|POST /api/usuarios`, `GET|PUT|DELETE /api/usuarios/:id`
 
-Schema Usuario: `nombre` (req, min 3), `email` (req, único, válido), `contrasena` (req, min 6, hashed, `select: false`), `empresa`, `telefono`, `planId` (ref Plan), `rol` (enum: `'admin'|'cliente'`), `estado` (enum: `'activo'|'inactivo'|'suspendido'`), timestamps.
+Schema Usuario: `nombre` (req, min 3), `email` (req, único), `contrasena` (req, min 6, hashed, `select:false`), `empresa`, `telefono`, `planId` (ref Plan), `rol` (enum: `'admin'|'cliente'`), `estado` (enum: `'activo'|'inactivo'|'suspendido'`), `trialHasta` (Date), `addons` (array ref Plan), timestamps.
 
-La contraseña se hashea automáticamente via middleware `pre('save')` de Mongoose con bcryptjs (10 rounds).
+### Tienda (`/mi-tienda`) — cliente autenticado
+Configuración de tienda propia. Una tienda por usuario (`usuarioId: unique`).
+
+- `GET /mi-tienda` — Formulario de configuración (crear o editar)
+- `POST /mi-tienda` — Guarda/actualiza la tienda (upsert)
+
+Schema Tienda:
+- `usuarioId` (ref Usuario, req, unique)
+- `nombre` (req, min 3)
+- `descripcion`
+- `rubro` (enum: `'moda'|'electronica'|'hogar'|'alimentos'|'servicios'|'otro'`, req)
+- `colorPrimario` (hex, default `#1D4ED8`)
+- `emailContacto` (req, email — Res. 104/2005 Defensa del Consumidor)
+- `telefono` (req)
+- `direccion` (req)
+- `whatsapp` (opcional)
+- `estado` (enum: `'en_construccion'|'activa'|'inactiva'`, default `en_construccion`)
+- Si el usuario está en trial, `estado` se fuerza a `en_construccion`
+
+### Productos (`/mis-productos`) — cliente autenticado
+Catálogo de productos por tienda. Requiere tienda creada; si no hay tienda redirige a `/mi-tienda`.
+
+- `GET /mis-productos` — Lista productos
+- `POST /mis-productos/form` — Crea producto (multer: hasta 5 imágenes)
+- `GET /mis-productos/editar/:id` — Formulario de edición
+- `POST /mis-productos/editar/:id` — Actualiza producto (multer: agrega nuevas imágenes a las existentes)
+- `POST /mis-productos/estado/:id` — Activa/desactiva
+- `POST /mis-productos/eliminar/:id` — Elimina
+
+Schema Producto:
+- `tiendaId` (ref Tienda, req)
+- `nombre` (req, min 3), `descripcion`, `categoria`
+- `precio` (req, ≥0), `precioPromocional` (opcional)
+- `tipo` (enum: `'fisico'|'digital'|'servicio'`, default `'fisico'`)
+- `pesoKg` (req si tipo=fisico), `dimensiones.altoCm/anchoCm/largoCm` (req si tipo=fisico)
+- `stock` (default 0)
+- `imagenes` (array de rutas `/uploads/productos/...`)
+- `destacado`, `esNovedad`, `esOferta` (bool, default false)
+- `tags` (array string), `tituloSEO` (max 70), `descripcionSEO` (max 160)
+- `activo` (bool, default true)
+
+La seguridad de cross-user se garantiza pasando siempre `tiendaId` como filtro en todas las operaciones de storage.
 
 ---
 
 ## Patrones y convenciones
 
-- **Async/await** en todos los controllers y storage — nunca callbacks ni `.then()`
-- **Storage layer**: las operaciones de DB están aisladas en `storage/` para separar acceso a datos de lógica HTTP
-- **PRG (Post-Redirect-Get)**: los formularios HTML usan POST → redirect para evitar reenvío al refrescar
-- **`select: false`** en el campo `contrasena` del schema; se recupera explícitamente con `.select('+contrasena')` solo en el login
-- **`res.locals.usuarioLogueado`**: el middleware global pasa el usuario de sesión a todas las vistas Pug
+- **Async/await** en todos los controllers y storage
+- **Storage layer**: DB aislada en `storage/`
+- **PRG (Post-Redirect-Get)**: formularios HTML usan POST → redirect
+- **`select: false`** en `contrasena`; se recupera con `.select('+contrasena')` solo en login
+- **`res.locals.usuarioLogueado`**: middleware global para vistas Pug
+- **`normalizarProducto(body, tiendaId, files, imagenesActuales)`**: helper en productosController que centraliza parseo y validación de campos para crear y editar
+- **Trial vs plan pago**: `enTrial = usuario.trialHasta && new Date(usuario.trialHasta) > new Date()` — los add-ons y el estado activo de tienda requieren `planPago = !!(usuario.planId) && !enTrial`
+- **Imágenes**: multer guarda en `public/uploads/productos/`. En Render (free tier) el filesystem es efímero — las imágenes se pierden al redeploy
 - Los precios se expresan en **pesos argentinos (ARS)**
-
----
-
-## Bugs conocidos
-
-### Bug activo — `usuarios.pug:63`
-El template verifica `usuario.activo` (campo inexistente) en lugar de `usuario.estado === 'activo'`. Esto hace que todos los usuarios aparezcan como "Inactivo" en la tabla.
-
-```pug
-// ❌ Actual (incorrecto)
-if usuario.activo
-
-// ✅ Correcto
-if usuario.estado === 'activo'
-```
-
-### Bug potencial — `usuarios.pug` (referencia a `planId`)
-Si un usuario no tiene plan asignado, `usuario.planId.nombre` lanzará error. Agregar guard: `if usuario.planId`.
-
-### Status code incorrecto — `authController.js`
-Login fallido devuelve HTTP 200 en lugar de 401.
 
 ---
 
@@ -184,11 +207,18 @@ Login fallido devuelve HTTP 200 en lugar de 401.
 | Variable | Default | Descripción |
 |----------|---------|-------------|
 | `MONGO_URI` | `mongodb://localhost:27017/techretail` | URI de conexión MongoDB |
-| `NODE_ENV` | — | Si es `'development'`, los errores 500 incluyen el stack trace |
-| `PORT` | `3000` | Puerto del servidor (hardcodeado en app.js, no usa esta variable aún) |
+| `SESSION_SECRET` | — | Secreto para express-session (requerido en producción) |
+| `NODE_ENV` | — | Si es `'development'`, errores 500 incluyen stack trace |
+| `PORT` | `3000` | Puerto del servidor |
+
+---
+
+## Deploy
+
+El proyecto está desplegado en Render: `techretail-jc1f.onrender.com`
 
 ---
 
 ## Material de la cátedra
 
-La carpeta `material_tecnicatura/` contiene los PDFs de los bloques de la materia. Son la referencia de lo que el docente evalúa. No modificar ni borrar.
+La carpeta `material_tecnicatura/` contiene los PDFs de los bloques de la materia. No modificar ni borrar.
