@@ -220,9 +220,11 @@ html(lang="es")
                     td(class="px-4 py-3")
                       div(class="flex items-start gap-3")
                         if producto.imagenes && producto.imagenes.length > 0
-                          img(src=producto.imagenes[0] alt=producto.nombre class="w-12 h-12 object-cover rounded-lg border border-slate-100 shrink-0")
+                          div(class="w-12 h-12 rounded-lg border border-slate-200 bg-slate-100 shrink-0 overflow-hidden relative")
+                            img(src=producto.imagenes[0] alt=producto.nombre class="w-full h-full object-cover" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden')")
+                            div(class="hidden absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-slate-400 text-center px-1") Sin imagen
                         else
-                          div(class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 shrink-0")
+                          div(class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center text-[10px] font-semibold text-slate-400 text-center px-1") Sin imagen
                         div
                           p(class="text-sm font-bold text-slate-900") #{producto.nombre}
                           if producto.categoria
