@@ -219,6 +219,14 @@ El proyecto está desplegado en Render: `techretail-jc1f.onrender.com`
 
 ---
 
+## Convenciones de trabajo con IA
+
+- **Commits**: mensajes breves, descriptivos y humanos. No mencionar IA, asistentes, herramientas ni coautoría automática.
+- **Comentarios de código**: usar solo cuando aporten contexto real. Deben ser cortos y naturales; evitar comentarios obvios o redactados como texto generado.
+- **Push**: preguntar siempre antes de subir cambios al remoto.
+
+---
+
 ## Material de la cátedra
 
 La carpeta `material_tecnicatura/` contiene los PDFs de los bloques de la materia. No modificar ni borrar.
