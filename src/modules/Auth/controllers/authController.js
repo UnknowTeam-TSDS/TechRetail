@@ -48,7 +48,7 @@ const registrarUsuario = async (req, res) => {
       });
     }
 
-    await Usuario.create({
+    const nuevoUsuario = await Usuario.create({
       nombre: nombre.trim(),
       email: email.toLowerCase().trim(),
       empresa: empresa?.trim(),
@@ -57,6 +57,9 @@ const registrarUsuario = async (req, res) => {
       rol: 'cliente',
       estado: 'activo',
     });
+
+    // Notificar a los admins conectados que entró un nuevo cliente
+    req.app.get('io').emit('nuevo-usuario', { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email });
 
     res.redirect('/login?registrado=1');
   } catch (error) {
