@@ -77,4 +77,26 @@ const vistaPublicaTienda = async (req, res) => {
   }
 };
 
-module.exports = { vistaTienda, guardarTienda, vistaPublicaTienda };
+// GET /tienda/:id/producto/:productoId — pública, sin login
+const vistaPublicaProducto = async (req, res) => {
+  try {
+    const tienda = await storage.buscarPorId(req.params.id);
+
+    if (!tienda || tienda.estado !== 'activa') {
+      return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+    }
+
+    const producto = await productosStorage.buscarPublicoPorId(req.params.productoId, tienda._id);
+
+    if (!producto) {
+      return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+    }
+
+    res.render('producto-publico', { tienda, producto });
+  } catch (error) {
+    console.error('Error cargando producto público:', error.message);
+    res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+  }
+};
+
+module.exports = { vistaTienda, guardarTienda, vistaPublicaTienda, vistaPublicaProducto };

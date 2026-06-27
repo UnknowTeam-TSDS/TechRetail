@@ -40,6 +40,10 @@ const listarActivosPorTienda = async (tiendaId) => {
   return Producto.find({ tiendaId, activo: true }).sort({ createdAt: -1 });
 };
 
+const buscarPublicoPorId = async (id, tiendaId) => {
+  return Producto.findOne({ _id: id, tiendaId, activo: true });
+};
+
 const categoriasPorTienda = async (tiendaId) => {
   const cats = await Producto.distinct('categoria', { tiendaId, categoria: { $ne: '' } });
   return cats.filter(Boolean).sort();
@@ -48,6 +52,7 @@ const categoriasPorTienda = async (tiendaId) => {
 module.exports = {
   listarPorTienda,
   listarActivosPorTienda,
+  buscarPublicoPorId,
   agregar,
   buscarPorId,
   actualizar,

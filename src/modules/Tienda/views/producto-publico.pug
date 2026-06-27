@@ -1,0 +1,144 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title #{producto.nombre} · #{tienda.nombre}
+    if producto.descripcionSEO
+      meta(name="description" content=producto.descripcionSEO)
+    script(src="https://cdn.tailwindcss.com")
+    style.
+      :root { --color-marca: #{tienda.colorPrimario}; }
+      .header-barra { background-color: var(--color-marca); }
+      .color-dot { background-color: var(--color-marca); }
+      .badge-precio { color: var(--color-marca); }
+      .btn-marca { background-color: var(--color-marca); }
+      .thumb.activo { border-color: var(--color-marca) !important; }
+
+  body(class="bg-gray-50 min-h-screen font-sans text-gray-900")
+
+    //- ── HEADER ─────────────────────────────────────────────────────────────
+    header(class="bg-white shadow-sm")
+      div(class="header-barra h-1.5 w-full")
+      div(class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between gap-4")
+        a(href="/tienda/" + tienda._id class="flex items-center gap-3 group")
+          div(class="w-10 h-10 rounded-lg color-dot flex items-center justify-center text-white font-extrabold shrink-0")
+            | #{tienda.nombre.charAt(0).toUpperCase()}
+          span(class="font-bold text-gray-900 group-hover:opacity-70 transition-opacity") #{tienda.nombre}
+        a(href="/tienda/" + tienda._id class="text-sm text-gray-500 hover:text-gray-800 transition-colors shrink-0") ← Volver al catálogo
+
+    //- ── CUERPO ─────────────────────────────────────────────────────────────
+    main(class="max-w-5xl mx-auto px-5 py-8")
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-8")
+
+        //- ── GALERÍA ─────────────────────────────────────────────────────────
+        div
+          div(class="bg-white rounded-2xl border border-gray-100 overflow-hidden aspect-square flex items-center justify-center")
+            if producto.imagenes && producto.imagenes.length > 0
+              img#img-principal(src=producto.imagenes[0] alt=producto.nombre class="w-full h-full object-cover")
+            else
+              div(class="text-gray-200 text-8xl") 📦
+          if producto.imagenes && producto.imagenes.length > 1
+            div(class="flex gap-2 mt-3 flex-wrap")
+              each img, i in producto.imagenes
+                button(
+                  type="button"
+                  onclick="cambiarImagen(this)"
+                  data-src=img
+                  class="thumb w-16 h-16 rounded-lg border-2 overflow-hidden transition-colors " + (i === 0 ? "activo" : "border-gray-200"))
+                  img(src=img alt="" class="w-full h-full object-cover")
+
+        //- ── INFO ────────────────────────────────────────────────────────────
+        div
+          if producto.categoria
+            p(class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2") #{producto.categoria}
+          h1(class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-3") #{producto.nombre}
+
+          //- Badges
+          if producto.esOferta || producto.esNovedad || producto.destacado
+            div(class="flex flex-wrap gap-2 mb-4")
+              if producto.esOferta
+                span(class="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Oferta
+              if producto.esNovedad
+                span(class="bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Nuevo
+              if producto.destacado
+                span(class="bg-yellow-400 text-white text-xs font-bold px-2.5 py-1 rounded-full") Destacado
+
+          //- Precio
+          div(class="mb-6")
+            if producto.precioPromocional
+              div(class="flex items-baseline gap-3")
+                span(class="badge-precio text-3xl font-extrabold") $#{producto.precioPromocional.toLocaleString('es-AR')}
+                span(class="text-base text-gray-400 line-through") $#{producto.precio.toLocaleString('es-AR')}
+              - const ahorro = Math.round((1 - producto.precioPromocional / producto.precio) * 100)
+              if ahorro > 0
+                span(class="inline-block mt-2 bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded") #{ahorro}% OFF
+            else
+              span(class="badge-precio text-3xl font-extrabold") $#{producto.precio.toLocaleString('es-AR')}
+
+          //- Descripción
+          if producto.descripcion
+            p(class="text-gray-600 text-sm leading-relaxed mb-6") #{producto.descripcion}
+
+          //- Atributos
+          div(class="border-t border-gray-100 pt-5 space-y-2.5 text-sm mb-6")
+            div(class="flex items-center justify-between")
+              span(class="text-gray-400") Disponibilidad
+              if producto.tipo === 'fisico'
+                if producto.stock > 0
+                  span(class="font-semibold text-green-600") #{producto.stock} en stock
+                else
+                  span(class="font-semibold text-red-500") Sin stock
+              else
+                span(class="font-semibold text-green-600") Disponible
+            if producto.tipo !== 'fisico'
+              div(class="flex items-center justify-between")
+                span(class="text-gray-400") Tipo
+                span(class="font-semibold text-gray-700 capitalize") #{producto.tipo}
+            if producto.tipo === 'fisico' && producto.pesoKg
+              div(class="flex items-center justify-between")
+                span(class="text-gray-400") Peso
+                span(class="font-semibold text-gray-700") #{producto.pesoKg} kg
+            if producto.tipo === 'fisico' && producto.dimensiones && producto.dimensiones.altoCm
+              div(class="flex items-center justify-between")
+                span(class="text-gray-400") Dimensiones
+                span(class="font-semibold text-gray-700") #{producto.dimensiones.altoCm} × #{producto.dimensiones.anchoCm} × #{producto.dimensiones.largoCm} cm
+
+          //- Tags
+          if producto.tags && producto.tags.length > 0
+            div(class="flex flex-wrap gap-1.5 mb-6")
+              each tag in producto.tags
+                span(class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full") ##{tag}
+
+          //- CTA WhatsApp
+          if tienda.whatsapp
+            - const msg = encodeURIComponent("¡Hola! Me interesa el producto: " + producto.nombre)
+            a(
+              href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '') + "?text=" + msg
+              target="_blank"
+              rel="noopener"
+              class="w-full inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl text-sm transition-colors")
+              | 💬 Consultar por WhatsApp
+          else if tienda.telefono
+            a(
+              href="tel:" + tienda.telefono
+              class="btn-marca w-full inline-flex items-center justify-center gap-2 text-white font-bold py-3.5 rounded-xl text-sm hover:opacity-90 transition-opacity")
+              | 📞 Llamar para consultar
+
+    //- ── FOOTER ─────────────────────────────────────────────────────────────
+    footer(class="border-t border-gray-200 mt-12 py-8 text-center text-xs text-gray-400")
+      p #{tienda.nombre} · #{tienda.direccion}
+      p(class="mt-1")
+        | Plataforma
+        a(href="/" class="text-gray-500 hover:text-gray-700 ml-1") TechRetail Solutions
+
+    script.
+      function cambiarImagen(btn) {
+        var src = btn.getAttribute('data-src');
+        document.getElementById('img-principal').src = src;
+        document.querySelectorAll('.thumb').forEach(function(t) {
+          t.classList.toggle('activo', t === btn);
+          if (t !== btn) t.classList.add('border-gray-200');
+          else t.classList.remove('border-gray-200');
+        });
+      }
