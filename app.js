@@ -99,9 +99,12 @@ app.get('/', (req, res, next) => {
 
     const addonsContratados = todosClientes.reduce((sum, u) => sum + (u.addons?.length || 0), 0);
 
+    // Un cliente en prueba gratuita se cuenta como tal (aún no paga su plan),
+    // coherente con el MRR. Al terminar el trial pasa a contar en su plan.
     const distribucion = {};
     todosClientes.forEach(u => {
-      const nombre = u.planId?.nombre || (u.trialHasta && u.trialHasta > ahora ? 'Trial' : 'Sin plan');
+      const enTrialU = u.trialHasta && u.trialHasta > ahora;
+      const nombre = enTrialU ? 'Prueba gratuita' : (u.planId?.nombre || 'Sin plan');
       distribucion[nombre] = (distribucion[nombre] || 0) + 1;
     });
 

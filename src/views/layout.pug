@@ -23,8 +23,6 @@ html(lang="es")
           if usuarioLogueado.rol === 'admin'
             a(href="/planes/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Planes
             a(href="/usuarios/vista" class="text-blue-200 hover:text-white text-sm transition-colors") Usuarios
-          a(href="/api/planes" class="text-blue-200 hover:text-white text-sm transition-colors") API Productos
-          a(href="/api/usuarios" class="text-blue-200 hover:text-white text-sm transition-colors") API Usuarios
 
       div(class="flex items-center gap-4")
         if usuarioLogueado
@@ -41,7 +39,7 @@ html(lang="es")
       block contenido
 
     footer(class="text-center text-gray-400 text-xs py-6 mt-10")
-      p © 2025 TechRetail Solutions S.R.L. | Grupo 13 — Ingeniería de Software
+      p © 2025 TechRetail Solutions S.R.L.
 
     script(src="/js/validacion.js")
     script(src="/socket.io/socket.io.js")

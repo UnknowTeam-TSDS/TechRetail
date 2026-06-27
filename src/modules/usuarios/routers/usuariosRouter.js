@@ -13,7 +13,6 @@ router.get('/vista', controller.vistaUsuarios);        // GET  /usuarios/vista
 router.post('/form', controller.crearUsuarioForm);     // POST /usuarios/form
 router.post('/eliminar/:id', controller.eliminarUsuario);
 router.post('/estado/:id', controller.cambiarEstado);     // POST /usuarios/estado/:id
-router.post('/plan/:id', controller.cambiarPlan);         // POST /usuarios/plan/:id
 
 // Rutas API REST (DESPUÉS - rutas parametrizadas)
 router.get('/', controller.listarUsuarios);            // GET  /api/usuarios
