@@ -55,10 +55,21 @@ html(lang="es")
         setTimeout(() => notif.remove(), 4000);
       }
 
+      // Refresca el panel para reflejar los datos nuevos, salvo que el admin
+      // esté escribiendo en un campo (para no perder un formulario en progreso).
+      function refrescarPanel() {
+        const activo = document.activeElement;
+        const escribiendo = activo && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo.tagName);
+        if (escribiendo) return;
+        setTimeout(() => window.location.reload(), 1500);
+      }
+
       socket.on('nuevo-plan', function(data) {
         mostrarNotificacion('Nuevo plan: ' + data.nombre + ' ($' + data.precio.toLocaleString('es-AR') + ')', 'plan');
+        refrescarPanel();
       });
 
       socket.on('nuevo-usuario', function(data) {
         mostrarNotificacion('Nuevo usuario: ' + data.nombre + ' (' + data.email + ')', 'usuario');
+        refrescarPanel();
       });
