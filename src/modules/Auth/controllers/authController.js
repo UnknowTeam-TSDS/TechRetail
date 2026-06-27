@@ -5,6 +5,7 @@
 
 const Usuario = require('../../usuarios/models/Usuario');
 const Plan = require('../../Planes/models/Plan');
+const { validarContrasenaSegura } = require('../passwordPolicy');
 
 // GET /login
 const vistaLogin = (req, res) => {
@@ -28,6 +29,14 @@ const registrarUsuario = async (req, res) => {
       return res.status(400).render('registro', {
         titulo: 'Crear cuenta',
         error: 'Nombre, email y contraseña son obligatorios.',
+      });
+    }
+
+    const errorContrasena = validarContrasenaSegura(contrasena);
+    if (errorContrasena) {
+      return res.status(400).render('registro', {
+        titulo: 'Crear cuenta',
+        error: errorContrasena,
       });
     }
 
@@ -294,10 +303,11 @@ const vistaCambiarContrasena = (req, res) => {
 const actualizarContrasena = async (req, res) => {
   const { contrasena, confirmar } = req.body;
 
-  if (!contrasena || contrasena.length < 6) {
+  const errorContrasena = validarContrasenaSegura(contrasena);
+  if (errorContrasena) {
     return res.status(400).render('cambiar-contrasena', {
       titulo: 'Cambiar contraseña',
-      error: 'La contraseña debe tener al menos 6 caracteres.',
+      error: errorContrasena,
     });
   }
 
