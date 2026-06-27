@@ -204,9 +204,12 @@ const seleccionarPlan = async (req, res) => {
 
     const updates = { planId: plan._id };
 
-    // Starter tiene período de prueba de 14 días
+    // Starter tiene período de prueba de 14 días. Los planes pagos (Growth/Pro)
+    // terminan el trial: pagar = acceso pleno y posibilidad de publicar la tienda.
     if (plan.nombre.toLowerCase() === 'starter') {
       updates.trialHasta = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    } else {
+      updates.trialHasta = null;
     }
 
     await Usuario.findByIdAndUpdate(req.session.usuario.id, updates);

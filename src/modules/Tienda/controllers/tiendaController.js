@@ -50,16 +50,22 @@ const vistaEditarTienda = async (req, res) => {
   }
 };
 
-// POST /mi-tienda
+// POST /mi-tienda — guarda los datos. La visibilidad (publicar) se maneja aparte.
 const guardarTienda = async (req, res) => {
   try {
-    const { nombre, descripcion, rubro, estado,
+    const { nombre, descripcion, rubro,
       emailContacto, telefono, direccion, whatsapp } = req.body;
 
-    const usuario = await Usuario.findById(req.session.usuario.id);
+    const [usuario, tiendaActual] = await Promise.all([
+      Usuario.findById(req.session.usuario.id),
+      storage.buscarPorUsuario(req.session.usuario.id),
+    ]);
     const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
 
-    const estadoFinal = enTrial ? 'en_construccion' : (estado || 'en_construccion');
+    // El estado se conserva (no se edita acá); una tienda nueva arranca en construcción.
+    // Si por algún motivo está publicada estando en trial, se vuelve a construcción.
+    let estadoFinal = tiendaActual ? tiendaActual.estado : 'en_construccion';
+    if (enTrial && estadoFinal === 'activa') estadoFinal = 'en_construccion';
 
     await storage.guardarTienda(req.session.usuario.id, {
       nombre: nombre?.trim(),
@@ -76,6 +82,33 @@ const guardarTienda = async (req, res) => {
   } catch (error) {
     console.error('Error guardando tienda:', error.message);
     res.redirect('/mi-tienda/editar');
+  }
+};
+
+// POST /mi-tienda/publicar — pone la tienda activa (requiere plan pago, sin trial)
+const publicarTienda = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.session.usuario.id);
+    const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
+    const planPago = !!(usuario.planId) && !enTrial;
+    if (!planPago) return res.redirect('/mi-tienda');
+
+    await storage.actualizarEstado(req.session.usuario.id, 'activa');
+    res.redirect('/mi-tienda');
+  } catch (error) {
+    console.error('Error al publicar tienda:', error.message);
+    res.redirect('/mi-tienda');
+  }
+};
+
+// POST /mi-tienda/despublicar — saca la tienda de publicación
+const despublicarTienda = async (req, res) => {
+  try {
+    await storage.actualizarEstado(req.session.usuario.id, 'inactiva');
+    res.redirect('/mi-tienda');
+  } catch (error) {
+    console.error('Error al despublicar tienda:', error.message);
+    res.redirect('/mi-tienda');
   }
 };
 
@@ -142,4 +175,4 @@ const vistaPublicaProducto = async (req, res) => {
   }
 };
 
-module.exports = { vistaTienda, vistaEditarTienda, guardarTienda, vistaPublicaTienda, vistaPublicaProducto };
+module.exports = { vistaTienda, vistaEditarTienda, guardarTienda, publicarTienda, despublicarTienda, vistaPublicaTienda, vistaPublicaProducto };

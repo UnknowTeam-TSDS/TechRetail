@@ -68,16 +68,6 @@ html(lang="es")
               option(value="servicios" selected=tienda && tienda.rubro === 'servicios') Servicios
               option(value="otro" selected=tienda && tienda.rubro === 'otro') Otro
 
-          if !enTrial
-            div
-              label(class="block text-sm font-semibold text-gray-700 mb-1") Estado
-              select(
-                name="estado"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-                option(value="en_construccion" selected=!tienda || tienda.estado === 'en_construccion') En construcción
-                option(value="activa" selected=tienda && tienda.estado === 'activa') Activa
-                option(value="inactiva" selected=tienda && tienda.estado === 'inactiva') Inactiva
-
           div(class="border-t border-gray-100 pt-5")
             p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1") Información de contacto
             p(class="text-xs text-gray-400 mb-4") Obligatoria por ley (Res. 104/2005 — Defensa del Consumidor).

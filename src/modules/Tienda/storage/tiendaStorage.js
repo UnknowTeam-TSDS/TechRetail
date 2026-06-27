@@ -24,4 +24,8 @@ const buscarPorId = async (id) => {
   return Tienda.findById(id);
 };
 
-module.exports = { buscarPorUsuario, buscarPorId, guardarTienda, contarTiendas, listarTiendas };
+const actualizarEstado = async (usuarioId, estado) => {
+  return Tienda.findOneAndUpdate({ usuarioId }, { estado }, { returnDocument: 'after' });
+};
+
+module.exports = { buscarPorUsuario, buscarPorId, guardarTienda, actualizarEstado, contarTiendas, listarTiendas };
