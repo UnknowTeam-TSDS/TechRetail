@@ -1,0 +1,16 @@
+{
+  "name": "TechRetail Solutions",
+  "short_name": "TechRetail",
+  "description": "Plataforma SaaS de e-commerce para PyMEs y emprendedores en Argentina.",
+  "lang": "es-AR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1e3a8a",
+  "theme_color": "#1D4ED8",
+  "icons": [
+    { "src": "/icons/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

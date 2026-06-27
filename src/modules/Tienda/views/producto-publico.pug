@@ -7,6 +7,10 @@ html(lang="es")
     if producto.descripcionSEO
       meta(name="description" content=producto.descripcionSEO)
     script(src="https://cdn.tailwindcss.com")
+    link(rel="manifest" href="/manifest.json")
+    meta(name="theme-color" content="#1D4ED8")
+    link(rel="apple-touch-icon" href="/icons/icon-192.png")
+    script(src="/js/pwa.js")
     style.
       :root { --color-marca: #{tienda.colorPrimario}; }
       .header-barra { background-color: var(--color-marca); }
