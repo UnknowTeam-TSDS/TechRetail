@@ -11,132 +11,77 @@ html(lang="es")
 
       div(class="text-center mb-6")
         h1(class="text-2xl font-bold text-white") TechRetail Solutions
-        p(class="text-blue-200 text-sm") Configuración de tu tienda
+        p(class="text-blue-200 text-sm") Tu tienda
 
-      div(class="bg-white rounded-2xl shadow-2xl p-8 mb-4")
-        h2(class="text-lg font-bold text-blue-900 mb-1")
-          if tienda
-            | Editar tienda
-          else
-            | Crear mi tienda
-        p(class="text-sm text-gray-400 mb-6") Completá los datos que van a identificar tu tienda en la plataforma.
+      if !tienda
+        //- ── SIN TIENDA ──────────────────────────────────────────────────────
+        div(class="bg-white rounded-2xl shadow-2xl p-10 text-center mb-4")
+          div(class="text-5xl mb-4") 🏪
+          h2(class="text-lg font-bold text-blue-900 mb-2") Todavía no creaste tu tienda
+          p(class="text-sm text-gray-500 max-w-sm mx-auto mb-6") Configurá el nombre, el rubro y los datos de contacto para empezar a cargar productos.
+          a(href="/mi-tienda/editar" class="inline-block bg-blue-900 hover:bg-blue-800 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors") Crear mi tienda
+
+      else
+        //- ── RESUMEN DE LA TIENDA ────────────────────────────────────────────
+        div(class="bg-white rounded-2xl shadow-2xl overflow-hidden mb-4")
+          div(class="h-2" style=`background-color:${tienda.colorPrimario}`)
+          div(class="p-8")
+            div(class="flex items-start justify-between gap-3 mb-5")
+              div
+                h2(class="text-xl font-bold text-gray-900") #{tienda.nombre}
+                if tienda.descripcion
+                  p(class="text-sm text-gray-500 mt-1") #{tienda.descripcion}
+              div(class="shrink-0")
+                if tienda.estado === 'activa'
+                  span(class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1.5 rounded-full") Publicada
+                else if tienda.estado === 'inactiva'
+                  span(class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full") Inactiva
+                else
+                  span(class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full") En construcción
+
+            div(class="flex items-center gap-2 mb-5")
+              div(class="w-4 h-4 rounded-full border border-gray-200" style=`background-color:${tienda.colorPrimario}`)
+              span(class="text-xs text-gray-500 capitalize") #{tienda.rubro}
+
+            div(class="border-t border-gray-100 pt-5")
+              p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Información de contacto
+              dl(class="space-y-2 text-sm")
+                div(class="flex justify-between gap-4")
+                  dt(class="text-gray-400 shrink-0") Email
+                  dd(class="text-gray-700 text-right break-all") #{tienda.emailContacto}
+                div(class="flex justify-between gap-4")
+                  dt(class="text-gray-400 shrink-0") Teléfono
+                  dd(class="text-gray-700 text-right") #{tienda.telefono}
+                div(class="flex justify-between gap-4")
+                  dt(class="text-gray-400 shrink-0") Dirección
+                  dd(class="text-gray-700 text-right") #{tienda.direccion}
+                if tienda.whatsapp
+                  div(class="flex justify-between gap-4")
+                    dt(class="text-gray-400 shrink-0") WhatsApp
+                    dd(class="text-gray-700 text-right") #{tienda.whatsapp}
 
         if enTrial
-          div(class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6")
+          div(class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4")
             p(class="text-sm text-amber-800")
-              | Durante el período de prueba tu tienda permanecerá en construcción.
+              | Durante el período de prueba tu tienda permanece en construcción.
               |  Activá un plan pago para publicarla.
 
-        form(action="/mi-tienda" method="POST" class="space-y-5")
+        //- ── ACCIONES ────────────────────────────────────────────────────────
+        div(class="space-y-3 mb-4")
+          a(href="/mi-tienda/editar"
+            class="block w-full text-center bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition-colors")
+            | Editar tienda
 
-          div
-            label(class="block text-sm font-semibold text-gray-700 mb-1") Nombre de la tienda
-            input(
-              type="text"
-              name="nombre"
-              required
-              minlength="3"
-              value=tienda ? tienda.nombre : ''
-              placeholder="Ej: Zapatillas Luna"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+          a(href="/mis-productos"
+            class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-sm transition-colors")
+            | Gestionar productos →
 
-          div
-            label(class="block text-sm font-semibold text-gray-700 mb-1") Descripción / slogan
-            textarea(
-              name="descripcion"
-              rows="2"
-              placeholder="Ej: Calzado artesanal para toda la familia"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none")
-              if tienda && tienda.descripcion
-                | #{tienda.descripcion}
-
-          div
-            label(class="block text-sm font-semibold text-gray-700 mb-1") Rubro
-            select(
-              name="rubro"
-              required
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-              option(value="" disabled selected=!tienda) Seleccioná un rubro
-              option(value="moda" selected=tienda && tienda.rubro === 'moda') Moda y accesorios
-              option(value="electronica" selected=tienda && tienda.rubro === 'electronica') Electrónica
-              option(value="hogar" selected=tienda && tienda.rubro === 'hogar') Hogar y deco
-              option(value="alimentos" selected=tienda && tienda.rubro === 'alimentos') Alimentos y bebidas
-              option(value="servicios" selected=tienda && tienda.rubro === 'servicios') Servicios
-              option(value="otro" selected=tienda && tienda.rubro === 'otro') Otro
-
-          if !enTrial
-            div
-              label(class="block text-sm font-semibold text-gray-700 mb-1") Estado
-              select(
-                name="estado"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-                option(value="en_construccion" selected=!tienda || tienda.estado === 'en_construccion') En construcción
-                option(value="activa" selected=tienda && tienda.estado === 'activa') Activa
-                option(value="inactiva" selected=tienda && tienda.estado === 'inactiva') Inactiva
-
-          div(class="border-t border-gray-100 pt-5")
-            p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1") Información de contacto
-            p(class="text-xs text-gray-400 mb-4") Obligatoria por ley (Res. 104/2005 — Defensa del Consumidor).
-
-            div(class="space-y-4")
-              div
-                label(class="block text-sm font-semibold text-gray-700 mb-1") Email de contacto *
-                input(
-                  type="email"
-                  name="emailContacto"
-                  required
-                  value=tienda && tienda.emailContacto ? tienda.emailContacto : ''
-                  placeholder="Ej: contacto@minegoicio.com"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-
-              div
-                label(class="block text-sm font-semibold text-gray-700 mb-1") Teléfono *
-                input(
-                  type="tel"
-                  name="telefono"
-                  required
-                  value=tienda && tienda.telefono ? tienda.telefono : ''
-                  placeholder="Ej: +54 9 11 1234-5678"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-
-              div
-                label(class="block text-sm font-semibold text-gray-700 mb-1") Dirección *
-                input(
-                  type="text"
-                  name="direccion"
-                  required
-                  value=tienda && tienda.direccion ? tienda.direccion : ''
-                  placeholder="Ej: Av. Corrientes 1234, CABA"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-
-              div
-                label(class="block text-sm font-semibold text-gray-700 mb-1") WhatsApp
-                  span(class="text-gray-400 font-normal text-xs ml-1") (opcional)
-                input(
-                  type="tel"
-                  name="whatsapp"
-                  value=tienda && tienda.whatsapp ? tienda.whatsapp : ''
-                  placeholder="Ej: +54 9 11 1234-5678"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-                p(class="text-xs text-gray-400 mt-1") Si lo cargás, tus clientes verán un botón para contactarte por WhatsApp.
-
-          div(class="pt-2")
-            button(
-              type="submit"
-              class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition-colors")
-              if tienda
-                | Guardar cambios
-              else
-                | Crear tienda
-
-      if tienda
-        a(href="/tienda/" + tienda._id target="_blank"
-          class="block w-full text-center bg-white border border-blue-200 text-blue-900 font-bold py-3 rounded-xl text-sm transition-colors mb-3 hover:bg-blue-50")
-          | Ver mi tienda →
-
-        a(href="/mis-productos"
-          class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-sm transition-colors mb-4")
-          | Gestionar productos →
+          a(href="/tienda/" + tienda._id target="_blank"
+            class="block w-full text-center bg-white border border-blue-200 text-blue-900 font-bold py-3 rounded-xl text-sm transition-colors hover:bg-blue-50")
+            if tienda.estado === 'activa'
+              | Ver mi tienda publicada →
+            else
+              | Ver vista previa de mi tienda →
 
       div(class="text-center")
         a(href="/mi-cuenta" class="text-blue-200 text-sm hover:text-white") ← Volver a mi cuenta

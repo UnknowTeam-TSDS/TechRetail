@@ -2,7 +2,7 @@ const storage = require('../storage/tiendaStorage');
 const productosStorage = require('../../Productos/storage/productosStorage');
 const Usuario = require('../../usuarios/models/Usuario');
 
-// GET /mi-tienda
+// GET /mi-tienda — panel resumen de la tienda
 const vistaTienda = async (req, res) => {
   try {
     const [tienda, usuario] = await Promise.all([
@@ -23,6 +23,30 @@ const vistaTienda = async (req, res) => {
   } catch (error) {
     console.error('Error cargando mi tienda:', error.message);
     res.redirect('/mi-cuenta');
+  }
+};
+
+// GET /mi-tienda/editar — formulario de creación/edición
+const vistaEditarTienda = async (req, res) => {
+  try {
+    const [tienda, usuario] = await Promise.all([
+      storage.buscarPorUsuario(req.session.usuario.id),
+      Usuario.findById(req.session.usuario.id),
+    ]);
+
+    const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
+    const planPago = !!(usuario.planId) && !enTrial;
+
+    res.render('mi-tienda-editar', {
+      titulo: tienda ? 'Editar tienda' : 'Crear tienda',
+      usuario: req.session.usuario,
+      tienda,
+      enTrial,
+      planPago,
+    });
+  } catch (error) {
+    console.error('Error cargando edición de tienda:', error.message);
+    res.redirect('/mi-tienda');
   }
 };
 
@@ -51,7 +75,7 @@ const guardarTienda = async (req, res) => {
     res.redirect('/mi-tienda');
   } catch (error) {
     console.error('Error guardando tienda:', error.message);
-    res.redirect('/mi-tienda');
+    res.redirect('/mi-tienda/editar');
   }
 };
 
@@ -87,12 +111,19 @@ const vistaPublicaTienda = async (req, res) => {
   }
 };
 
-// GET /tienda/:id/producto/:productoId — pública, sin login
+// GET /tienda/:id/producto/:productoId — pública, sin login. El dueño puede previsualizarla.
 const vistaPublicaProducto = async (req, res) => {
   try {
     const tienda = await storage.buscarPorId(req.params.id);
 
-    if (!tienda || tienda.estado !== 'activa') {
+    if (!tienda) {
+      return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+    }
+
+    const esDueno = !!(req.session.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
+
+    // La tienda debe estar activa, salvo que el dueño esté previsualizando
+    if (tienda.estado !== 'activa' && !esDueno) {
       return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
     }
 
@@ -102,11 +133,13 @@ const vistaPublicaProducto = async (req, res) => {
       return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
     }
 
-    res.render('producto-publico', { tienda, producto });
+    const previsualizando = esDueno && tienda.estado !== 'activa';
+
+    res.render('producto-publico', { tienda, producto, previsualizando });
   } catch (error) {
     console.error('Error cargando producto público:', error.message);
     res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
   }
 };
 
-module.exports = { vistaTienda, guardarTienda, vistaPublicaTienda, vistaPublicaProducto };
+module.exports = { vistaTienda, vistaEditarTienda, guardarTienda, vistaPublicaTienda, vistaPublicaProducto };
