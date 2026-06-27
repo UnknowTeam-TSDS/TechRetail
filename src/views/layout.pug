@@ -31,9 +31,9 @@ html(lang="es")
             span(class="text-xs opacity-70 ml-2") (#{usuarioLogueado.rol})
           
           form(action="/logout" method="POST" style="display:inline")
-            button(type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded transition-colors") Cerrar sesion
+            button(type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded transition-colors") Cerrar sesión
         else
-          a(href="/login" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1 rounded transition-colors") Iniciar sesion
+          a(href="/login" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1 rounded transition-colors") Iniciar sesión
 
     main(class="max-w-6xl mx-auto px-8 py-8")
       block contenido

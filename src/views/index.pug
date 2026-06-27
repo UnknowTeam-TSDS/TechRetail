@@ -6,8 +6,9 @@ block contenido
 
   if stats
 
-    // ── Fila 1: métricas principales ────────────────────────────────────────
-    div(class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6")
+    // ── Métricas de clientes ─────────────────────────────────────────────────
+    p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2") Clientes
+    div(class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6")
 
       div(class="bg-white rounded-xl shadow-md p-5")
         p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Total clientes
@@ -21,15 +22,19 @@ block contenido
           | #{stats.inactivos} inactivos · #{stats.suspendidos} suspendidos
 
       div(class="bg-white rounded-xl shadow-md p-5")
+        p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") En trial activo
+        p(class="text-3xl font-bold text-green-500") #{stats.enTrial}
+        p(class="text-xs text-gray-400 mt-1") usuarios en prueba gratuita
+
+      div(class="bg-white rounded-xl shadow-md p-5")
         p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") MRR estimado
         p(class="text-3xl font-bold text-blue-700")
           | $#{stats.mrr.toLocaleString('es-AR')}
         p(class="text-xs text-gray-400 mt-1") ingresos mensuales recurrentes (ARS)
 
-      div(class="bg-white rounded-xl shadow-md p-5")
-        p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") En trial activo
-        p(class="text-3xl font-bold text-green-500") #{stats.enTrial}
-        p(class="text-xs text-gray-400 mt-1") usuarios en prueba gratuita
+    // ── Métricas de catálogo y contenido ─────────────────────────────────────
+    p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2") Catálogo y contenido
+    div(class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6")
 
       div(class="bg-white rounded-xl shadow-md p-5")
         p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Catálogo

@@ -17,8 +17,8 @@ block contenido
         div
           label(class="block text-sm text-gray-600 mb-1") Tipo
           select(name="tipo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
-            option(value="plan") plan
-            option(value="addon") addon
+            option(value="plan") Plan
+            option(value="addon") Add-on
         div
           label(class="block text-sm text-gray-600 mb-1") Descripción
           input(type="text" name="descripcion" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
@@ -30,8 +30,8 @@ block contenido
 
   // Sección Planes de Suscripción
   h3(class="text-lg font-semibold text-blue-900 mb-3") Planes de Suscripción
-  div(class="rounded-xl overflow-hidden shadow-md mb-8")
-    table(class="w-full border-collapse bg-white")
+  div(class="rounded-xl overflow-x-auto shadow-md mb-8")
+    table(class="w-full min-w-[700px] border-collapse bg-white")
       thead
         tr
           th(class="bg-blue-900 text-white text-left text-sm px-4 py-3") ID
@@ -42,8 +42,8 @@ block contenido
       tbody
         each plan in soloPlanes
           tr(class="border-b border-gray-100 hover:bg-blue-50 transition-colors")
-            td(class="px-4 py-3 text-sm") #{plan._id}
-            td(class="px-4 py-3 text-sm font-medium") #{plan.nombre}
+            td(class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap") #{plan._id}
+            td(class="px-4 py-3 text-sm font-medium whitespace-nowrap") #{plan.nombre}
             td(class="px-4 py-3 text-xs text-gray-500 max-w-xs") #{plan.descripcion}
             td(class="px-4 py-3 text-sm") $#{plan.precio.toLocaleString('es-AR')}
             td(class="px-4 py-3")
@@ -52,8 +52,8 @@ block contenido
 
   // Sección Add-ons
   h3(class="text-lg font-semibold text-yellow-700 mb-3") Add-ons
-  div(class="rounded-xl overflow-hidden shadow-md")
-    table(class="w-full border-collapse bg-white")
+  div(class="rounded-xl overflow-x-auto shadow-md")
+    table(class="w-full min-w-[700px] border-collapse bg-white")
       thead
         tr
           th(class="bg-yellow-600 text-white text-left text-sm px-4 py-3") ID
@@ -64,8 +64,8 @@ block contenido
       tbody
         each addon in soloAddons
           tr(class="border-b border-gray-100 hover:bg-yellow-50 transition-colors")
-            td(class="px-4 py-3 text-sm") #{addon._id}
-            td(class="px-4 py-3 text-sm font-medium") #{addon.nombre}
+            td(class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap") #{addon._id}
+            td(class="px-4 py-3 text-sm font-medium whitespace-nowrap") #{addon.nombre}
             td(class="px-4 py-3 text-xs text-gray-500 max-w-xs") #{addon.descripcion}
             td(class="px-4 py-3 text-sm") $#{addon.precio.toLocaleString('es-AR')}
             td(class="px-4 py-3")
