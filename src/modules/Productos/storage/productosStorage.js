@@ -36,6 +36,10 @@ const contarTodos = async () => {
   return Producto.countDocuments();
 };
 
+const listarActivosPorTienda = async (tiendaId) => {
+  return Producto.find({ tiendaId, activo: true }).sort({ createdAt: -1 });
+};
+
 const categoriasPorTienda = async (tiendaId) => {
   const cats = await Producto.distinct('categoria', { tiendaId, categoria: { $ne: '' } });
   return cats.filter(Boolean).sort();
@@ -43,6 +47,7 @@ const categoriasPorTienda = async (tiendaId) => {
 
 module.exports = {
   listarPorTienda,
+  listarActivosPorTienda,
   agregar,
   buscarPorId,
   actualizar,

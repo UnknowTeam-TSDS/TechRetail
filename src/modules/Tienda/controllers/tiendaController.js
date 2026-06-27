@@ -1,4 +1,5 @@
 const storage = require('../storage/tiendaStorage');
+const productosStorage = require('../../Productos/storage/productosStorage');
 const Usuario = require('../../usuarios/models/Usuario');
 
 // GET /mi-tienda
@@ -54,4 +55,26 @@ const guardarTienda = async (req, res) => {
   }
 };
 
-module.exports = { vistaTienda, guardarTienda };
+// GET /tienda/:id — pública, sin login
+const vistaPublicaTienda = async (req, res) => {
+  try {
+    const tienda = await storage.buscarPorId(req.params.id);
+
+    if (!tienda || tienda.estado === 'inactiva') {
+      return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+    }
+
+    const productos = tienda.estado === 'activa'
+      ? await productosStorage.listarActivosPorTienda(tienda._id)
+      : [];
+
+    const categorias = [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort();
+
+    res.render('tienda-publica', { tienda, productos, categorias });
+  } catch (error) {
+    console.error('Error cargando tienda pública:', error.message);
+    res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+  }
+};
+
+module.exports = { vistaTienda, guardarTienda, vistaPublicaTienda };

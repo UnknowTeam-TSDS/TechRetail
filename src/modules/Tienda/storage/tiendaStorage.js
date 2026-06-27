@@ -20,4 +20,8 @@ const listarTiendas = async () => {
   return Tienda.find().populate({ path: 'usuarioId', select: 'nombre email' });
 };
 
-module.exports = { buscarPorUsuario, guardarTienda, contarTiendas, listarTiendas };
+const buscarPorId = async (id) => {
+  return Tienda.findById(id);
+};
+
+module.exports = { buscarPorUsuario, buscarPorId, guardarTienda, contarTiendas, listarTiendas };

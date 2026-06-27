@@ -130,6 +130,10 @@ html(lang="es")
                 | Crear tienda
 
       if tienda
+        a(href="/tienda/" + tienda._id target="_blank"
+          class="block w-full text-center bg-white border border-blue-200 text-blue-900 font-bold py-3 rounded-xl text-sm transition-colors mb-3 hover:bg-blue-50")
+          | Ver mi tienda →
+
         a(href="/mis-productos"
           class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-sm transition-colors mb-4")
           | Gestionar productos →

@@ -1,0 +1,159 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title #{tienda.nombre}
+    if tienda.tituloSEO
+      title #{tienda.tituloSEO}
+    script(src="https://cdn.tailwindcss.com")
+    style.
+      :root { --color-marca: #{tienda.colorPrimario}; }
+      .btn-cat.activo { background-color: var(--color-marca); color: #fff; border-color: var(--color-marca); }
+      .btn-cat:not(.activo):hover { border-color: var(--color-marca); color: var(--color-marca); }
+      .badge-precio { color: var(--color-marca); }
+      .header-barra { background-color: var(--color-marca); }
+      .color-dot { background-color: var(--color-marca); }
+      .btn-whatsapp { background-color: #25D366; }
+      .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; }
+
+  body(class="bg-gray-50 min-h-screen font-sans text-gray-900")
+
+    //- ── HEADER ─────────────────────────────────────────────────────────────
+    header(class="bg-white shadow-sm")
+      div(class="header-barra h-1.5 w-full")
+      div(class="max-w-6xl mx-auto px-5 py-6")
+        div(class="flex flex-col md:flex-row md:items-center md:justify-between gap-4")
+          div(class="flex items-center gap-4")
+            div(class="w-12 h-12 rounded-xl color-dot flex items-center justify-center text-white font-extrabold text-xl shrink-0")
+              | #{tienda.nombre.charAt(0).toUpperCase()}
+            div
+              h1(class="text-2xl font-extrabold text-gray-900 leading-tight") #{tienda.nombre}
+              if tienda.descripcion
+                p(class="text-gray-500 text-sm mt-0.5") #{tienda.descripcion}
+          div(class="flex flex-wrap items-center gap-3 text-sm text-gray-500")
+            span(class="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full capitalize text-xs font-semibold") #{tienda.rubro}
+            if tienda.telefono
+              a(href="tel:" + tienda.telefono class="inline-flex items-center gap-1.5 hover:text-gray-800 transition-colors")
+                | 📞 #{tienda.telefono}
+            if tienda.emailContacto
+              a(href="mailto:" + tienda.emailContacto class="inline-flex items-center gap-1.5 hover:text-gray-800 transition-colors")
+                | ✉️ #{tienda.emailContacto}
+
+    //- ── CUERPO ─────────────────────────────────────────────────────────────
+    main(class="max-w-6xl mx-auto px-5 py-8")
+
+      if tienda.estado === 'en_construccion'
+        //- ── PRÓXIMAMENTE ────────────────────────────────────────────────────
+        div(class="min-h-[50vh] flex flex-col items-center justify-center text-center py-20")
+          div(class="w-20 h-20 rounded-2xl color-dot flex items-center justify-center text-white font-extrabold text-4xl mb-6 mx-auto")
+            | #{tienda.nombre.charAt(0).toUpperCase()}
+          h2(class="text-3xl font-extrabold text-gray-900 mb-3") Próximamente
+          p(class="text-gray-500 text-lg max-w-md") Estamos armando la tienda. Volvé pronto para ver todos los productos.
+          if tienda.whatsapp
+            a(href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '') target="_blank" rel="noopener"
+              class="mt-8 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors")
+              | 💬 Consultanos por WhatsApp
+
+      else
+        //- ── FILTROS ─────────────────────────────────────────────────────────
+        if categorias.length > 0
+          div(class="flex flex-wrap gap-2 mb-8")
+            button(
+              type="button"
+              data-filtro="todos"
+              onclick="filtrar(this)"
+              class="btn-cat activo border border-gray-300 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors cursor-pointer")
+              | Todos
+            each cat in categorias
+              button(
+                type="button"
+                data-filtro=cat
+                onclick="filtrar(this)"
+                class="btn-cat border border-gray-300 bg-white rounded-full px-4 py-1.5 text-sm font-semibold transition-colors cursor-pointer")
+                | #{cat}
+
+        if productos.length === 0
+          //- ── SIN PRODUCTOS ──────────────────────────────────────────────────
+          div(class="min-h-[40vh] flex flex-col items-center justify-center text-center py-20")
+            p(class="text-5xl mb-4") 🛍️
+            p(class="text-gray-500 text-lg") Esta tienda todavía no tiene productos publicados.
+            if tienda.whatsapp
+              a(href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '') target="_blank" rel="noopener"
+                class="mt-6 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors")
+                | 💬 Consultar por WhatsApp
+        else
+          //- ── GRID DE PRODUCTOS ───────────────────────────────────────────────
+          div#grilla(class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5")
+            each producto in productos
+              - const cat = producto.categoria || ''
+              div(
+                class="producto-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+                data-categoria=cat)
+
+                //- Imagen
+                div(class="relative bg-gray-100 aspect-[4/3] overflow-hidden")
+                  if producto.imagenes && producto.imagenes.length > 0
+                    img(
+                      src=producto.imagenes[0]
+                      alt=producto.nombre
+                      class="w-full h-full object-cover"
+                      onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-gray-300 text-4xl\\'>📦</div>'")
+                  else
+                    div(class="w-full h-full flex items-center justify-center text-gray-300 text-5xl") 📦
+
+                  //- Badges sobre la imagen
+                  div(class="absolute top-2 left-2 flex flex-col gap-1")
+                    if producto.esOferta
+                      span(class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full") Oferta
+                    if producto.esNovedad
+                      span(class="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full") Nuevo
+                    if producto.destacado
+                      span(class="bg-yellow-400 text-white text-xs font-bold px-2 py-0.5 rounded-full") Destacado
+
+                //- Info
+                div(class="p-4")
+                  if cat
+                    p(class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1") #{cat}
+                  h3(class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2") #{producto.nombre}
+                  if producto.descripcion
+                    p(class="text-xs text-gray-500 mb-3 line-clamp-2") #{producto.descripcion}
+
+                  //- Precio
+                  if producto.precioPromocional
+                    div(class="flex items-baseline gap-2")
+                      span(class="badge-precio text-lg font-extrabold") $#{producto.precioPromocional.toLocaleString('es-AR')}
+                      span(class="text-xs text-gray-400 line-through") $#{producto.precio.toLocaleString('es-AR')}
+                  else
+                    span(class="badge-precio text-lg font-extrabold") $#{producto.precio.toLocaleString('es-AR')}
+
+    //- ── FOOTER ─────────────────────────────────────────────────────────────
+    footer(class="border-t border-gray-200 mt-16 py-8 text-center text-xs text-gray-400")
+      p
+        | #{tienda.nombre} · #{tienda.direccion}
+      p(class="mt-1")
+        | Plataforma
+        a(href="/" class="text-gray-500 hover:text-gray-700 ml-1") TechRetail Solutions
+
+    //- ── BOTÓN WHATSAPP FLOTANTE ─────────────────────────────────────────────
+    if tienda.whatsapp
+      a(
+        href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '')
+        target="_blank"
+        rel="noopener"
+        class="btn-whatsapp fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50"
+        title="Contactar por WhatsApp")
+        span(class="text-2xl") 💬
+
+    script.
+      function filtrar(btn) {
+        var filtro = btn.getAttribute('data-filtro');
+        document.querySelectorAll('.btn-cat').forEach(function(b) {
+          b.classList.toggle('activo', b === btn);
+        });
+        document.querySelectorAll('.producto-card').forEach(function(card) {
+          var cat = card.getAttribute('data-categoria');
+          var visible = filtro === 'todos' || cat === filtro;
+          card.style.display = visible ? '' : 'none';
+        });
+      }
