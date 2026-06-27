@@ -55,22 +55,32 @@ const guardarTienda = async (req, res) => {
   }
 };
 
-// GET /tienda/:id — pública, sin login
+// GET /tienda/:id — pública, sin login. El dueño puede previsualizarla aunque no esté activa.
 const vistaPublicaTienda = async (req, res) => {
   try {
     const tienda = await storage.buscarPorId(req.params.id);
 
-    if (!tienda || tienda.estado === 'inactiva') {
+    if (!tienda) {
       return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
     }
 
-    const productos = tienda.estado === 'activa'
+    const esDueno = !!(req.session.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
+
+    // Una tienda inactiva solo es visible para su dueño (en modo previsualización)
+    if (tienda.estado === 'inactiva' && !esDueno) {
+      return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+    }
+
+    // Se muestra el catálogo si está activa, o si el dueño está previsualizando
+    const mostrarCatalogo = tienda.estado === 'activa' || esDueno;
+    const productos = mostrarCatalogo
       ? await productosStorage.listarActivosPorTienda(tienda._id)
       : [];
 
     const categorias = [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort();
+    const previsualizando = esDueno && tienda.estado !== 'activa';
 
-    res.render('tienda-publica', { tienda, productos, categorias });
+    res.render('tienda-publica', { tienda, productos, categorias, previsualizando });
   } catch (error) {
     console.error('Error cargando tienda pública:', error.message);
     res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });

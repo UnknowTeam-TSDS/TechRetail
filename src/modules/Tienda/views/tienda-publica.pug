@@ -43,7 +43,16 @@ html(lang="es")
     //- ── CUERPO ─────────────────────────────────────────────────────────────
     main(class="max-w-6xl mx-auto px-5 py-8")
 
-      if tienda.estado === 'en_construccion'
+      //- ── BANNER PREVISUALIZACIÓN (solo dueño) ────────────────────────────────
+      if previsualizando
+        div(class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3")
+          span(class="text-xl shrink-0") 👁️
+          div(class="flex-1")
+            p(class="text-sm font-bold text-amber-800") Vista previa — solo vos la ves así
+            p(class="text-xs text-amber-700 mt-0.5") Así se verá tu tienda cuando la publiques. Todavía no es visible para el público porque está en construcción.
+          a(href="/mi-tienda" class="shrink-0 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors") Configurar
+
+      if tienda.estado === 'en_construccion' && !previsualizando
         //- ── PRÓXIMAMENTE ────────────────────────────────────────────────────
         div(class="min-h-[50vh] flex flex-col items-center justify-center text-center py-20")
           div(class="w-20 h-20 rounded-2xl color-dot flex items-center justify-center text-white font-extrabold text-4xl mb-6 mx-auto")
