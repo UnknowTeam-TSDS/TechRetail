@@ -22,6 +22,8 @@ html(lang="es")
       .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; }
 
   body(class="bg-gray-50 min-h-screen font-sans text-gray-900")
+    //- En "Próximamente" (visitante, tienda sin publicar) no se exponen los datos de contacto del dueño
+    - const ocultarContacto = tienda.estado === 'en_construccion' && !previsualizando
 
     //- ── HEADER ─────────────────────────────────────────────────────────────
     header(class="bg-white shadow-sm")
@@ -35,14 +37,15 @@ html(lang="es")
               h1(class="text-2xl font-extrabold text-gray-900 leading-tight") #{tienda.nombre}
               if tienda.descripcion
                 p(class="text-gray-500 text-sm mt-0.5") #{tienda.descripcion}
-          div(class="flex flex-wrap items-center gap-3 text-sm text-gray-500")
-            span(class="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full capitalize text-xs font-semibold") #{tienda.rubro}
-            if tienda.telefono
-              a(href="tel:" + tienda.telefono class="inline-flex items-center gap-1.5 hover:text-gray-800 transition-colors")
-                | 📞 #{tienda.telefono}
-            if tienda.emailContacto
-              a(href="mailto:" + tienda.emailContacto class="inline-flex items-center gap-1.5 hover:text-gray-800 transition-colors")
-                | ✉️ #{tienda.emailContacto}
+          if !ocultarContacto
+            div(class="flex flex-wrap items-center gap-3 text-sm text-gray-500")
+              span(class="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full capitalize text-xs font-semibold") #{tienda.rubro}
+              if tienda.telefono
+                a(href="tel:" + tienda.telefono class="inline-flex items-center gap-1.5 hover:text-gray-800 transition-colors")
+                  | 📞 #{tienda.telefono}
+              if tienda.emailContacto
+                a(href="mailto:" + tienda.emailContacto class="inline-flex items-center gap-1.5 hover:text-gray-800 transition-colors")
+                  | ✉️ #{tienda.emailContacto}
 
     //- ── CUERPO ─────────────────────────────────────────────────────────────
     main(class="max-w-6xl mx-auto px-5 py-8")
@@ -63,10 +66,6 @@ html(lang="es")
             | #{tienda.nombre.charAt(0).toUpperCase()}
           h2(class="text-3xl font-extrabold text-gray-900 mb-3") Próximamente
           p(class="text-gray-500 text-lg max-w-md") Estamos armando la tienda. Volvé pronto para ver todos los productos.
-          if tienda.whatsapp
-            a(href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '') target="_blank" rel="noopener"
-              class="mt-8 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors")
-              | 💬 Consultanos por WhatsApp
 
       else
         //- ── FILTROS ─────────────────────────────────────────────────────────
@@ -144,13 +143,16 @@ html(lang="es")
     //- ── FOOTER ─────────────────────────────────────────────────────────────
     footer(class="border-t border-gray-200 mt-16 py-8 text-center text-xs text-gray-400")
       p
-        | #{tienda.nombre} · #{tienda.direccion}
+        if ocultarContacto
+          | #{tienda.nombre}
+        else
+          | #{tienda.nombre} · #{tienda.direccion}
       p(class="mt-1")
         | Plataforma
         span(class="text-gray-500 ml-1") TechRetail Solutions
 
     //- ── BOTÓN WHATSAPP FLOTANTE ─────────────────────────────────────────────
-    if tienda.whatsapp
+    if tienda.whatsapp && !ocultarContacto
       a(
         href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '')
         target="_blank"
