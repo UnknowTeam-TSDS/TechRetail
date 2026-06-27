@@ -20,7 +20,6 @@ El 3° parcial/entrega final **permite módulos extra** siempre que se documente
 | Navarro Javier | Squad Pagos — Checkout (RF-01) |
 | Zárate Carlos | Squad Monitoreo — Alertas churn (RF-02) |
 | Choque Heber | Squad Finanzas — Conciliación (RF-03) |
-| Basarab Lautaro | Squad Logística — Integración logística (RF-04) |
 
 ---
 
