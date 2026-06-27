@@ -69,7 +69,12 @@ app.use((req, res, next) => {
 });
 
 // ── Dashboard Admin (PROTEGIDA) ──────────────────────────────────────────────
-app.get('/', verificarAdmin, async (req, res) => {
+// Root según rol: anónimo → login, cliente → su panel, admin → dashboard
+app.get('/', (req, res, next) => {
+  if (!req.session.usuario) return res.redirect('/login');
+  if (req.session.usuario.rol !== 'admin') return res.redirect('/mi-cuenta');
+  next();
+}, async (req, res) => {
   try {
     const ahora = new Date();
     const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, totalTiendas, totalProductos, usuariosActivos, todosClientes, recientes] = await Promise.all([
