@@ -1,5 +1,7 @@
 # TechRetail Solutions S.R.L.
 
+[![CI](https://github.com/UnknowTeam-TSDS/TechRetail/actions/workflows/ci.yml/badge.svg)](https://github.com/UnknowTeam-TSDS/TechRetail/actions/workflows/ci.yml)
+
 **Plataforma SaaS de Comercio Electrónico para PyMEs Argentinas**
 
 Proyecto académico del Segundo Parcial Backend | Grupo 13 | Tecnología Informática
