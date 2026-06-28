@@ -1,185 +1,391 @@
-# TechRetail Solutions S.R.L. — AGENTS.md
+# TechRetail Solutions S.R.L. - AGENTS.md
 
 ## Contexto del proyecto
 
-Trabajo práctico de la **Entrega Final** de la materia **Desarrollo Web Backend** (Técnicatura en Programación, IFST 29).
+Trabajo practico de la **Entrega Final / 3er Parcial** de la materia **Desarrollo Web Backend** de la Tecnicatura en Programacion, IFST 29.
 
-El proyecto está basado en el relevamiento de empresa que el mismo grupo (Grupo 13) entregó para **Ingeniería de Software** (PFO1). La empresa ficticia es **TechRetail Solutions S.R.L.**, una plataforma SaaS de e-commerce para PyMEs y emprendedores digitales en Argentina.
+El proyecto parte del relevamiento realizado para **Ingenieria de Software** por el Grupo 13. La empresa ficticia es **TechRetail Solutions S.R.L.**, una plataforma SaaS de e-commerce para PyMEs y emprendedores digitales en Argentina.
 
-**El backend implementa:**
-- Panel de administración interno (gestión de planes, clientes, métricas)
-- Panel de cliente (mi cuenta, tienda propia, catálogo de productos)
+El sistema ya no es solamente un CRUD administrativo. En la version actual implementa:
 
-El 3° parcial/entrega final **permite módulos extra** siempre que se documenten y justifiquen. Los módulos Tienda y Productos fueron agregados por eso.
+- Panel de administracion interno con dashboard, metricas, planes, add-ons y clientes.
+- Panel de cliente con registro, login, seleccion de plan, trial, add-ons, tienda propia y catalogo.
+- Tienda publica con vista de tienda y detalle de producto.
 
-### Grupo 13 — Comisión E
+Los modulos **Tienda** y **Productos** se agregaron para acercar el backend al relevamiento original y al flujo real de creacion de una tienda online. Si se agregan mas funciones, deben estar justificadas en la documentacion y mantenerse dentro de un alcance razonable para la entrega.
+
+## Reglas para agentes
+
+- Leer este archivo antes de tocar el proyecto.
+- No modificar `.env`.
+- No subir `node_modules`.
+- No mencionar IA, asistentes, modelos ni coautoria automatizada en commits.
+- Usar commits breves, descriptivos y humanos.
+- Preguntar antes de hacer `git push`, salvo que el usuario lo pida explicitamente.
+- Revisar arquitectura y tests antes de cambios grandes.
+- Mantener cambios acotados a la tarea.
+- No revertir cambios del usuario sin permiso.
+- No agregar tecnologias nuevas si el problema se resuelve con el stack actual.
+- Los comentarios de codigo deben ser breves, naturales y utiles. Evitar comentarios obvios o roboticos.
+
+## Grupo 13 - Comision E
 
 | Integrante | Rol en IS |
 |------------|-----------|
-| Melchiori Leandro (usuario) | Squad UX/Prod — Onboarding guiado (RF-05) |
-| Navarro Javier | Squad Pagos — Checkout (RF-01) |
-| Zárate Carlos | Squad Monitoreo — Alertas churn (RF-02) |
-| Choque Heber | Squad Finanzas — Conciliación (RF-03) |
+| Melchiori Leandro | Squad UX/Prod - Onboarding guiado (RF-05) |
+| Navarro Javier | Squad Pagos - Checkout (RF-01) |
+| Zarate Carlos | Squad Monitoreo - Alertas churn (RF-02) |
+| Choque Heber | Squad Finanzas - Conciliacion (RF-03) |
+| Basarab Lautaro | Squad Logistica - Integracion logistica (RF-04) |
 
----
+## Stack tecnologico
 
-## Stack tecnológico
-
-| Capa | Tecnología |
-|------|-----------|
+| Capa | Tecnologia |
+|------|------------|
 | Runtime | Node.js |
 | Framework | Express 5.x |
 | Base de datos | MongoDB Atlas + Mongoose 9.x |
-| Autenticación | express-session + bcryptjs |
-| Vistas | Pug 3.x + Tailwind CSS (CDN) |
-| Uploads | multer (imágenes a `public/uploads/`) |
-| Dev | nodemon |
+| Autenticacion | express-session + bcryptjs |
+| Vistas | Pug 3.x + Tailwind CSS por CDN |
+| Uploads | multer |
+| Tiempo real | Socket.io |
 | Tests | Jest |
+| Desarrollo | nodemon |
 
----
-
-## Cómo correr el proyecto
+## Comandos
 
 ```bash
-npm run dev    # nodemon, recarga automática
-npm start      # node app.js
-npm test       # jest --forceExit
+npm run dev
+npm start
+npm test
 ```
 
-Servidor en: `http://localhost:3000`
+Servidor local:
 
-**Credenciales por defecto** (se crean automáticamente con el seed):
-- Email: `admin@techretail.com`
-- Password: `123456`
-
-El seed crea automáticamente 3 planes (Starter $15.000, Growth $45.000, Pro $80.000), 4 add-ons y el usuario admin si la base está vacía.
-
----
-
-## Arquitectura
-
-Patrón **MVC modular**: cada módulo tiene su propia carpeta con router → controller → storage → model → views.
-
-```
-TechRetail/
-├── app.js
-├── public/
-│   └── uploads/productos/          # Imágenes subidas con multer (no committeadas)
-├── src/
-│   ├── config/
-│   │   ├── mongodb.js
-│   │   ├── multer.js               # Configuración multer (diskStorage, 5MB, solo imágenes)
-│   │   └── seed.js
-│   ├── middlewares/
-│   │   ├── autenticacion.js        # verificarSesion(), verificarAdmin()
-│   │   └── logger.js
-│   ├── modules/
-│   │   ├── Auth/                   # Login / Logout / Mi cuenta / Mis add-ons
-│   │   │   ├── controllers/authController.js
-│   │   │   ├── routers/authRouter.js
-│   │   │   └── views/
-│   │   │       ├── login.pug
-│   │   │       ├── mi-cuenta.pug   # Panel del cliente: plan, add-ons, trial
-│   │   │       └── registro.pug
-│   │   ├── Planes/                 # CRUD planes y add-ons (admin)
-│   │   │   ├── controllers/planesController.js
-│   │   │   ├── routers/planesRouter.js
-│   │   │   ├── storage/planesStorage.js
-│   │   │   ├── models/Plan.js
-│   │   │   └── views/planes.pug
-│   │   ├── Tienda/                 # Configuración de tienda por cliente
-│   │   │   ├── controllers/tiendaController.js
-│   │   │   ├── routers/tiendaRouter.js
-│   │   │   ├── storage/tiendaStorage.js
-│   │   │   ├── models/Tienda.js
-│   │   │   └── views/mi-tienda.pug
-│   │   ├── Productos/              # Catálogo de productos por tienda
-│   │   │   ├── controllers/productosController.js
-│   │   │   ├── routers/productosRouter.js
-│   │   │   ├── storage/productosStorage.js
-│   │   │   ├── models/Producto.js
-│   │   │   └── views/mis-productos.pug
-│   │   └── usuarios/               # CRUD usuarios/clientes (admin)
-│   │       ├── controllers/usuariosController.js
-│   │       ├── routers/usuariosRouter.js
-│   │       ├── storage/usuariosStorage.js
-│   │       ├── models/Usuario.js
-│   │       └── views/usuarios.pug
-│   └── views/
-│       ├── layout.pug
-│       └── index.pug               # Dashboard admin
-└── tests/
-    ├── controllers/
-    └── models/
+```txt
+http://localhost:3000
 ```
 
----
+Deploy en Render:
 
-## Módulos
+```txt
+https://techretail-jc1f.onrender.com
+```
 
-### Auth
-- `GET /login` — Formulario de login
-- `POST /login` — Valida con bcrypt, crea sesión → redirige según rol
-- `POST /logout` — Destruye sesión
-- `GET /mi-cuenta` — Panel del cliente: plan activo, add-ons disponibles/contratados, trial
-- `POST /mis-addons/agregar` — Contrata un add-on (requiere plan pago, no trial)
+Credenciales admin por defecto:
 
-### Planes (`/planes` y `/api/planes`) — solo admin
-Schema Plan: `nombre` (req, min 3), `descripcion` (req), `precio` (req, ≥0), `tipo` (enum: `'plan'|'addon'`), `activo` (bool), timestamps.
-
-### Usuarios (`/usuarios` y `/api/usuarios`) — solo admin
-Schema Usuario: `nombre` (req, min 3), `email` (req, único), `contrasena` (req, min 6, hashed, `select:false`), `empresa`, `telefono`, `planId` (ref Plan), `rol` (enum: `'admin'|'cliente'`), `estado` (enum: `'activo'|'inactivo'|'suspendido'`), `trialHasta` (Date), `addons` (array ref Plan), timestamps.
-
-### Tienda (`/mi-tienda`) — cliente autenticado
-Una tienda por usuario (`usuarioId: unique`). Upsert con `findOneAndUpdate`.
-
-Schema Tienda: `nombre` (req, min 3), `descripcion`, `rubro` (enum req), `colorPrimario` (hex), `emailContacto` (req), `telefono` (req), `direccion` (req), `whatsapp` (opcional), `estado` (enum, forzado a `en_construccion` en trial).
-
-### Productos (`/mis-productos`) — cliente autenticado
-Requiere tienda creada. Seguridad: todas las ops de storage filtran por `tiendaId`.
-
-Schema Producto: `nombre` (req, min 3), `descripcion`, `categoria`, `precio` (req), `precioPromocional`, `tipo` (enum: `'fisico'|'digital'|'servicio'`), `pesoKg` (req si fisico), `dimensiones.altoCm/anchoCm/largoCm` (req si fisico), `stock`, `imagenes` (array rutas), `destacado`, `esNovedad`, `esOferta`, `tags`, `tituloSEO` (max 70), `descripcionSEO` (max 160), `activo`.
-
----
-
-## Patrones y convenciones
-
-- **Async/await** en todos los controllers y storage
-- **Storage layer**: DB aislada en `storage/`
-- **PRG (Post-Redirect-Get)**: formularios HTML usan POST → redirect
-- **`select: false`** en `contrasena`; recuperado con `.select('+contrasena')` solo en login
-- **`normalizarProducto(body, tiendaId, files, imagenesActuales)`**: helper centralizado en productosController para crear y editar
-- **Trial**: `enTrial = usuario.trialHasta && new Date(usuario.trialHasta) > new Date()`
-- **Imágenes**: multer guarda en `public/uploads/productos/`. En Render free tier el filesystem es efímero.
-- Precios en **pesos argentinos (ARS)**
-
----
-
-## Convenciones de trabajo con IA
-
-- **Commits**: mensajes breves, descriptivos y humanos. No mencionar IA, asistentes, herramientas ni coautoría automática.
-- **Comentarios de código**: usar solo cuando aporten contexto real. Deben ser cortos y naturales; evitar comentarios obvios o redactados como texto generado.
-- **Push**: preguntar siempre antes de subir cambios al remoto.
-
----
+```txt
+Email: admin@techretail.com
+Password: 123456
+```
 
 ## Variables de entorno
 
-| Variable | Default | Descripción |
+| Variable | Default | Descripcion |
 |----------|---------|-------------|
-| `MONGO_URI` | `mongodb://localhost:27017/techretail` | URI de conexión MongoDB |
-| `SESSION_SECRET` | — | Secreto para express-session (requerido en producción) |
-| `NODE_ENV` | — | Si es `'development'`, errores 500 incluyen stack trace |
+| `MONGO_URI` | `mongodb://localhost:27017/techretail` | URI de MongoDB local o Atlas |
+| `SESSION_SECRET` | - | Secreto de sesion. Requerido en produccion |
+| `NODE_ENV` | - | En `development`, muestra detalle de errores 500 |
 | `PORT` | `3000` | Puerto del servidor |
 
----
+No commitear `.env`.
 
-## Deploy
+## Datos iniciales
 
-El proyecto está desplegado en Render: `techretail-jc1f.onrender.com`
+`src/config/seed.js` sincroniza el catalogo canonico con upsert por nombre y limpieza de items no canonicos.
 
----
+Planes:
 
-## Material de la cátedra
+- Starter - $12.000
+- Growth - $32.000
+- Pro - $55.000
 
-La carpeta `material_tecnicatura/` contiene los PDFs de los bloques de la materia. No modificar ni borrar.
+Add-ons:
+
+- Guia de Onboarding - gratis, de uso unico.
+- Conector ERP - $8.000.
+- Facturacion Electronica ARCA - $5.000.
+
+El seed tambien crea el usuario admin si no existe.
+
+## Arquitectura
+
+Patron **MVC modular**. Cada modulo mantiene router, controller, storage, model y views cuando aplica.
+
+```text
+TechRetail/
+|-- app.js
+|-- public/
+|   |-- js/password.js
+|   |-- uploads/productos/
+|   |-- manifest.json
+|   |-- sw.js
+|   |-- offline.html
+|   `-- techretail_*.svg
+|-- src/
+|   |-- config/
+|   |   |-- mongodb.js
+|   |   |-- multer.js
+|   |   `-- seed.js
+|   |-- middlewares/
+|   |   |-- autenticacion.js
+|   |   `-- logger.js
+|   |-- modules/
+|   |   |-- Auth/
+|   |   |-- Planes/
+|   |   |-- Productos/
+|   |   |-- Tienda/
+|   |   `-- usuarios/
+|   `-- views/
+|       |-- layout.pug
+|       `-- index.pug
+`-- tests/
+```
+
+`app.js`:
+
+- Carga `dotenv`.
+- Crea `http.createServer(app)` para Socket.io.
+- Sirve archivos estaticos desde `public`.
+- Configura sesiones.
+- Monta rutas publicas, de cliente y de admin.
+- Expone Socket.io en `app.set('io', io)`.
+- Eventos de Socket.io en tiempo real: `nuevo-usuario`, `nuevo-plan`, `plan-seleccionado`, `nueva-tienda`, `tienda-publicada` y `nuevo-producto`.
+
+## Modulos y rutas principales
+
+### Auth
+
+Publicas:
+
+- `GET /login`
+- `POST /login`
+- `POST /logout`
+- `GET /registro`
+- `POST /registro`
+
+Cliente autenticado:
+
+- `GET /elegir-plan`
+- `POST /elegir-plan`
+- `GET /mi-cuenta`
+- `POST /mis-addons/agregar`
+- `POST /mis-addons/quitar`
+- `GET /cambiar-contrasena`
+- `POST /cambiar-contrasena`
+
+Flujo:
+
+- Admin inicia sesion y va al dashboard `/`.
+- Cliente sin plan va a `/elegir-plan`.
+- Cliente con plan o trial va a `/mi-cuenta`.
+- Usuarios creados por admin tienen `cambiarContrasena: true` y deben cambiar contrasena en el primer login.
+- `validarContrasenaSegura()` exige minimo 8 caracteres, minuscula, mayuscula, numero y simbolo.
+
+### Planes
+
+Admin:
+
+- `GET /planes/vista`
+- `POST /planes/form`
+- `POST /planes/eliminar/:id`
+
+API admin:
+
+- `GET /api/planes`
+- `POST /api/planes`
+- `GET /api/planes/:id`
+- `PUT /api/planes/:id`
+- `DELETE /api/planes/:id`
+
+### Usuarios
+
+Admin:
+
+- `GET /usuarios/vista`
+- `POST /usuarios/form`
+- `POST /usuarios/eliminar/:id`
+- `POST /usuarios/estado/:id`
+
+API admin:
+
+- `GET /api/usuarios`
+- `POST /api/usuarios`
+- `GET /api/usuarios/:id`
+- `PUT /api/usuarios/:id`
+- `DELETE /api/usuarios/:id`
+
+### Tienda
+
+Cliente autenticado:
+
+- `GET /mi-tienda`
+- `GET /mi-tienda/editar`
+- `POST /mi-tienda`
+- `POST /mi-tienda/publicar`
+- `POST /mi-tienda/despublicar`
+
+Publicas:
+
+- `GET /tienda/:id`
+- `GET /tienda/:id/producto/:productoId`
+
+Reglas:
+
+- Una tienda por cliente (`usuarioId` unico).
+- Durante trial, la tienda permanece `en_construccion`.
+- Para publicar, el cliente debe tener plan pago.
+- Datos legales obligatorios: email de contacto, telefono y direccion.
+- WhatsApp es opcional.
+- El color principal queda en el modelo como base para una futura personalizacion visual, pero no se edita desde la creacion inicial.
+
+### Productos
+
+Cliente autenticado:
+
+- `GET /mis-productos`
+- `POST /mis-productos/form`
+- `GET /mis-productos/editar/:id`
+- `POST /mis-productos/editar/:id`
+- `POST /mis-productos/eliminar/:id`
+- `POST /mis-productos/estado/:id`
+
+Reglas:
+
+- Requiere tienda creada.
+- Todo acceso a productos filtra por `tiendaId`, para impedir modificar productos de otra tienda.
+- Categorias se eligen desde un selector y se pueden crear desde el formulario.
+- Productos fisicos requieren peso y dimensiones para logistica.
+- Productos digitales o servicios no requieren peso ni dimensiones.
+- Imagenes se suben con multer a `public/uploads/productos/`.
+- En Render free tier el filesystem es efimero; si una imagen se pierde, la UI debe mostrar placeholder "Sin imagen".
+
+## Modelos principales
+
+### Usuario
+
+Campos relevantes:
+
+- `nombre`, `email`, `contrasena`
+- `empresa`, `telefono`
+- `planId`, `addons`
+- `rol`, `estado`
+- `trialHasta`
+- `cambiarContrasena`
+
+Notas:
+
+- `contrasena` tiene `select: false`.
+- Login usa `.select('+contrasena')`.
+- La contrasena se hashea con bcrypt en `pre('save')`.
+- Las queries poblan `planId` y `addons`.
+
+### Plan
+
+Campos relevantes:
+
+- `nombre`
+- `descripcion`
+- `precio`
+- `tipo`: `plan` o `addon`
+- `activo`
+
+### Tienda
+
+Campos relevantes:
+
+- `usuarioId`
+- `nombre`
+- `descripcion`
+- `rubro`
+- `colorPrimario`
+- `emailContacto`
+- `telefono`
+- `direccion`
+- `whatsapp`
+- `estado`
+
+### Producto
+
+Campos relevantes:
+
+- `tiendaId`
+- `nombre`, `descripcion`, `categoria`
+- `precio`, `precioPromocional`
+- `tipo`: `fisico`, `digital`, `servicio`
+- `pesoKg`
+- `dimensiones.altoCm`, `dimensiones.anchoCm`, `dimensiones.largoCm`
+- `stock`
+- `imagenes`
+- `destacado`, `esNovedad`, `esOferta`
+- `tags`
+- `tituloSEO`, `descripcionSEO`
+- `activo`
+
+## Patrones y convenciones
+
+- Usar `async/await`.
+- Mantener controllers claros y sin mezclar responsabilidades innecesarias.
+- Usar storage layer para acceso a base cuando el modulo ya lo tiene.
+- Formularios HTML con PRG: POST -> redirect.
+- Respetar rutas protegidas con `verificarSesion` o `verificarAdmin`.
+- Usar codigos HTTP correctos en API y login.
+- No tocar cambios ajenos ni revertir archivos no relacionados.
+- Mantener los cambios acotados a la tarea.
+- Evitar overengineering: si una mejora se resuelve con modelo + controller + vista, no crear infraestructura extra.
+
+## Tests
+
+Jest esta configurado en `package.json`.
+
+Hay tests para:
+
+- middleware de autenticacion
+- politica de contrasena
+- modelos: Plan, Usuario, Tienda, Producto
+- eventos WebSocket emitidos desde Auth, Tienda y Productos
+- controllers: Auth, Tienda, Productos (actualmente planes y usuarios no poseen tests específicos de controlador)
+
+Antes de commitear cambios de logica, correr:
+
+```bash
+npm test
+```
+
+Si PowerShell bloquea `npm.ps1`, usar:
+
+```bash
+npm.cmd test
+```
+
+### Integración Continua (CI)
+
+Configurada en `.github/workflows/ci.yml`. Corre los tests en Node 20 y 22 en cada Push o PR a `main`.
+
+### Pruebas de API (Postman)
+
+Existe una colección de pruebas en `src/postman/TechRetail - Test general.postman_collection.json`.
+
+## Convenciones de commits y push
+
+- Commits breves, descriptivos y humanos.
+- No mencionar IA, asistentes, herramientas ni coautoria automatizada.
+- Comentarios de codigo solo cuando aporten contexto real.
+- Comentarios cortos, naturales y explicativos.
+- Preguntar siempre antes de hacer `git push`, salvo que el usuario lo pida explicitamente.
+- No commitear `node_modules`.
+
+## Archivos y carpetas que no deben subirse
+
+- `.env`
+- `node_modules/`
+- `material_tecnicatura/`
+- `public/uploads/`
+
+`public/techretail_*.svg` son recursos de documentacion y pueden estar versionados.
+
+## Material de referencia
+
+- `material_tecnicatura/`: PDFs de la catedra. No modificar ni borrar.
+- Relevamiento de Ingenieria de Software: base funcional del dominio.
+- Tutorial de Tiendanube: referencia UX para tienda, productos, onboarding y catalogo.

@@ -52,7 +52,7 @@ Servidor en: `http://localhost:3000`
 - Email: `admin@techretail.com`
 - Password: `123456`
 
-El seed crea automáticamente 3 planes (Starter $15.000, Growth $45.000, Pro $80.000), 4 add-ons y el usuario admin si la base está vacía.
+El seed crea automáticamente 3 planes (Starter $12.000, Growth $32.000, Pro $55.000), 3 add-ons (Guía de Onboarding, Conector ERP y Facturación Electrónica ARCA) y el usuario admin si la base está vacía.
 
 ---
 
@@ -64,7 +64,10 @@ Patrón **MVC modular**: cada módulo tiene su propia carpeta con router → con
 TechRetail/
 ├── app.js
 ├── public/
-│   └── uploads/productos/          # Imágenes subidas con multer (no committeadas)
+│   ├── uploads/productos/          # Imágenes subidas con multer (no committeadas)
+│   ├── manifest.json               # Configuración de la PWA
+│   ├── sw.js                       # Service Worker (instalable/offline)
+│   └── offline.html                # Pantalla de respaldo offline para la PWA
 ├── src/
 │   ├── config/
 │   │   ├── mongodb.js
@@ -187,6 +190,32 @@ La seguridad de cross-user se garantiza pasando siempre `tiendaId` como filtro e
 
 ---
 
+## WebSockets (Socket.io)
+
+El servidor implementa comunicacion bidireccional en tiempo real. Guarda la instancia `io` en la aplicacion (`app.set('io', io)`) para usarla desde los controllers:
+*   `nuevo-usuario`: emitido al registrar o crear un cliente.
+*   `nuevo-plan`: emitido al crear un plan o add-on.
+*   `plan-seleccionado`: emitido cuando un cliente elige un plan.
+*   `nueva-tienda`: emitido cuando un cliente crea su tienda.
+*   `tienda-publicada`: emitido cuando una tienda pasa a estado activa.
+*   `nuevo-producto`: emitido cuando se carga un producto en una tienda.
+
+El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el dashboard administrativo cuando el usuario no esta escribiendo en un formulario.
+
+---
+
+## Calidad, Tests y CI
+
+*   **Tests Unitarios e Integración**: Configurados con Jest (`npm.cmd test`).
+    *   **Cobertura**:
+        *   Modelos: `Plan`, `Usuario`, `Tienda`, `Producto`.
+        *   Controladores: `authController`, `productosController`, `tiendaController`.
+        *   Lógica y seguridad: Políticas de contraseñas y middleware de sesión.
+*   **Integración Continua (CI)**: Configurada en `.github/workflows/ci.yml`. Ejecuta las pruebas automáticamente en Node 20 y 22 ante cada Push o PR a `main`.
+*   **API Testing**: Colección de Postman disponible en `src/postman/TechRetail - Test general.postman_collection.json`.
+
+---
+
 ## Patrones y convenciones
 
 - **Async/await** en todos los controllers y storage
@@ -229,3 +258,4 @@ El proyecto está desplegado en Render: `techretail-jc1f.onrender.com`
 ## Material de la cátedra
 
 La carpeta `material_tecnicatura/` contiene los PDFs de los bloques de la materia. No modificar ni borrar.
+
