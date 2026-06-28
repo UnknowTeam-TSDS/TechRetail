@@ -77,7 +77,7 @@ app.get('/', (req, res, next) => {
 }, async (req, res) => {
   try {
     const ahora = new Date();
-    const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, totalTiendas, totalProductos, usuariosActivos, todosClientes, recientes] = await Promise.all([
+    const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, totalTiendas, tiendasPublicadas, tiendasBorrador, tiendasInactivas, totalProductos, usuariosActivos, todosClientes, recientes] = await Promise.all([
       Usuario.countDocuments({ rol: 'cliente' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'activo' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'inactivo' }),
@@ -86,6 +86,9 @@ app.get('/', (req, res, next) => {
       Plan.countDocuments({ tipo: 'plan' }),
       Plan.countDocuments({ tipo: 'addon' }),
       Tienda.countDocuments(),
+      Tienda.countDocuments({ estado: 'activa' }),
+      Tienda.countDocuments({ estado: 'en_construccion' }),
+      Tienda.countDocuments({ estado: 'inactiva' }),
       Producto.countDocuments(),
       Usuario.find({ rol: 'cliente', estado: 'activo' }),
       Usuario.find({ rol: 'cliente' }),
@@ -110,7 +113,7 @@ app.get('/', (req, res, next) => {
 
     res.render('index', {
       titulo: 'Panel de Gestión',
-      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados, totalTiendas, totalProductos },
+      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados, totalTiendas, tiendasPublicadas, tiendasBorrador, tiendasInactivas, totalProductos },
       distribucion,
       recientes,
     });

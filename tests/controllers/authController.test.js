@@ -6,6 +6,7 @@ const Plan = require('../../src/modules/Planes/models/Plan');
 const {
   vistaLogin,
   loginUsuario,
+  seleccionarPlan,
   agregarAddon,
   quitarAddon,
 } = require('../../src/modules/Auth/controllers/authController');
@@ -105,6 +106,30 @@ describe('Auth Controller', () => {
       });
       await loginUsuario(req, res);
       expect(res.status).toHaveBeenCalledWith(403);
+    });
+  });
+
+  describe('seleccionarPlan', () => {
+    test('asigna el plan y emite evento websocket', async () => {
+      const emit = jest.fn();
+      req.body = { planId: 'plan-id' };
+      req.session.usuario = { id: 'user-id', nombre: 'Cliente Test' };
+      req.app = { get: jest.fn().mockReturnValue({ emit }) };
+      Plan.findById = jest.fn().mockResolvedValue({ _id: 'plan-id', nombre: 'Growth' });
+      Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+
+      await seleccionarPlan(req, res);
+
+      expect(Usuario.findByIdAndUpdate).toHaveBeenCalledWith('user-id', {
+        planId: 'plan-id',
+        trialHasta: null,
+      });
+      expect(emit).toHaveBeenCalledWith('plan-seleccionado', {
+        usuario: 'Cliente Test',
+        plan: 'Growth',
+        enTrial: false,
+      });
+      expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
     });
   });
 

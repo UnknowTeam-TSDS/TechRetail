@@ -45,7 +45,11 @@ block contenido
       div(class="bg-white rounded-xl shadow-md p-5")
         p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Tiendas
         p(class="text-3xl font-bold text-teal-600") #{stats.totalTiendas}
-        p(class="text-xs text-gray-400 mt-1") tiendas configuradas
+        div(class="flex flex-wrap gap-2 mt-2")
+          span(class="text-xs bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full") #{stats.tiendasPublicadas} publicadas
+          span(class="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full") #{stats.tiendasBorrador} en borrador
+        if stats.tiendasInactivas > 0
+          p(class="text-xs text-gray-400 mt-1") #{stats.tiendasInactivas} inactivas
 
       div(class="bg-white rounded-xl shadow-md p-5")
         p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Productos

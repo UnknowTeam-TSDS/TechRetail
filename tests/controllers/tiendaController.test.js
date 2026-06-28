@@ -87,6 +87,24 @@ describe('Tienda Controller', () => {
       }));
     });
 
+    test('emite evento websocket cuando se crea una tienda nueva', async () => {
+      const emit = jest.fn();
+      req.app = { get: jest.fn().mockReturnValue({ emit }) };
+      req.body = { nombre: 'Nueva Tienda', rubro: 'moda' };
+      req.session.usuario.nombre = 'Cliente Test';
+      Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
+      storage.buscarPorUsuario = jest.fn().mockResolvedValue(null);
+      storage.guardarTienda = jest.fn().mockResolvedValue({ nombre: 'Nueva Tienda', rubro: 'moda' });
+
+      await guardarTienda(req, res);
+
+      expect(emit).toHaveBeenCalledWith('nueva-tienda', {
+        nombre: 'Nueva Tienda',
+        rubro: 'moda',
+        usuario: 'Cliente Test',
+      });
+    });
+
     test('si esta en trial, una tienda activa vuelve a construccion', async () => {
       req.body = { nombre: 'Tienda Test', rubro: 'moda' };
       const trialFuturo = new Date(Date.now() + 86400000);
@@ -104,12 +122,19 @@ describe('Tienda Controller', () => {
 
   describe('publicarTienda', () => {
     test('publica la tienda si el usuario tiene plan pago', async () => {
+      const emit = jest.fn();
+      req.app = { get: jest.fn().mockReturnValue({ emit }) };
+      req.session.usuario.nombre = 'Cliente Test';
       Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
-      storage.actualizarEstado = jest.fn().mockResolvedValue({});
+      storage.actualizarEstado = jest.fn().mockResolvedValue({ nombre: 'Tienda Test' });
 
       await publicarTienda(req, res);
 
       expect(storage.actualizarEstado).toHaveBeenCalledWith('user-id', 'activa');
+      expect(emit).toHaveBeenCalledWith('tienda-publicada', {
+        nombre: 'Tienda Test',
+        usuario: 'Cliente Test',
+      });
       expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
     });
 

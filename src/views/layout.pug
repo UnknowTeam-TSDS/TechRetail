@@ -47,7 +47,13 @@ html(lang="es")
       const socket = io();
 
       function mostrarNotificacion(mensaje, tipo) {
-        const colores = { plan: 'bg-blue-600', usuario: 'bg-green-600' };
+        const colores = {
+          plan: 'bg-blue-600',
+          usuario: 'bg-green-600',
+          tienda: 'bg-teal-600',
+          publicada: 'bg-emerald-600',
+          producto: 'bg-indigo-600'
+        };
         const notif = document.createElement('div');
         notif.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold shadow-lg z-50 ' + (colores[tipo] || 'bg-gray-700');
         notif.textContent = mensaje;
@@ -71,5 +77,26 @@ html(lang="es")
 
       socket.on('nuevo-usuario', function(data) {
         mostrarNotificacion('Nuevo usuario: ' + data.nombre + ' (' + data.email + ')', 'usuario');
+        refrescarPanel();
+      });
+
+      socket.on('plan-seleccionado', function(data) {
+        const estado = data.enTrial ? 'prueba gratuita' : 'plan pago';
+        mostrarNotificacion(data.usuario + ' eligió ' + data.plan + ' (' + estado + ')', 'plan');
+        refrescarPanel();
+      });
+
+      socket.on('nueva-tienda', function(data) {
+        mostrarNotificacion('Nueva tienda: ' + data.nombre + ' (' + data.rubro + ')', 'tienda');
+        refrescarPanel();
+      });
+
+      socket.on('tienda-publicada', function(data) {
+        mostrarNotificacion('Tienda publicada: ' + data.nombre + ' por ' + data.usuario, 'publicada');
+        refrescarPanel();
+      });
+
+      socket.on('nuevo-producto', function(data) {
+        mostrarNotificacion('Nuevo producto: ' + data.nombre + ' en ' + data.tienda, 'producto');
         refrescarPanel();
       });

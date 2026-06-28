@@ -110,6 +110,32 @@ describe('Productos Controller', () => {
       }));
       expect(res.redirect).toHaveBeenCalledWith('/mis-productos');
     });
+
+    test('emite evento websocket cuando crea un producto', async () => {
+      const emit = jest.fn();
+      req.app = { get: jest.fn().mockReturnValue({ emit }) };
+      req.body = {
+        nombre: 'Remera',
+        precio: '1500',
+        stock: '10',
+        categoria: 'Ropa',
+        tipo: 'fisico',
+        pesoKg: '0.5',
+        altoCm: '10',
+        anchoCm: '20',
+        largoCm: '30',
+      };
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
+      storage.agregar = jest.fn().mockResolvedValue({ nombre: 'Remera', categoria: 'Ropa' });
+
+      await crearProducto(req, res);
+
+      expect(emit).toHaveBeenCalledWith('nuevo-producto', {
+        nombre: 'Remera',
+        tienda: 'Mi Tienda',
+        categoria: 'Ropa',
+      });
+    });
   });
 
   describe('actualizarProducto', () => {

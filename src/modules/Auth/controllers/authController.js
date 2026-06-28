@@ -7,6 +7,11 @@ const Usuario = require('../../usuarios/models/Usuario');
 const Plan = require('../../Planes/models/Plan');
 const { validarContrasenaSegura } = require('../passwordPolicy');
 
+const emitirSocket = (req, evento, datos) => {
+  const io = req.app?.get?.('io');
+  if (io) io.emit(evento, datos);
+};
+
 // GET /login
 const vistaLogin = (req, res) => {
   res.render('login', {
@@ -59,7 +64,7 @@ const registrarUsuario = async (req, res) => {
     });
 
     // Notificar a los admins conectados que entró un nuevo cliente
-    req.app.get('io').emit('nuevo-usuario', { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email });
+    emitirSocket(req, 'nuevo-usuario', { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email });
 
     res.redirect('/login?registrado=1');
   } catch (error) {
@@ -213,6 +218,11 @@ const seleccionarPlan = async (req, res) => {
     }
 
     await Usuario.findByIdAndUpdate(req.session.usuario.id, updates);
+    emitirSocket(req, 'plan-seleccionado', {
+      usuario: req.session.usuario.nombre,
+      plan: plan.nombre,
+      enTrial: !!updates.trialHasta,
+    });
     res.redirect('/mi-cuenta');
   } catch (error) {
     console.error('Error al seleccionar plan:', error.message);

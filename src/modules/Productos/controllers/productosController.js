@@ -1,6 +1,11 @@
 const storage = require('../storage/productosStorage');
 const tiendaStorage = require('../../Tienda/storage/tiendaStorage');
 
+const emitirSocket = (req, evento, datos) => {
+  const io = req.app?.get?.('io');
+  if (io) io.emit(evento, datos);
+};
+
 const obtenerTiendaDelUsuario = async (req) => {
   return tiendaStorage.buscarPorUsuario(req.session.usuario.id);
 };
@@ -108,7 +113,12 @@ const crearProducto = async (req, res) => {
     const tienda = await obtenerTiendaDelUsuario(req);
     if (!tienda) return res.redirect('/mi-tienda');
 
-    await storage.agregar(normalizarProducto(req.body, tienda._id, req.files || []));
+    const producto = await storage.agregar(normalizarProducto(req.body, tienda._id, req.files || []));
+    emitirSocket(req, 'nuevo-producto', {
+      nombre: producto.nombre,
+      tienda: tienda.nombre,
+      categoria: producto.categoria,
+    });
     res.redirect('/mis-productos');
   } catch (error) {
     console.error('Error creando producto:', error.message);

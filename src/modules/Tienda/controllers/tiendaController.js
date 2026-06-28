@@ -2,6 +2,11 @@ const storage = require('../storage/tiendaStorage');
 const productosStorage = require('../../Productos/storage/productosStorage');
 const Usuario = require('../../usuarios/models/Usuario');
 
+const emitirSocket = (req, evento, datos) => {
+  const io = req.app?.get?.('io');
+  if (io) io.emit(evento, datos);
+};
+
 // GET /mi-tienda — panel resumen de la tienda
 const vistaTienda = async (req, res) => {
   try {
@@ -67,7 +72,7 @@ const guardarTienda = async (req, res) => {
     let estadoFinal = tiendaActual ? tiendaActual.estado : 'en_construccion';
     if (enTrial && estadoFinal === 'activa') estadoFinal = 'en_construccion';
 
-    await storage.guardarTienda(req.session.usuario.id, {
+    const tiendaGuardada = await storage.guardarTienda(req.session.usuario.id, {
       nombre: nombre?.trim(),
       descripcion: descripcion?.trim(),
       rubro,
@@ -77,6 +82,14 @@ const guardarTienda = async (req, res) => {
       direccion: direccion?.trim(),
       whatsapp: whatsapp?.trim() || '',
     });
+
+    if (!tiendaActual) {
+      emitirSocket(req, 'nueva-tienda', {
+        nombre: tiendaGuardada.nombre,
+        rubro: tiendaGuardada.rubro,
+        usuario: req.session.usuario.nombre,
+      });
+    }
 
     res.redirect('/mi-tienda');
   } catch (error) {
@@ -93,7 +106,11 @@ const publicarTienda = async (req, res) => {
     const planPago = !!(usuario.planId) && !enTrial;
     if (!planPago) return res.redirect('/mi-tienda');
 
-    await storage.actualizarEstado(req.session.usuario.id, 'activa');
+    const tiendaPublicada = await storage.actualizarEstado(req.session.usuario.id, 'activa');
+    emitirSocket(req, 'tienda-publicada', {
+      nombre: tiendaPublicada?.nombre || 'Tienda',
+      usuario: req.session.usuario.nombre,
+    });
     res.redirect('/mi-tienda');
   } catch (error) {
     console.error('Error al publicar tienda:', error.message);
