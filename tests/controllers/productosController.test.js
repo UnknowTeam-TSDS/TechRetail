@@ -17,7 +17,7 @@ describe('Productos Controller', () => {
   const mockTienda = { _id: 'tienda-id', nombre: 'Mi Tienda', colorPrimario: '#1D4ED8' };
 
   beforeEach(() => {
-    req = { body: {}, params: {}, files: [], session: { usuario: { id: 'user-id' } } };
+    req = { body: {}, params: {}, query: {}, files: [], session: { usuario: { id: 'user-id' } } };
     res = {
       render: jest.fn(),
       redirect: jest.fn(),
@@ -44,6 +44,20 @@ describe('Productos Controller', () => {
         tienda: mockTienda,
         productos: mockProductos,
         productoEditando: null,
+        mostrarFormulario: false,
+      }));
+    });
+
+    test('renderiza el formulario cuando se solicita alta de producto', async () => {
+      req.query = { nuevo: '1' };
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
+      storage.listarPorTienda = jest.fn().mockResolvedValue([]);
+      storage.categoriasPorTienda = jest.fn().mockResolvedValue([]);
+
+      await vistaProductos(req, res);
+
+      expect(res.render).toHaveBeenCalledWith('mis-productos', expect.objectContaining({
+        mostrarFormulario: true,
       }));
     });
   });
@@ -71,6 +85,7 @@ describe('Productos Controller', () => {
 
       expect(res.render).toHaveBeenCalledWith('mis-productos', expect.objectContaining({
         productoEditando: mockProducto,
+        mostrarFormulario: true,
       }));
     });
   });
@@ -135,6 +150,16 @@ describe('Productos Controller', () => {
         tienda: 'Mi Tienda',
         categoria: 'Ropa',
       });
+    });
+
+    test('redirige al formulario si falla la creacion', async () => {
+      req.body = { nombre: 'Remera', precio: '1500', tipo: 'fisico' };
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(mockTienda);
+      storage.agregar = jest.fn().mockRejectedValue(new Error('validacion'));
+
+      await crearProducto(req, res);
+
+      expect(res.redirect).toHaveBeenCalledWith('/mis-productos?nuevo=1');
     });
   });
 

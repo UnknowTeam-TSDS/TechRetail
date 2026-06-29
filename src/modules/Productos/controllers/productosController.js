@@ -69,6 +69,7 @@ const renderProductos = async (req, res, productoEditando = null) => {
     productos,
     categorias,
     productoEditando,
+    mostrarFormulario: req.query.nuevo === '1' || !!productoEditando,
   });
 };
 
@@ -101,6 +102,7 @@ const vistaEditarProducto = async (req, res) => {
       productos,
       categorias,
       productoEditando: producto,
+      mostrarFormulario: true,
     });
   } catch (error) {
     console.error('Error cargando producto para editar:', error.message);
@@ -122,7 +124,7 @@ const crearProducto = async (req, res) => {
     res.redirect('/mis-productos');
   } catch (error) {
     console.error('Error creando producto:', error.message);
-    res.redirect('/mis-productos');
+    res.redirect('/mis-productos?nuevo=1');
   }
 };
 
