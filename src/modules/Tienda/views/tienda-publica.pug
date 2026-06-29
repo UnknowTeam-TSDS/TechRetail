@@ -79,14 +79,17 @@ html(lang="es")
                 span(class="inline-flex items-center bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold capitalize") #{tienda.rubro}
                 if productos.length > 0
                   span(class="inline-flex items-center bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full text-xs font-bold") #{productos.length} productos
-                if tienda.estado === 'activa'
-                  span(class="inline-flex items-center bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold") Tienda publicada
-                else
+                if previsualizando
                   span(class="inline-flex items-center bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-xs font-bold") En vista previa
             div(class="bg-slate-950 text-white p-7 flex flex-col justify-center")
-              p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Compra simple
-              p(class="text-2xl font-extrabold mt-2") Catalogo, carrito y checkout simulado.
-              p(class="text-sm text-slate-300 mt-3 leading-relaxed") Una base lista para mostrar la experiencia del comprador mientras se completan integraciones reales.
+              if previsualizando
+                p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Vista previa
+                p(class="text-2xl font-extrabold mt-2") Catalogo, carrito y checkout preparado.
+                p(class="text-sm text-slate-300 mt-3 leading-relaxed") Revisa como se vera la experiencia de compra antes de publicar.
+              else
+                p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Compra online
+                p(class="text-2xl font-extrabold mt-2") Explora el catalogo y arma tu pedido.
+                p(class="text-sm text-slate-300 mt-3 leading-relaxed") Agrega productos al carrito y continua con el metodo de pago que prefieras.
 
         if categorias.length > 0
           div(class="flex flex-wrap gap-2 mb-7")

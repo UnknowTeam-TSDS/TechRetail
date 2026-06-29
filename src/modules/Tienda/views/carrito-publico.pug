@@ -40,7 +40,7 @@ html(lang="es")
           div(class="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4")
             div
               h1(class="text-2xl font-extrabold text-slate-950") Tu carrito
-              p(class="text-sm text-slate-500 mt-1") Revisa productos y cantidades antes de simular el pago.
+              p(class="text-sm text-slate-500 mt-1") Revisa productos y cantidades antes de continuar.
             if cantidadTotal > 0
               form(action="/tienda/" + tienda._id + "/carrito/vaciar" method="POST")
                 button(type="submit" class="text-xs font-bold text-red-500 hover:text-red-700") Vaciar
@@ -102,7 +102,8 @@ html(lang="es")
               button(type="button" onclick="abrirPago('tarjeta de credito/debito')" class="w-full text-left border border-blue-100 bg-blue-50 hover:bg-blue-100 rounded-2xl px-4 py-3 transition-colors")
                 p(class="font-extrabold text-blue-700") Pagar con tarjeta
                 p(class="text-xs text-blue-600 mt-0.5") Checkout preparado para la presentacion
-            p(class="text-xs text-slate-400 mt-4 leading-relaxed") Pago simulado para presentacion. No procesa dinero ni genera orden real.
+            if previsualizando
+              p(class="text-xs text-slate-400 mt-4 leading-relaxed") Pago simulado para presentacion. No procesa dinero ni genera orden real.
           else
             a(href="/tienda/" + tienda._id class="mt-6 w-full inline-flex justify-center btn-marca text-white font-bold py-3 rounded-xl text-sm transition-all") Volver al catalogo
 
