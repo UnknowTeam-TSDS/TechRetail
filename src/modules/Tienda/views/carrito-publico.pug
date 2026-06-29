@@ -1,0 +1,122 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Carrito - #{tienda.nombre}
+    script(src="https://cdn.tailwindcss.com")
+    style.
+      :root { --color-marca: #{tienda.colorPrimario}; }
+      .header-barra { background-color: var(--color-marca); }
+      .color-dot { background-color: var(--color-marca); }
+      .btn-marca { background-color: var(--color-marca); }
+
+  body(class="bg-gray-50 min-h-screen font-sans text-gray-900")
+    header(class="bg-white shadow-sm")
+      div(class="header-barra h-1.5 w-full")
+      div(class="max-w-5xl mx-auto px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4")
+        a(href="/tienda/" + tienda._id class="flex items-center gap-3 group")
+          div(class="w-10 h-10 rounded-lg color-dot flex items-center justify-center text-white font-extrabold shrink-0")
+            | #{tienda.nombre.charAt(0).toUpperCase()}
+          div
+            p(class="font-bold text-gray-900 group-hover:opacity-70 transition-opacity") #{tienda.nombre}
+            p(class="text-xs text-gray-400") Carrito de compras
+        a(href="/tienda/" + tienda._id class="text-sm text-gray-500 hover:text-gray-800 transition-colors") Seguir comprando
+
+    main(class="max-w-5xl mx-auto px-5 py-8")
+      div(class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6")
+        section(class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden")
+          div(class="px-5 py-4 border-b border-gray-100 flex items-center justify-between")
+            div
+              h1(class="text-xl font-extrabold text-gray-900") Tu carrito
+              p(class="text-sm text-gray-500") Revisa productos y cantidades antes de simular el pago.
+            if cantidadTotal > 0
+              form(action="/tienda/" + tienda._id + "/carrito/vaciar" method="POST")
+                button(type="submit" class="text-xs font-bold text-red-500 hover:text-red-700") Vaciar
+
+          if items.length === 0
+            div(class="px-5 py-16 text-center")
+              p(class="text-lg font-bold text-gray-800") Tu carrito esta vacio
+              p(class="text-sm text-gray-500 mt-1") Agrega productos desde el catalogo de la tienda.
+              a(href="/tienda/" + tienda._id class="inline-flex mt-6 btn-marca text-white font-bold px-5 py-3 rounded-xl text-sm hover:opacity-90 transition-opacity") Ver productos
+          else
+            div(class="divide-y divide-gray-100")
+              each item in items
+                - const producto = item.producto
+                div(class="p-5 flex flex-col sm:flex-row gap-4")
+                  a(href="/tienda/" + tienda._id + "/producto/" + producto._id class="w-full sm:w-24 h-24 bg-gray-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center")
+                    if producto.imagenes && producto.imagenes.length > 0
+                      img(src=producto.imagenes[0] alt=producto.nombre class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-xs text-gray-400 font-semibold\\'>Sin imagen</span>'")
+                    else
+                      span(class="text-xs text-gray-400 font-semibold") Sin imagen
+
+                  div(class="flex-1 min-w-0")
+                    if producto.categoria
+                      p(class="text-xs text-gray-400 uppercase font-semibold") #{producto.categoria}
+                    a(href="/tienda/" + tienda._id + "/producto/" + producto._id class="font-bold text-gray-900 hover:text-gray-700") #{producto.nombre}
+                    p(class="text-sm text-gray-500 mt-1") $#{item.precioUnitario.toLocaleString('es-AR')} c/u
+                    if producto.tipo === 'fisico'
+                      p(class="text-xs text-gray-400 mt-1") Stock disponible: #{producto.stock}
+
+                  div(class="sm:w-52 flex sm:flex-col gap-3 sm:items-end")
+                    form(action="/tienda/" + tienda._id + "/carrito/actualizar/" + producto._id method="POST" class="flex items-center gap-2")
+                      input(type="number" name="cantidad" value=item.cantidad min="1" max=(producto.tipo === 'fisico' ? producto.stock : 99) class="w-20 border border-gray-300 rounded-lg px-2 py-2 text-sm")
+                      button(type="submit" class="bg-gray-900 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-gray-800") Actualizar
+                    p(class="font-extrabold text-gray-900") $#{item.subtotal.toLocaleString('es-AR')}
+                    form(action="/tienda/" + tienda._id + "/carrito/quitar/" + producto._id method="POST")
+                      button(type="submit" class="text-xs font-bold text-red-500 hover:text-red-700") Quitar
+
+        aside(class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 h-fit")
+          h2(class="text-lg font-extrabold text-gray-900") Resumen
+          div(class="mt-4 space-y-3 text-sm")
+            div(class="flex justify-between text-gray-500")
+              span Items
+              span #{cantidadTotal}
+            div(class="flex justify-between text-gray-500")
+              span Envio
+              span A definir
+            div(class="border-t border-gray-100 pt-4 flex justify-between items-baseline")
+              span(class="font-bold text-gray-900") Total
+              span(class="text-2xl font-extrabold text-gray-900") $#{total.toLocaleString('es-AR')}
+
+          if items.length > 0
+            div(class="mt-6 space-y-3")
+              button(type="button" onclick="abrirPago('MercadoPago')" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl text-sm transition-colors") Pagar con MercadoPago
+              button(type="button" onclick="abrirPago('Transferencia bancaria')" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-xl text-sm transition-colors") Pagar por transferencia
+              button(type="button" onclick="abrirPago('tarjeta de credito/debito')" class="w-full btn-marca text-white font-bold py-3 rounded-xl text-sm hover:opacity-90 transition-opacity") Pagar con tarjeta
+            p(class="text-xs text-gray-400 mt-4") Pago simulado para presentacion. No procesa dinero ni genera orden real.
+          else
+            a(href="/tienda/" + tienda._id class="mt-6 w-full inline-flex justify-center btn-marca text-white font-bold py-3 rounded-xl text-sm hover:opacity-90 transition-opacity") Volver al catalogo
+
+    div#modal-pago(class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50")
+      div(class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6")
+        div(class="flex items-start justify-between gap-4")
+          div
+            p(class="text-xs font-bold text-blue-600 uppercase tracking-wide") Checkout simulado
+            h3(class="text-xl font-extrabold text-gray-900 mt-1") Metodo de pago
+          button(type="button" onclick="cerrarPago()" class="text-gray-400 hover:text-gray-700 text-2xl leading-none") x
+
+        div(class="mt-5 border border-blue-100 bg-blue-50 rounded-xl p-4")
+          p#modal-metodo(class="font-bold text-blue-900") Metodo seleccionado
+          p(class="text-sm text-blue-800 mt-1") Esta opcion queda preparada visualmente para la demo. La integracion real de pagos se implementaria en una etapa posterior.
+
+        div(class="mt-5 rounded-xl border border-gray-200 p-4")
+          p(class="text-sm font-bold text-gray-900") Total a pagar
+          p(class="text-3xl font-extrabold text-gray-900 mt-1") $#{total.toLocaleString('es-AR')}
+          p(class="text-xs text-gray-400 mt-2") No se guardan datos de tarjeta ni se contacta a pasarelas externas.
+
+        button(type="button" onclick="cerrarPago()" class="mt-6 w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-xl text-sm") Entendido
+
+    script.
+      function abrirPago(metodo) {
+        document.getElementById('modal-metodo').textContent = 'Pagar con ' + metodo;
+        var modal = document.getElementById('modal-pago');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function cerrarPago() {
+        var modal = document.getElementById('modal-pago');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }

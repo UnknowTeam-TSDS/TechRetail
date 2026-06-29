@@ -1,15 +1,25 @@
 jest.mock('../../src/modules/Tienda/storage/tiendaStorage');
+jest.mock('../../src/modules/Productos/storage/productosStorage');
 jest.mock('../../src/modules/usuarios/models/Usuario');
 
 const storage = require('../../src/modules/Tienda/storage/tiendaStorage');
+const productosStorage = require('../../src/modules/Productos/storage/productosStorage');
 const Usuario = require('../../src/modules/usuarios/models/Usuario');
-const { vistaTienda, guardarTienda, publicarTienda, despublicarTienda } = require('../../src/modules/Tienda/controllers/tiendaController');
+const {
+  vistaTienda,
+  guardarTienda,
+  publicarTienda,
+  despublicarTienda,
+  vistaCarrito,
+  agregarProductoCarrito,
+  actualizarProductoCarrito,
+} = require('../../src/modules/Tienda/controllers/tiendaController');
 
 describe('Tienda Controller', () => {
   let req, res;
 
   beforeEach(() => {
-    req = { body: {}, session: { usuario: { id: 'user-id' } }, query: {} };
+    req = { params: {}, body: {}, session: { usuario: { id: 'user-id' } }, query: {} };
     res = {
       status: jest.fn().mockReturnThis(),
       render: jest.fn(),
@@ -167,6 +177,70 @@ describe('Tienda Controller', () => {
 
       expect(storage.actualizarEstado).toHaveBeenCalledWith('user-id', 'inactiva');
       expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
+    });
+  });
+
+  describe('carrito publico', () => {
+    test('renderiza carrito vacio para una tienda activa', async () => {
+      req.params.id = 'tienda-id';
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa', nombre: 'Tienda Test' });
+
+      await vistaCarrito(req, res);
+
+      expect(res.render).toHaveBeenCalledWith('carrito-publico', expect.objectContaining({
+        items: [],
+        total: 0,
+        cantidadTotal: 0,
+      }));
+      expect(req.session.carrito).toEqual({ tiendaId: 'tienda-id', items: [] });
+    });
+
+    test('agrega un producto activo al carrito de la tienda', async () => {
+      req.params = { id: 'tienda-id', productoId: 'prod-id' };
+      req.body = { cantidad: '2' };
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa' });
+      productosStorage.buscarPublicoPorId = jest.fn().mockResolvedValue({
+        _id: 'prod-id',
+        tipo: 'fisico',
+        stock: 5,
+      });
+
+      await agregarProductoCarrito(req, res);
+
+      expect(req.session.carrito.items).toEqual([{ productoId: 'prod-id', cantidad: 2 }]);
+      expect(res.redirect).toHaveBeenCalledWith('/tienda/tienda-id/carrito');
+    });
+
+    test('limita la cantidad agregada segun el stock disponible', async () => {
+      req.params = { id: 'tienda-id', productoId: 'prod-id' };
+      req.body = { cantidad: '8' };
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa' });
+      productosStorage.buscarPublicoPorId = jest.fn().mockResolvedValue({
+        _id: 'prod-id',
+        tipo: 'fisico',
+        stock: 3,
+      });
+
+      await agregarProductoCarrito(req, res);
+
+      expect(req.session.carrito.items).toEqual([{ productoId: 'prod-id', cantidad: 3 }]);
+    });
+
+    test('actualiza cantidad y respeta el maximo de stock', async () => {
+      req.params = { id: 'tienda-id', productoId: 'prod-id' };
+      req.body = { cantidad: '9' };
+      req.session.carrito = { tiendaId: 'tienda-id', items: [{ productoId: 'prod-id', cantidad: 1 }] };
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa' });
+      productosStorage.buscarPublicoPorId = jest.fn().mockResolvedValue({
+        _id: 'prod-id',
+        tipo: 'fisico',
+        stock: 4,
+      });
+
+      await actualizarProductoCarrito(req, res);
+
+      expect(req.session.carrito.items).toEqual([{ productoId: 'prod-id', cantidad: 4 }]);
+      expect(res.redirect).toHaveBeenCalledWith('/tienda/tienda-id/carrito');
     });
   });
 });

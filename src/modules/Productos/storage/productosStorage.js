@@ -44,6 +44,10 @@ const buscarPublicoPorId = async (id, tiendaId) => {
   return Producto.findOne({ _id: id, tiendaId, activo: true });
 };
 
+const buscarActivosPorIds = async (tiendaId, ids) => {
+  return Producto.find({ _id: { $in: ids }, tiendaId, activo: true });
+};
+
 const categoriasPorTienda = async (tiendaId) => {
   const cats = await Producto.distinct('categoria', { tiendaId, categoria: { $ne: '' } });
   return cats.filter(Boolean).sort();
@@ -53,6 +57,7 @@ module.exports = {
   listarPorTienda,
   listarActivosPorTienda,
   buscarPublicoPorId,
+  buscarActivosPorIds,
   agregar,
   buscarPorId,
   actualizar,

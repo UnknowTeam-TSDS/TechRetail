@@ -229,6 +229,11 @@ Publicas:
 
 - `GET /tienda/:id`
 - `GET /tienda/:id/producto/:productoId`
+- `GET /tienda/:id/carrito`
+- `POST /tienda/:id/carrito/agregar/:productoId`
+- `POST /tienda/:id/carrito/actualizar/:productoId`
+- `POST /tienda/:id/carrito/quitar/:productoId`
+- `POST /tienda/:id/carrito/vaciar`
 
 Reglas:
 
@@ -238,6 +243,8 @@ Reglas:
 - Datos legales obligatorios: email de contacto, telefono y direccion.
 - WhatsApp es opcional.
 - El color principal queda en el modelo como base para una futura personalizacion visual, pero no se edita desde la creacion inicial.
+- El carrito publico vive en la sesion del visitante y no mezcla productos de distintas tiendas.
+- El pago del carrito es simulado para la presentacion; no genera orden real ni procesa dinero.
 
 ### Productos
 
