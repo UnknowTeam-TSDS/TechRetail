@@ -4,6 +4,8 @@
  */
 
 const Usuario = require('../models/Usuario');
+const Tienda = require('../../Tienda/models/Tienda');
+const Producto = require('../../Productos/models/Producto');
 
 // Lee todos los usuarios desde la base de datos
 const leerUsuarios = async () => {
@@ -63,7 +65,18 @@ const actualizar = async (id, datos) => {
 const eliminar = async (id) => {
   try {
     const resultado = await Usuario.findByIdAndDelete(id);
-    return resultado !== null;
+
+    if (!resultado) return false;
+
+    const tiendas = await Tienda.find({ usuarioId: id });
+    const tiendaIds = tiendas.map(tienda => tienda._id);
+
+    if (tiendaIds.length > 0) {
+      await Producto.deleteMany({ tiendaId: { $in: tiendaIds } });
+      await Tienda.deleteMany({ _id: { $in: tiendaIds } });
+    }
+
+    return true;
   } catch (error) {
     console.error('Error al eliminar usuario:', error.message);
     throw error;
