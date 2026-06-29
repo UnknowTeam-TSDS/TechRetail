@@ -43,7 +43,7 @@ html(lang="es")
                 a(href="tel:" + tienda.telefono class="hover:text-gray-800 transition-colors") Tel: #{tienda.telefono}
               if tienda.emailContacto
                 a(href="mailto:" + tienda.emailContacto class="hover:text-gray-800 transition-colors") #{tienda.emailContacto}
-            if tienda.estado === 'activa'
+            if tienda.estado === 'activa' || previsualizando
               a(href="/tienda/" + tienda._id + "/carrito" class="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors")
                 span Carrito
                 span(class="bg-white text-gray-900 rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center") #{carritoCantidad || 0}
@@ -108,7 +108,7 @@ html(lang="es")
                     else
                       span(class="badge-precio text-lg font-extrabold") $#{producto.precio.toLocaleString('es-AR')}
 
-                if tienda.estado === 'activa' && !previsualizando
+                if tienda.estado === 'activa' || previsualizando
                   form(action="/tienda/" + tienda._id + "/carrito/agregar/" + producto._id method="POST" class="p-4 pt-2")
                     input(type="hidden" name="cantidad" value="1")
                     if sinStock

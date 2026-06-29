@@ -32,7 +32,7 @@ html(lang="es")
           span(class="font-bold text-gray-900 group-hover:opacity-70 transition-opacity") #{tienda.nombre}
         div(class="flex items-center gap-3")
           a(href="/tienda/" + tienda._id class="text-sm text-gray-500 hover:text-gray-800 transition-colors shrink-0") Volver al catalogo
-          if tienda.estado === 'activa'
+          if tienda.estado === 'activa' || previsualizando
             a(href="/tienda/" + tienda._id + "/carrito" class="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors")
               span Carrito
               span(class="bg-white text-gray-900 rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center") #{carritoCantidad || 0}
@@ -111,7 +111,7 @@ html(lang="es")
               each tag in producto.tags
                 span(class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full") ##{tag}
 
-          if tienda.estado === 'activa' && !previsualizando
+          if tienda.estado === 'activa' || previsualizando
             form(action="/tienda/" + tienda._id + "/carrito/agregar/" + producto._id method="POST" class="bg-white border border-gray-100 rounded-2xl p-4 mb-4 shadow-sm")
               label(for="cantidad" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2") Cantidad
               div(class="flex gap-3")

@@ -61,10 +61,21 @@ const armarResumenCarrito = async (req, tienda) => {
   };
 };
 
-const cargarTiendaActiva = async (id) => {
+const esDuenoTienda = (req, tienda) => {
+  return !!(req.session?.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
+};
+
+const cargarTiendaComprable = async (req, id) => {
   const tienda = await storage.buscarPorId(id);
-  if (!tienda || tienda.estado !== 'activa') return null;
-  return tienda;
+  if (!tienda) return null;
+
+  const esDueno = esDuenoTienda(req, tienda);
+  if (tienda.estado !== 'activa' && !esDueno) return null;
+
+  return {
+    tienda,
+    previsualizando: esDueno && tienda.estado !== 'activa',
+  };
 };
 
 // GET /mi-tienda — panel resumen de la tienda
@@ -265,17 +276,19 @@ const vistaPublicaProducto = async (req, res) => {
 
 const vistaCarrito = async (req, res) => {
   try {
-    const tienda = await cargarTiendaActiva(req.params.id);
-    if (!tienda) {
+    const resultado = await cargarTiendaComprable(req, req.params.id);
+    if (!resultado) {
       return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
     }
 
+    const { tienda, previsualizando } = resultado;
     const resumen = await armarResumenCarrito(req, tienda);
     res.render('carrito-publico', {
       tienda,
       items: resumen.items,
       total: resumen.total,
       cantidadTotal: resumen.cantidadTotal,
+      previsualizando,
     });
   } catch (error) {
     console.error('Error cargando carrito:', error.message);
@@ -285,11 +298,12 @@ const vistaCarrito = async (req, res) => {
 
 const agregarProductoCarrito = async (req, res) => {
   try {
-    const tienda = await cargarTiendaActiva(req.params.id);
-    if (!tienda) {
+    const resultado = await cargarTiendaComprable(req, req.params.id);
+    if (!resultado) {
       return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
     }
 
+    const { tienda } = resultado;
     const producto = await productosStorage.buscarPublicoPorId(req.params.productoId, tienda._id);
     if (!producto) return res.redirect(`/tienda/${tienda._id}`);
 
@@ -320,11 +334,12 @@ const agregarProductoCarrito = async (req, res) => {
 
 const actualizarProductoCarrito = async (req, res) => {
   try {
-    const tienda = await cargarTiendaActiva(req.params.id);
-    if (!tienda) {
+    const resultado = await cargarTiendaComprable(req, req.params.id);
+    if (!resultado) {
       return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
     }
 
+    const { tienda } = resultado;
     const carrito = obtenerCarritoTienda(req, tienda._id);
     const productoId = String(req.params.productoId);
     const cantidad = parseInt(req.body.cantidad, 10) || 0;
@@ -352,16 +367,23 @@ const actualizarProductoCarrito = async (req, res) => {
 };
 
 const quitarProductoCarrito = async (req, res) => {
-  const carrito = obtenerCarritoTienda(req, req.params.id);
+  const resultado = await cargarTiendaComprable(req, req.params.id);
+  if (!resultado) return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+
+  const carrito = obtenerCarritoTienda(req, resultado.tienda._id);
   carrito.items = carrito.items.filter(item => item.productoId !== String(req.params.productoId));
-  res.redirect(`/tienda/${req.params.id}/carrito`);
+  res.redirect(`/tienda/${resultado.tienda._id}/carrito`);
 };
 
 const vaciarCarrito = async (req, res) => {
-  if (req.session.carrito?.tiendaId === String(req.params.id)) {
-    req.session.carrito = { tiendaId: String(req.params.id), items: [] };
+  const resultado = await cargarTiendaComprable(req, req.params.id);
+  if (!resultado) return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+
+  const tiendaId = String(resultado.tienda._id);
+  if (req.session.carrito?.tiendaId === tiendaId) {
+    req.session.carrito = { tiendaId, items: [] };
   }
-  res.redirect(`/tienda/${req.params.id}/carrito`);
+  res.redirect(`/tienda/${tiendaId}/carrito`);
 };
 
 module.exports = {

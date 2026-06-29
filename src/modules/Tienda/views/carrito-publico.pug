@@ -24,6 +24,11 @@ html(lang="es")
         a(href="/tienda/" + tienda._id class="text-sm text-gray-500 hover:text-gray-800 transition-colors") Seguir comprando
 
     main(class="max-w-5xl mx-auto px-5 py-8")
+      if previsualizando
+        div(class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6")
+          p(class="text-sm font-bold text-amber-800") Vista previa del checkout
+          p(class="text-xs text-amber-700 mt-1") Estas simulando el carrito como lo veria un cliente. El publico solo podra usarlo cuando la tienda este publicada.
+
       div(class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6")
         section(class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden")
           div(class="px-5 py-4 border-b border-gray-100 flex items-center justify-between")

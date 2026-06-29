@@ -24,6 +24,7 @@ describe('Tienda Controller', () => {
       status: jest.fn().mockReturnThis(),
       render: jest.fn(),
       redirect: jest.fn(),
+      json: jest.fn(),
     };
     jest.clearAllMocks();
   });
@@ -183,7 +184,7 @@ describe('Tienda Controller', () => {
   describe('carrito publico', () => {
     test('renderiza carrito vacio para una tienda activa', async () => {
       req.params.id = 'tienda-id';
-      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa', nombre: 'Tienda Test' });
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa', nombre: 'Tienda Test', usuarioId: 'otro-id' });
 
       await vistaCarrito(req, res);
 
@@ -191,14 +192,47 @@ describe('Tienda Controller', () => {
         items: [],
         total: 0,
         cantidadTotal: 0,
+        previsualizando: false,
       }));
       expect(req.session.carrito).toEqual({ tiendaId: 'tienda-id', items: [] });
+    });
+
+    test('permite al dueño simular el carrito aunque la tienda no este publicada', async () => {
+      req.params.id = 'tienda-id';
+      storage.buscarPorId = jest.fn().mockResolvedValue({
+        _id: 'tienda-id',
+        estado: 'en_construccion',
+        nombre: 'Tienda Test',
+        usuarioId: 'user-id',
+      });
+
+      await vistaCarrito(req, res);
+
+      expect(res.render).toHaveBeenCalledWith('carrito-publico', expect.objectContaining({
+        previsualizando: true,
+      }));
+    });
+
+    test('bloquea carrito de tienda no publicada para visitantes externos', async () => {
+      req.params.id = 'tienda-id';
+      req.session = {};
+      storage.buscarPorId = jest.fn().mockResolvedValue({
+        _id: 'tienda-id',
+        estado: 'en_construccion',
+        nombre: 'Tienda Test',
+        usuarioId: 'user-id',
+      });
+
+      await vistaCarrito(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ ok: false, mensaje: 'Tienda no encontrada.' });
     });
 
     test('agrega un producto activo al carrito de la tienda', async () => {
       req.params = { id: 'tienda-id', productoId: 'prod-id' };
       req.body = { cantidad: '2' };
-      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa' });
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa', usuarioId: 'otro-id' });
       productosStorage.buscarPublicoPorId = jest.fn().mockResolvedValue({
         _id: 'prod-id',
         tipo: 'fisico',
@@ -211,10 +245,30 @@ describe('Tienda Controller', () => {
       expect(res.redirect).toHaveBeenCalledWith('/tienda/tienda-id/carrito');
     });
 
+    test('permite agregar productos desde la vista previa del dueño', async () => {
+      req.params = { id: 'tienda-id', productoId: 'prod-id' };
+      req.body = { cantidad: '1' };
+      storage.buscarPorId = jest.fn().mockResolvedValue({
+        _id: 'tienda-id',
+        estado: 'en_construccion',
+        usuarioId: 'user-id',
+      });
+      productosStorage.buscarPublicoPorId = jest.fn().mockResolvedValue({
+        _id: 'prod-id',
+        tipo: 'fisico',
+        stock: 5,
+      });
+
+      await agregarProductoCarrito(req, res);
+
+      expect(req.session.carrito.items).toEqual([{ productoId: 'prod-id', cantidad: 1 }]);
+      expect(res.redirect).toHaveBeenCalledWith('/tienda/tienda-id/carrito');
+    });
+
     test('limita la cantidad agregada segun el stock disponible', async () => {
       req.params = { id: 'tienda-id', productoId: 'prod-id' };
       req.body = { cantidad: '8' };
-      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa' });
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa', usuarioId: 'otro-id' });
       productosStorage.buscarPublicoPorId = jest.fn().mockResolvedValue({
         _id: 'prod-id',
         tipo: 'fisico',
@@ -230,7 +284,7 @@ describe('Tienda Controller', () => {
       req.params = { id: 'tienda-id', productoId: 'prod-id' };
       req.body = { cantidad: '9' };
       req.session.carrito = { tiendaId: 'tienda-id', items: [{ productoId: 'prod-id', cantidad: 1 }] };
-      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa' });
+      storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'tienda-id', estado: 'activa', usuarioId: 'otro-id' });
       productosStorage.buscarPublicoPorId = jest.fn().mockResolvedValue({
         _id: 'prod-id',
         tipo: 'fisico',
