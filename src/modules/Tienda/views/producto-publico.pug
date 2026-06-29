@@ -13,127 +13,134 @@ html(lang="es")
     script(src="/js/pwa.js")
     style.
       :root { --color-marca: #{tienda.colorPrimario}; }
-      .header-barra { background-color: var(--color-marca); }
-      .color-dot { background-color: var(--color-marca); }
-      .badge-precio { color: var(--color-marca); }
+      .bg-marca { background-color: var(--color-marca); }
+      .text-marca { color: var(--color-marca); }
       .btn-marca { background-color: var(--color-marca); }
+      .btn-marca:hover { filter: brightness(.94); }
       .thumb.activo { border-color: var(--color-marca) !important; }
+      .store-bg {
+        background:
+          radial-gradient(circle at top left, rgba(29, 78, 216, .12), transparent 30rem),
+          linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
+      }
+      .surface { background: rgba(255, 255, 255, .92); box-shadow: 0 18px 45px rgba(15, 23, 42, .07); }
 
-  body(class="bg-gray-50 min-h-screen font-sans text-gray-900")
+  body(class="store-bg min-h-screen font-sans text-slate-900")
     - const sinStock = producto.tipo === 'fisico' && producto.stock <= 0
     - const maxCantidad = producto.tipo === 'fisico' ? producto.stock : 99
+    - const precioFinal = producto.precioPromocional || producto.precio
 
-    header(class="bg-white shadow-sm")
-      div(class="header-barra h-1.5 w-full")
-      div(class="max-w-5xl mx-auto px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4")
+    header(class="bg-white/90 backdrop-blur border-b border-slate-200")
+      div(class="max-w-6xl mx-auto px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4")
         a(href="/tienda/" + tienda._id class="flex items-center gap-3 group")
-          div(class="w-10 h-10 rounded-lg color-dot flex items-center justify-center text-white font-extrabold shrink-0")
+          div(class="w-11 h-11 rounded-xl bg-marca flex items-center justify-center text-white font-extrabold text-lg shrink-0")
             | #{tienda.nombre.charAt(0).toUpperCase()}
-          span(class="font-bold text-gray-900 group-hover:opacity-70 transition-opacity") #{tienda.nombre}
+          div
+            p(class="font-extrabold text-slate-950 group-hover:text-marca transition-colors") #{tienda.nombre}
+            p(class="text-xs text-slate-500") Detalle de producto
         div(class="flex items-center gap-3")
-          a(href="/tienda/" + tienda._id class="text-sm text-gray-500 hover:text-gray-800 transition-colors shrink-0") Volver al catalogo
+          a(href="/tienda/" + tienda._id class="text-sm text-slate-500 hover:text-slate-900 transition-colors shrink-0") Volver al catalogo
           if tienda.estado === 'activa' || previsualizando
-            a(href="/tienda/" + tienda._id + "/carrito" class="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors")
+            a(href="/tienda/" + tienda._id + "/carrito" class="inline-flex items-center gap-2 bg-slate-950 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors")
               span Carrito
-              span(class="bg-white text-gray-900 rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center") #{carritoCantidad || 0}
+              span(class="bg-white text-slate-950 rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center") #{carritoCantidad || 0}
 
-    main(class="max-w-5xl mx-auto px-5 py-8")
+    main(class="max-w-6xl mx-auto px-5 py-8")
       if previsualizando
         div(class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6")
-          p(class="text-xs text-amber-700") Vista previa: asi veran este producto tus clientes cuando publiques la tienda.
+          p(class="text-sm font-bold text-amber-800") Vista previa del producto
+          p(class="text-xs text-amber-700 mt-0.5") Estas simulando como lo vera un comprador cuando la tienda este publicada.
 
-      div(class="grid grid-cols-1 md:grid-cols-2 gap-8")
-        div
-          div(class="bg-white rounded-2xl border border-gray-100 overflow-hidden aspect-square flex items-center justify-center")
-            if producto.imagenes && producto.imagenes.length > 0
-              img#img-principal(src=producto.imagenes[0] alt=producto.nombre class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-gray-400 text-sm font-semibold\\'>Sin imagen</div>'")
-            else
-              div(class="text-gray-400 text-sm font-semibold") Sin imagen
-          if producto.imagenes && producto.imagenes.length > 1
-            div(class="flex gap-2 mt-3 flex-wrap")
-              each img, i in producto.imagenes
-                button(type="button" onclick="cambiarImagen(this)" data-src=img class="thumb w-16 h-16 rounded-lg border-2 overflow-hidden transition-colors " + (i === 0 ? "activo" : "border-gray-200"))
-                  img(src=img alt="" class="w-full h-full object-cover")
-
-        div
-          if producto.categoria
-            p(class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2") #{producto.categoria}
-          h1(class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-3") #{producto.nombre}
-
-          if producto.esOferta || producto.esNovedad || producto.destacado
-            div(class="flex flex-wrap gap-2 mb-4")
-              if producto.esOferta
-                span(class="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Oferta
-              if producto.esNovedad
-                span(class="bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Nuevo
-              if producto.destacado
-                span(class="bg-yellow-400 text-white text-xs font-bold px-2.5 py-1 rounded-full") Destacado
-
-          div(class="mb-6")
-            if producto.precioPromocional
-              div(class="flex items-baseline gap-3")
-                span(class="badge-precio text-3xl font-extrabold") $#{producto.precioPromocional.toLocaleString('es-AR')}
-                span(class="text-base text-gray-400 line-through") $#{producto.precio.toLocaleString('es-AR')}
-              - const ahorro = Math.round((1 - producto.precioPromocional / producto.precio) * 100)
-              if ahorro > 0
-                span(class="inline-block mt-2 bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded") #{ahorro}% OFF
-            else
-              span(class="badge-precio text-3xl font-extrabold") $#{producto.precio.toLocaleString('es-AR')}
-
-          if producto.descripcion
-            p(class="text-gray-600 text-sm leading-relaxed mb-6") #{producto.descripcion}
-
-          div(class="border-t border-gray-100 pt-5 space-y-2.5 text-sm mb-6")
-            div(class="flex items-center justify-between")
-              span(class="text-gray-400") Disponibilidad
-              if producto.tipo === 'fisico'
-                if producto.stock > 0
-                  span(class="font-semibold text-green-600") #{producto.stock} en stock
-                else
-                  span(class="font-semibold text-red-500") Sin stock
+      section(class="surface rounded-3xl border border-white overflow-hidden")
+        div(class="grid grid-cols-1 lg:grid-cols-[1fr_470px] gap-0")
+          div(class="p-5 md:p-8")
+            div(class="bg-gradient-to-br from-slate-100 to-blue-50 rounded-3xl border border-white overflow-hidden aspect-square flex items-center justify-center")
+              if producto.imagenes && producto.imagenes.length > 0
+                img#img-principal(src=producto.imagenes[0] alt=producto.nombre class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold\\'>Sin imagen</div>'")
               else
-                span(class="font-semibold text-green-600") Disponible
-            if producto.tipo !== 'fisico'
-              div(class="flex items-center justify-between")
-                span(class="text-gray-400") Tipo
-                span(class="font-semibold text-gray-700 capitalize") #{producto.tipo}
-            if producto.tipo === 'fisico' && producto.pesoKg
-              div(class="flex items-center justify-between")
-                span(class="text-gray-400") Peso
-                span(class="font-semibold text-gray-700") #{producto.pesoKg} kg
-            if producto.tipo === 'fisico' && producto.dimensiones && producto.dimensiones.altoCm
-              div(class="flex items-center justify-between")
-                span(class="text-gray-400") Dimensiones
-                span(class="font-semibold text-gray-700") #{producto.dimensiones.altoCm} x #{producto.dimensiones.anchoCm} x #{producto.dimensiones.largoCm} cm
+                div(class="flex flex-col items-center justify-center text-center px-6")
+                  div(class="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-slate-400 font-extrabold text-xl mb-3") #{producto.nombre.charAt(0).toUpperCase()}
+                  p(class="text-slate-400 text-sm font-bold") Sin imagen
+            if producto.imagenes && producto.imagenes.length > 1
+              div(class="flex gap-3 mt-4 flex-wrap")
+                each img, i in producto.imagenes
+                  button(type="button" onclick="cambiarImagen(this)" data-src=img class="thumb w-20 h-20 rounded-xl border-2 overflow-hidden transition-colors bg-white " + (i === 0 ? "activo" : "border-slate-200"))
+                    img(src=img alt="" class="w-full h-full object-cover")
 
-          if producto.tags && producto.tags.length > 0
-            div(class="flex flex-wrap gap-1.5 mb-6")
-              each tag in producto.tags
-                span(class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full") ##{tag}
+          div(class="p-6 md:p-9 bg-white")
+            if producto.categoria
+              p(class="text-xs text-slate-400 font-extrabold uppercase tracking-[0.16em] mb-2") #{producto.categoria}
+            h1(class="text-3xl md:text-4xl font-extrabold text-slate-950 leading-tight mb-4") #{producto.nombre}
 
-          if tienda.estado === 'activa' || previsualizando
-            form(action="/tienda/" + tienda._id + "/carrito/agregar/" + producto._id method="POST" class="bg-white border border-gray-100 rounded-2xl p-4 mb-4 shadow-sm")
-              label(for="cantidad" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2") Cantidad
-              div(class="flex gap-3")
-                input(type="number" id="cantidad" name="cantidad" min="1" max=maxCantidad value="1" disabled=sinStock class="w-24 border border-gray-300 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-100")
-                if sinStock
-                  button(type="button" disabled class="flex-1 bg-gray-100 text-gray-400 font-bold py-3 rounded-xl text-sm cursor-not-allowed") Sin stock
+            if producto.esOferta || producto.esNovedad || producto.destacado
+              div(class="flex flex-wrap gap-2 mb-5")
+                if producto.esOferta
+                  span(class="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Oferta
+                if producto.esNovedad
+                  span(class="bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Nuevo
+                if producto.destacado
+                  span(class="bg-amber-400 text-white text-xs font-bold px-2.5 py-1 rounded-full") Destacado
+
+            div(class="mb-6")
+              if producto.precioPromocional
+                div(class="flex items-baseline gap-3")
+                  span(class="text-marca text-4xl font-extrabold") $#{producto.precioPromocional.toLocaleString('es-AR')}
+                  span(class="text-base text-slate-400 line-through") $#{producto.precio.toLocaleString('es-AR')}
+                - const ahorro = Math.round((1 - producto.precioPromocional / producto.precio) * 100)
+                if ahorro > 0
+                  span(class="inline-block mt-2 bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded") #{ahorro}% OFF
+              else
+                span(class="text-marca text-4xl font-extrabold") $#{precioFinal.toLocaleString('es-AR')}
+
+            if producto.descripcion
+              p(class="text-slate-600 leading-relaxed mb-6") #{producto.descripcion}
+
+            div(class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6")
+              div(class="bg-slate-50 rounded-2xl p-4")
+                p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Disponibilidad
+                if producto.tipo === 'fisico'
+                  if producto.stock > 0
+                    p(class="font-extrabold text-emerald-600 mt-1") #{producto.stock} en stock
+                  else
+                    p(class="font-extrabold text-red-500 mt-1") Sin stock
                 else
-                  button(type="submit" class="btn-marca flex-1 text-white font-bold py-3 rounded-xl text-sm hover:opacity-90 transition-opacity") Agregar al carrito
-              p(class="text-xs text-gray-400 mt-3") El pago se simula desde el carrito para la presentacion.
+                  p(class="font-extrabold text-emerald-600 mt-1") Disponible
+              if producto.tipo !== 'fisico'
+                div(class="bg-slate-50 rounded-2xl p-4")
+                  p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Tipo
+                  p(class="font-extrabold text-slate-800 mt-1 capitalize") #{producto.tipo}
+              if producto.tipo === 'fisico' && producto.pesoKg
+                div(class="bg-slate-50 rounded-2xl p-4")
+                  p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Peso
+                  p(class="font-extrabold text-slate-800 mt-1") #{producto.pesoKg} kg
+              if producto.tipo === 'fisico' && producto.dimensiones && producto.dimensiones.altoCm
+                div(class="bg-slate-50 rounded-2xl p-4")
+                  p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Dimensiones
+                  p(class="font-extrabold text-slate-800 mt-1") #{producto.dimensiones.altoCm} x #{producto.dimensiones.anchoCm} x #{producto.dimensiones.largoCm} cm
 
-          div(class="space-y-3")
-            if tienda.whatsapp
-              - const msg = encodeURIComponent("Hola, me interesa el producto: " + producto.nombre)
-              a(href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '') + "?text=" + msg target="_blank" rel="noopener" class="w-full inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl text-sm transition-colors") Consultar por WhatsApp
-            else if tienda.telefono
-              a(href="tel:" + tienda.telefono class="w-full inline-flex items-center justify-center gap-2 border border-gray-300 text-gray-700 font-bold py-3.5 rounded-xl text-sm hover:bg-gray-100 transition-colors") Llamar para consultar
+            if producto.tags && producto.tags.length > 0
+              div(class="flex flex-wrap gap-1.5 mb-6")
+                each tag in producto.tags
+                  span(class="bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-full") ##{tag}
 
-    footer(class="border-t border-gray-200 mt-12 py-8 text-center text-xs text-gray-400")
+            if tienda.estado === 'activa' || previsualizando
+              form(action="/tienda/" + tienda._id + "/carrito/agregar/" + producto._id method="POST" class="bg-slate-50 border border-slate-200 rounded-2xl p-4")
+                label(for="cantidad" class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2") Cantidad
+                div(class="flex flex-col sm:flex-row gap-3")
+                  input(type="number" id="cantidad" name="cantidad" min="1" max=maxCantidad value="1" disabled=sinStock class="sm:w-28 border border-slate-300 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-slate-100")
+                  if sinStock
+                    button(type="button" disabled class="flex-1 bg-slate-200 text-slate-400 font-bold py-3 rounded-xl text-sm cursor-not-allowed") Sin stock
+                  else
+                    button(type="submit" class="btn-marca flex-1 text-white font-bold py-3 rounded-xl text-sm transition-all") Agregar al carrito
+                div(class="flex items-center justify-between gap-3 mt-4 text-xs text-slate-400")
+                  span El pago se simula desde el carrito para la presentacion.
+                  a(href="/tienda/" + tienda._id + "/carrito" class="font-bold text-slate-700 hover:text-marca") Ver carrito
+
+    footer(class="border-t border-slate-200 mt-12 py-8 text-center text-xs text-slate-400")
       p #{tienda.nombre} - #{tienda.direccion}
       p(class="mt-1")
         | Plataforma
-        span(class="text-gray-500 ml-1") TechRetail Solutions
+        span(class="text-slate-500 ml-1") TechRetail Solutions
 
     script.
       function cambiarImagen(btn) {
@@ -141,7 +148,7 @@ html(lang="es")
         document.getElementById('img-principal').src = src;
         document.querySelectorAll('.thumb').forEach(function(t) {
           t.classList.toggle('activo', t === btn);
-          if (t !== btn) t.classList.add('border-gray-200');
-          else t.classList.remove('border-gray-200');
+          if (t !== btn) t.classList.add('border-slate-200');
+          else t.classList.remove('border-slate-200');
         });
       }

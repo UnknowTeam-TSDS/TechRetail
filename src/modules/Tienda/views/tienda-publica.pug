@@ -13,40 +13,45 @@ html(lang="es")
     script(src="/js/pwa.js")
     style.
       :root { --color-marca: #{tienda.colorPrimario}; }
+      .bg-marca { background-color: var(--color-marca); }
+      .text-marca { color: var(--color-marca); }
+      .border-marca { border-color: var(--color-marca); }
+      .btn-marca { background-color: var(--color-marca); }
+      .btn-marca:hover { filter: brightness(.94); }
       .btn-cat.activo { background-color: var(--color-marca); color: #fff; border-color: var(--color-marca); }
       .btn-cat:not(.activo):hover { border-color: var(--color-marca); color: var(--color-marca); }
-      .badge-precio { color: var(--color-marca); }
-      .header-barra { background-color: var(--color-marca); }
-      .color-dot { background-color: var(--color-marca); }
-      .btn-marca { background-color: var(--color-marca); }
+      .store-bg {
+        background:
+          radial-gradient(circle at top left, rgba(29, 78, 216, .12), transparent 30rem),
+          linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
+      }
+      .surface { background: rgba(255, 255, 255, .9); box-shadow: 0 18px 45px rgba(15, 23, 42, .07); }
+      .product-card { box-shadow: 0 14px 35px rgba(15, 23, 42, .06); }
       .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-  body(class="bg-gray-50 min-h-screen font-sans text-gray-900")
+  body(class="store-bg min-h-screen font-sans text-slate-900")
     - const ocultarContacto = tienda.estado === 'en_construccion' && !previsualizando
+    - const cantidad = carritoCantidad || 0
 
-    header(class="bg-white shadow-sm")
-      div(class="header-barra h-1.5 w-full")
-      div(class="max-w-6xl mx-auto px-5 py-6")
-        div(class="flex flex-col md:flex-row md:items-center md:justify-between gap-4")
-          div(class="flex items-center gap-4")
-            div(class="w-12 h-12 rounded-xl color-dot flex items-center justify-center text-white font-extrabold text-xl shrink-0")
-              | #{tienda.nombre.charAt(0).toUpperCase()}
-            div
-              h1(class="text-2xl font-extrabold text-gray-900 leading-tight") #{tienda.nombre}
-              if tienda.descripcion
-                p(class="text-gray-500 text-sm mt-0.5") #{tienda.descripcion}
+    header(class="bg-white/90 backdrop-blur border-b border-slate-200")
+      div(class="max-w-6xl mx-auto px-5 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4")
+        a(href="/tienda/" + tienda._id class="flex items-center gap-3 group")
+          div(class="w-11 h-11 rounded-xl bg-marca flex items-center justify-center text-white font-extrabold text-lg shrink-0")
+            | #{tienda.nombre.charAt(0).toUpperCase()}
+          div
+            h1(class="text-lg font-extrabold text-slate-950 leading-tight group-hover:text-marca transition-colors") #{tienda.nombre}
+            if tienda.descripcion
+              p(class="text-sm text-slate-500 line-clamp-2") #{tienda.descripcion}
 
-          div(class="flex flex-wrap items-center gap-3 text-sm text-gray-500")
-            if !ocultarContacto
-              span(class="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full capitalize text-xs font-semibold") #{tienda.rubro}
-              if tienda.telefono
-                a(href="tel:" + tienda.telefono class="hover:text-gray-800 transition-colors") Tel: #{tienda.telefono}
-              if tienda.emailContacto
-                a(href="mailto:" + tienda.emailContacto class="hover:text-gray-800 transition-colors") #{tienda.emailContacto}
-            if tienda.estado === 'activa' || previsualizando
-              a(href="/tienda/" + tienda._id + "/carrito" class="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors")
-                span Carrito
-                span(class="bg-white text-gray-900 rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center") #{carritoCantidad || 0}
+        div(class="flex flex-wrap items-center gap-2 text-sm")
+          if !ocultarContacto
+            span(class="inline-flex items-center bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full capitalize text-xs font-bold") #{tienda.rubro}
+            if tienda.emailContacto
+              a(href="mailto:" + tienda.emailContacto class="hidden sm:inline-flex text-slate-500 hover:text-slate-900 transition-colors") #{tienda.emailContacto}
+          if tienda.estado === 'activa' || previsualizando
+            a(href="/tienda/" + tienda._id + "/carrito" class="inline-flex items-center gap-2 bg-slate-950 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors")
+              span Carrito
+              span(class="bg-white text-slate-950 rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center") #{cantidad}
 
     main(class="max-w-6xl mx-auto px-5 py-8")
       if previsualizando
@@ -57,66 +62,86 @@ html(lang="es")
           a(href="/mi-tienda" class="shrink-0 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors text-center") Configurar
 
       if tienda.estado === 'en_construccion' && !previsualizando
-        div(class="min-h-[50vh] flex flex-col items-center justify-center text-center py-20")
-          div(class="w-20 h-20 rounded-2xl color-dot flex items-center justify-center text-white font-extrabold text-4xl mb-6 mx-auto")
+        section(class="min-h-[55vh] surface rounded-3xl border border-white flex flex-col items-center justify-center text-center px-6 py-20")
+          div(class="w-20 h-20 rounded-2xl bg-marca flex items-center justify-center text-white font-extrabold text-4xl mb-6 mx-auto")
             | #{tienda.nombre.charAt(0).toUpperCase()}
-          h2(class="text-3xl font-extrabold text-gray-900 mb-3") Proximamente
-          p(class="text-gray-500 text-lg max-w-md") Estamos armando la tienda. Volve pronto para ver todos los productos.
+          h2(class="text-3xl font-extrabold text-slate-950 mb-3") Proximamente
+          p(class="text-slate-500 text-lg max-w-md") Estamos armando la tienda. Volve pronto para ver todos los productos.
       else
+        section(class="surface rounded-3xl border border-white overflow-hidden mb-8")
+          div(class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-0")
+            div(class="p-7 md:p-9")
+              p(class="text-xs font-extrabold uppercase tracking-[0.18em] text-marca mb-3") Tienda online
+              h2(class="text-3xl md:text-4xl font-extrabold text-slate-950 leading-tight") #{tienda.nombre}
+              if tienda.descripcion
+                p(class="text-slate-600 mt-3 max-w-2xl leading-relaxed") #{tienda.descripcion}
+              div(class="flex flex-wrap gap-2 mt-6")
+                span(class="inline-flex items-center bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold capitalize") #{tienda.rubro}
+                if productos.length > 0
+                  span(class="inline-flex items-center bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full text-xs font-bold") #{productos.length} productos
+                if tienda.estado === 'activa'
+                  span(class="inline-flex items-center bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold") Tienda publicada
+                else
+                  span(class="inline-flex items-center bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-xs font-bold") En vista previa
+            div(class="bg-slate-950 text-white p-7 flex flex-col justify-center")
+              p(class="text-xs font-bold text-slate-400 uppercase tracking-wide") Compra simple
+              p(class="text-2xl font-extrabold mt-2") Catalogo, carrito y checkout simulado.
+              p(class="text-sm text-slate-300 mt-3 leading-relaxed") Una base lista para mostrar la experiencia del comprador mientras se completan integraciones reales.
+
         if categorias.length > 0
-          div(class="flex flex-wrap gap-2 mb-8")
-            button(type="button" data-filtro="todos" onclick="filtrar(this)" class="btn-cat activo border border-gray-300 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors cursor-pointer") Todos
+          div(class="flex flex-wrap gap-2 mb-7")
+            button(type="button" data-filtro="todos" onclick="filtrar(this)" class="btn-cat activo border border-slate-300 rounded-full px-4 py-2 text-sm font-bold transition-colors cursor-pointer") Todos
             each cat in categorias
-              button(type="button" data-filtro=cat onclick="filtrar(this)" class="btn-cat border border-gray-300 bg-white rounded-full px-4 py-1.5 text-sm font-semibold transition-colors cursor-pointer") #{cat}
+              button(type="button" data-filtro=cat onclick="filtrar(this)" class="btn-cat border border-slate-300 bg-white rounded-full px-4 py-2 text-sm font-bold transition-colors cursor-pointer") #{cat}
 
         if productos.length === 0
-          div(class="min-h-[40vh] flex flex-col items-center justify-center text-center py-20")
-            p(class="text-gray-500 text-lg") Esta tienda todavia no tiene productos publicados.
-            if tienda.whatsapp
-              a(href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '') target="_blank" rel="noopener" class="mt-6 inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors") Consultar por WhatsApp
+          div(class="surface rounded-3xl border border-white min-h-[36vh] flex flex-col items-center justify-center text-center px-6 py-16")
+            div(class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-extrabold text-xl mb-4") 0
+            p(class="text-xl font-extrabold text-slate-900") Todavia no hay productos publicados.
+            p(class="text-slate-500 text-sm mt-2 max-w-sm") Cuando el catalogo tenga productos activos, tus clientes los veran aca.
         else
           div#grilla(class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5")
             each producto in productos
               - const cat = producto.categoria || ''
               - const sinStock = producto.tipo === 'fisico' && producto.stock <= 0
-              article(class="producto-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col" data-categoria=cat)
+              article(class="producto-card bg-white rounded-2xl border border-white overflow-hidden hover:-translate-y-0.5 hover:shadow-xl transition-all flex flex-col" data-categoria=cat)
                 a(href="/tienda/" + tienda._id + "/producto/" + producto._id class="block flex-1")
-                  div(class="relative bg-gray-100 aspect-[4/3] overflow-hidden")
+                  div(class="relative bg-gradient-to-br from-slate-100 to-blue-50 aspect-[4/3] overflow-hidden")
                     if producto.imagenes && producto.imagenes.length > 0
-                      img(src=producto.imagenes[0] alt=producto.nombre class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-gray-400 text-sm font-semibold\\'>Sin imagen</div>'")
+                      img(src=producto.imagenes[0] alt=producto.nombre class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold\\'>Sin imagen</div>'")
                     else
-                      div(class="w-full h-full flex items-center justify-center text-gray-400 text-sm font-semibold") Sin imagen
+                      div(class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold") Sin imagen
 
-                    div(class="absolute top-2 left-2 flex flex-col gap-1")
+                    div(class="absolute top-3 left-3 flex flex-col gap-1")
                       if producto.esOferta
-                        span(class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full") Oferta
+                        span(class="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Oferta
                       if producto.esNovedad
-                        span(class="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full") Nuevo
+                        span(class="bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full") Nuevo
                       if producto.destacado
-                        span(class="bg-yellow-400 text-white text-xs font-bold px-2 py-0.5 rounded-full") Destacado
+                        span(class="bg-amber-400 text-white text-xs font-bold px-2.5 py-1 rounded-full") Destacado
 
                   div(class="p-4 pb-2")
                     if cat
-                      p(class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1") #{cat}
-                    h3(class="text-sm font-bold text-gray-900 leading-snug mb-2 line-clamp-2") #{producto.nombre}
+                      p(class="text-[11px] text-slate-400 font-bold uppercase tracking-wide mb-1") #{cat}
+                    h3(class="text-sm font-extrabold text-slate-950 leading-snug mb-2 line-clamp-2") #{producto.nombre}
                     if producto.descripcion
-                      p(class="text-xs text-gray-500 mb-3 line-clamp-2") #{producto.descripcion}
+                      p(class="text-xs text-slate-500 mb-3 line-clamp-2") #{producto.descripcion}
                     if producto.precioPromocional
                       div(class="flex items-baseline gap-2")
-                        span(class="badge-precio text-lg font-extrabold") $#{producto.precioPromocional.toLocaleString('es-AR')}
-                        span(class="text-xs text-gray-400 line-through") $#{producto.precio.toLocaleString('es-AR')}
+                        span(class="text-marca text-lg font-extrabold") $#{producto.precioPromocional.toLocaleString('es-AR')}
+                        span(class="text-xs text-slate-400 line-through") $#{producto.precio.toLocaleString('es-AR')}
                     else
-                      span(class="badge-precio text-lg font-extrabold") $#{producto.precio.toLocaleString('es-AR')}
+                      span(class="text-marca text-lg font-extrabold") $#{producto.precio.toLocaleString('es-AR')}
 
                 if tienda.estado === 'activa' || previsualizando
                   form(action="/tienda/" + tienda._id + "/carrito/agregar/" + producto._id method="POST" class="p-4 pt-2")
                     input(type="hidden" name="cantidad" value="1")
                     if sinStock
-                      button(type="button" disabled class="w-full bg-gray-100 text-gray-400 font-bold py-2.5 rounded-xl text-xs cursor-not-allowed") Sin stock
+                      button(type="button" disabled class="w-full bg-slate-100 text-slate-400 font-bold py-2.5 rounded-xl text-xs cursor-not-allowed") Sin stock
                     else
-                      button(type="submit" class="btn-marca w-full text-white font-bold py-2.5 rounded-xl text-xs hover:opacity-90 transition-opacity") Agregar al carrito
+                      button(type="submit" class="btn-marca w-full text-white font-bold py-2.5 rounded-xl text-xs transition-all") Agregar al carrito
 
-    footer(class="border-t border-gray-200 mt-16 py-8 text-center text-xs text-gray-400")
+    footer(class="border-t border-slate-200 mt-16 py-8 text-center text-xs text-slate-400")
       p
         if ocultarContacto
           | #{tienda.nombre}
@@ -124,10 +149,7 @@ html(lang="es")
           | #{tienda.nombre} - #{tienda.direccion}
       p(class="mt-1")
         | Plataforma
-        span(class="text-gray-500 ml-1") TechRetail Solutions
-
-    if tienda.whatsapp && !ocultarContacto
-      a(href="https://wa.me/" + tienda.whatsapp.replace(/\D/g, '') target="_blank" rel="noopener" class="fixed bottom-6 right-6 bg-green-500 text-white rounded-full shadow-lg hover:scale-105 transition-transform z-50 px-4 py-3 text-sm font-bold" title="Contactar por WhatsApp") WhatsApp
+        span(class="text-slate-500 ml-1") TechRetail Solutions
 
     script.
       function filtrar(btn) {
