@@ -91,11 +91,19 @@ html(lang="es")
                 p(class="text-2xl font-extrabold mt-2") Explora el catalogo y arma tu pedido.
                 p(class="text-sm text-slate-300 mt-3 leading-relaxed") Agrega productos al carrito y continua con el metodo de pago que prefieras.
 
+        if productos.length > 0
+          div(class="mb-5")
+            input(type="search" oninput="buscar(this.value)" placeholder="Buscar productos por nombre..." class="w-full sm:max-w-sm border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-300")
+
         if categorias.length > 0
           div(class="flex flex-wrap gap-2 mb-7")
             button(type="button" data-filtro="todos" onclick="filtrar(this)" class="btn-cat activo border border-slate-300 rounded-full px-4 py-2 text-sm font-bold transition-colors cursor-pointer") Todos
             each cat in categorias
               button(type="button" data-filtro=cat onclick="filtrar(this)" class="btn-cat border border-slate-300 bg-white rounded-full px-4 py-2 text-sm font-bold transition-colors cursor-pointer") #{cat}
+
+        //- Mensaje cuando la búsqueda/filtro no deja resultados visibles (lo controla el JS).
+        div#sin-resultados(class="hidden surface rounded-3xl border border-white text-center px-6 py-12 mb-5")
+          p(class="text-slate-500 text-sm") No encontramos productos con ese criterio.
 
         if productos.length === 0
           div(class="surface rounded-3xl border border-white min-h-[36vh] flex flex-col items-center justify-center text-center px-6 py-16")
@@ -107,7 +115,7 @@ html(lang="es")
             each producto in productos
               - const cat = producto.categoria || ''
               - const sinStock = producto.tipo === 'fisico' && producto.stock <= 0
-              article(class="producto-card bg-white rounded-2xl border border-white overflow-hidden hover:-translate-y-0.5 hover:shadow-xl transition-all flex flex-col" data-categoria=cat)
+              article(class="producto-card bg-white rounded-2xl border border-white overflow-hidden hover:-translate-y-0.5 hover:shadow-xl transition-all flex flex-col" data-categoria=cat data-nombre=(producto.nombre || '').toLowerCase())
                 a(href="/tienda/" + tienda._id + "/producto/" + producto._id class="block flex-1")
                   div(class="relative bg-gradient-to-br from-slate-100 to-blue-50 aspect-[4/3] overflow-hidden")
                     if producto.imagenes && producto.imagenes.length > 0
@@ -155,14 +163,35 @@ html(lang="es")
         span(class="text-slate-500 ml-1") TechRetail Solutions
 
     script.
+      // Estado de los filtros del catálogo: categoría activa + texto de búsqueda.
+      var categoriaActiva = 'todos';
+      var textoBusqueda = '';
+
+      // Una sola función aplica ambos filtros a la vez (categoría Y texto).
+      function aplicarFiltros() {
+        var visibles = 0;
+        document.querySelectorAll('.producto-card').forEach(function(card) {
+          var cat = card.getAttribute('data-categoria');
+          var nombre = card.getAttribute('data-nombre') || '';
+          var coincideCategoria = categoriaActiva === 'todos' || cat === categoriaActiva;
+          var coincideTexto = textoBusqueda === '' || nombre.indexOf(textoBusqueda) !== -1;
+          var visible = coincideCategoria && coincideTexto;
+          card.style.display = visible ? '' : 'none';
+          if (visible) visibles++;
+        });
+        var aviso = document.getElementById('sin-resultados');
+        if (aviso) aviso.classList.toggle('hidden', visibles > 0);
+      }
+
       function filtrar(btn) {
-        var filtro = btn.getAttribute('data-filtro');
+        categoriaActiva = btn.getAttribute('data-filtro');
         document.querySelectorAll('.btn-cat').forEach(function(b) {
           b.classList.toggle('activo', b === btn);
         });
-        document.querySelectorAll('.producto-card').forEach(function(card) {
-          var cat = card.getAttribute('data-categoria');
-          var visible = filtro === 'todos' || cat === filtro;
-          card.style.display = visible ? '' : 'none';
-        });
+        aplicarFiltros();
+      }
+
+      function buscar(valor) {
+        textoBusqueda = valor.trim().toLowerCase();
+        aplicarFiltros();
       }

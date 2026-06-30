@@ -91,6 +91,11 @@ const procesarCheckout = async (req, res) => {
       },
     });
 
+    // La venta se concretó: descontamos el stock de los productos físicos.
+    await Promise.all(items.map((item) =>
+      productosStorage.descontarStock(item.productoId, tienda._id, item.cantidad)
+    ));
+
     // El pedido quedó registrado: vaciamos el carrito de la sesión.
     req.session.carrito = { tiendaId: String(tienda._id), items: [] };
 
@@ -148,4 +153,34 @@ const vistaMisPedidos = async (req, res) => {
   }
 };
 
-module.exports = { procesarCheckout, vistaConfirmacion, vistaMisPedidos };
+// POST /mis-pedidos/:id/estado — el dueño confirma o cancela un pedido
+const cambiarEstadoPedido = async (req, res) => {
+  try {
+    const tienda = await tiendaStorage.buscarPorUsuario(req.session.usuario.id);
+    if (!tienda) return res.redirect('/mi-tienda');
+
+    const nuevoEstado = req.body.estado;
+    if (!['confirmado', 'cancelado'].includes(nuevoEstado)) {
+      return res.redirect('/mis-pedidos');
+    }
+
+    const pedido = await storage.buscarPorId(req.params.id, tienda._id);
+    if (!pedido) return res.redirect('/mis-pedidos');
+
+    // Al cancelar un pedido que no estaba cancelado, devolvemos el stock reservado.
+    if (nuevoEstado === 'cancelado' && pedido.estado !== 'cancelado') {
+      await Promise.all(pedido.items.map((item) =>
+        productosStorage.reponerStock(item.productoId, tienda._id, item.cantidad)
+      ));
+    }
+
+    await storage.actualizarEstado(req.params.id, tienda._id, nuevoEstado);
+    flash(req, 'ok', nuevoEstado === 'confirmado' ? 'Pedido confirmado.' : 'Pedido cancelado y stock repuesto.');
+    res.redirect('/mis-pedidos');
+  } catch (error) {
+    console.error('Error cambiando estado de pedido:', error.message);
+    res.redirect('/mis-pedidos');
+  }
+};
+
+module.exports = { procesarCheckout, vistaConfirmacion, vistaMisPedidos, cambiarEstadoPedido };

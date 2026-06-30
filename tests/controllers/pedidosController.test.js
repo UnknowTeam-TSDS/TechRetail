@@ -8,6 +8,7 @@ const productosStorage = require('../../src/modules/Productos/storage/productosS
 const {
   procesarCheckout,
   vistaMisPedidos,
+  cambiarEstadoPedido,
 } = require('../../src/modules/Pedidos/controllers/pedidosController');
 
 describe('Pedidos Controller', () => {
@@ -46,6 +47,7 @@ describe('Pedidos Controller', () => {
       req.session.carrito = { tiendaId: 'tienda-id', items: [{ productoId: 'prod-id', cantidad: 2 }] };
       tiendaStorage.buscarPorId = jest.fn().mockResolvedValue(tiendaActiva);
       productosStorage.buscarActivosPorIds = jest.fn().mockResolvedValue([productoMock]);
+      productosStorage.descontarStock = jest.fn().mockResolvedValue({});
       storage.crear = jest.fn().mockResolvedValue({ _id: 'pedido-id', total: 2000 });
 
       await procesarCheckout(req, res);
@@ -58,6 +60,8 @@ describe('Pedidos Controller', () => {
         items: [{ productoId: 'prod-id', nombre: 'Remera', precioUnitario: 1000, cantidad: 2, subtotal: 2000 }],
         comprador: expect.objectContaining({ nombre: 'Ana', email: 'ana@email.com', telefono: '123' }),
       }));
+      // El stock del producto se descuenta al concretarse la venta
+      expect(productosStorage.descontarStock).toHaveBeenCalledWith('prod-id', 'tienda-id', 2);
       // El carrito queda vacío luego de registrar el pedido
       expect(req.session.carrito).toEqual({ tiendaId: 'tienda-id', items: [] });
       expect(res.redirect).toHaveBeenCalledWith('/tienda/tienda-id/pedido/pedido-id');
@@ -122,6 +126,51 @@ describe('Pedidos Controller', () => {
       await vistaMisPedidos(req, res);
 
       expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
+    });
+  });
+
+  describe('cambiarEstadoPedido', () => {
+    const tienda = { _id: 'tienda-id' };
+
+    test('confirma un pedido pendiente sin tocar el stock', async () => {
+      req.params.id = 'pedido-id';
+      req.body.estado = 'confirmado';
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(tienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue({ estado: 'pendiente', items: [{ productoId: 'p1', cantidad: 2 }] });
+      storage.actualizarEstado = jest.fn().mockResolvedValue({});
+      productosStorage.reponerStock = jest.fn();
+
+      await cambiarEstadoPedido(req, res);
+
+      expect(productosStorage.reponerStock).not.toHaveBeenCalled();
+      expect(storage.actualizarEstado).toHaveBeenCalledWith('pedido-id', 'tienda-id', 'confirmado');
+      expect(res.redirect).toHaveBeenCalledWith('/mis-pedidos');
+    });
+
+    test('cancelar un pedido repone el stock de sus items', async () => {
+      req.params.id = 'pedido-id';
+      req.body.estado = 'cancelado';
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(tienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue({ estado: 'pendiente', items: [{ productoId: 'p1', cantidad: 3 }] });
+      storage.actualizarEstado = jest.fn().mockResolvedValue({});
+      productosStorage.reponerStock = jest.fn().mockResolvedValue({});
+
+      await cambiarEstadoPedido(req, res);
+
+      expect(productosStorage.reponerStock).toHaveBeenCalledWith('p1', 'tienda-id', 3);
+      expect(storage.actualizarEstado).toHaveBeenCalledWith('pedido-id', 'tienda-id', 'cancelado');
+    });
+
+    test('ignora un estado no válido', async () => {
+      req.params.id = 'pedido-id';
+      req.body.estado = 'inventado';
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(tienda);
+      storage.actualizarEstado = jest.fn();
+
+      await cambiarEstadoPedido(req, res);
+
+      expect(storage.actualizarEstado).not.toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith('/mis-pedidos');
     });
   });
 });

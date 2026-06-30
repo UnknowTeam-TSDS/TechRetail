@@ -120,6 +120,20 @@ app.get('/', (req, res, next) => {
 
     const addonsContratados = todosClientes.reduce((sum, u) => sum + (u.addons?.length || 0), 0);
 
+    // RF-02 (Alertas de churn): clientes con señales de abandono o riesgo de baja.
+    // Se prioriza un solo motivo por cliente, del más grave al más leve.
+    const enRiesgo = todosClientes.reduce((lista, u) => {
+      const trialVencido = u.trialHasta && u.trialHasta < ahora;
+      const enTrialU = u.trialHasta && u.trialHasta > ahora;
+      let motivo = null;
+      if (u.estado === 'suspendido') motivo = 'Suspendido';
+      else if (u.estado === 'inactivo') motivo = 'Inactivo';
+      else if (trialVencido) motivo = 'Prueba vencida';
+      else if (!u.planId && !enTrialU) motivo = 'Sin plan elegido';
+      if (motivo) lista.push({ nombre: u.nombre, email: u.email, motivo });
+      return lista;
+    }, []);
+
     // Un cliente en prueba gratuita se cuenta como tal (aún no paga su plan),
     // coherente con el MRR. Al terminar el trial pasa a contar en su plan.
     const distribucion = {};
@@ -134,9 +148,10 @@ app.get('/', (req, res, next) => {
       stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados, totalTiendas, tiendasPublicadas, tiendasBorrador, tiendasInactivas, totalProductos, totalPedidos },
       distribucion,
       recientes,
+      enRiesgo,
     });
   } catch (error) {
-    res.render('index', { titulo: 'Panel de Gestión', stats: null, distribucion: {}, recientes: [] });
+    res.render('index', { titulo: 'Panel de Gestión', stats: null, distribucion: {}, recientes: [], enRiesgo: [] });
   }
 });
 
@@ -195,6 +210,9 @@ io.on('connection', (socket) => {
 });
 
 // ── Inicio del servidor ──────────────────────────────────────────────────────
+// Se exporta `app` para los tests de integración (supertest). El servidor solo
+// arranca y se conecta a Mongo cuando el archivo se ejecuta directamente
+// (`node app.js`), no cuando se importa desde un test.
 const iniciarServidor = async () => {
   // Conectar a MongoDB primero
   await conectarMongoDB();
@@ -218,4 +236,8 @@ const iniciarServidor = async () => {
   });
 };
 
-iniciarServidor();
+if (require.main === module) {
+  iniciarServidor();
+}
+
+module.exports = app;

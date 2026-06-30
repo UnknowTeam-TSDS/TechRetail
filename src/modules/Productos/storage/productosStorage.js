@@ -32,6 +32,25 @@ const cambiarEstado = async (id, tiendaId, activo) => {
   );
 };
 
+// Descuenta stock al concretarse una venta. Solo afecta productos físicos
+// y nunca deja el stock en negativo (el filtro $gte evita descontar de más).
+const descontarStock = async (id, tiendaId, cantidad) => {
+  return Producto.findOneAndUpdate(
+    { _id: id, tiendaId, tipo: 'fisico', stock: { $gte: cantidad } },
+    { $inc: { stock: -cantidad } },
+    { returnDocument: 'after' }
+  );
+};
+
+// Repone stock cuando se cancela un pedido (solo productos físicos).
+const reponerStock = async (id, tiendaId, cantidad) => {
+  return Producto.findOneAndUpdate(
+    { _id: id, tiendaId, tipo: 'fisico' },
+    { $inc: { stock: cantidad } },
+    { returnDocument: 'after' }
+  );
+};
+
 const contarTodos = async () => {
   return Producto.countDocuments();
 };
@@ -67,6 +86,8 @@ module.exports = {
   actualizar,
   eliminar,
   cambiarEstado,
+  descontarStock,
+  reponerStock,
   contarTodos,
   contarPorTienda,
   categoriasPorTienda,

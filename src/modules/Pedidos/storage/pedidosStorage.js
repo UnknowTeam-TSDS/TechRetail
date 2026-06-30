@@ -14,6 +14,11 @@ const buscarPorId = async (id, tiendaId) => {
   return Pedido.findOne({ _id: id, tiendaId });
 };
 
+// Cambia el estado del pedido (el filtro por tiendaId evita tocar pedidos ajenos).
+const actualizarEstado = async (id, tiendaId, estado) => {
+  return Pedido.findOneAndUpdate({ _id: id, tiendaId }, { estado }, { returnDocument: 'after' });
+};
+
 const contarTodos = async () => {
   return Pedido.countDocuments();
 };
@@ -22,4 +27,4 @@ const contarPorTienda = async (tiendaId) => {
   return Pedido.countDocuments({ tiendaId });
 };
 
-module.exports = { crear, listarPorTienda, buscarPorId, contarTodos, contarPorTienda };
+module.exports = { crear, listarPorTienda, buscarPorId, actualizarEstado, contarTodos, contarPorTienda };

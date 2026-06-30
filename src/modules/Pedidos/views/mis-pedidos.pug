@@ -50,12 +50,16 @@ html(lang="es")
         div(class="space-y-4")
           each pedido in pedidos
             div(class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden")
+              -
+                var badge = pedido.estado === 'confirmado'
+                  ? 'bg-green-50 text-green-700'
+                  : (pedido.estado === 'cancelado' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-700');
               div(class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3")
                 div
                   p(class="font-extrabold text-slate-900") Pedido ##{pedido._id.toString().slice(-8).toUpperCase()}
                   p(class="text-xs text-slate-400 mt-0.5") #{new Date(pedido.createdAt).toLocaleString('es-AR')}
                 div(class="flex items-center gap-2")
-                  span(class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full capitalize") #{pedido.estado}
+                  span(class="text-xs font-bold px-3 py-1.5 rounded-full capitalize " + badge) #{pedido.estado}
                   span(class="text-lg font-extrabold text-slate-950") $#{pedido.total.toLocaleString('es-AR')}
 
               div(class="px-5 py-4 grid grid-cols-1 md:grid-cols-3 gap-4")
@@ -77,5 +81,16 @@ html(lang="es")
                   p(class="text-xs text-slate-400 font-bold uppercase tracking-wide mb-1") Productos
                   each item in pedido.items
                     p(class="text-sm text-slate-700") #{item.cantidad} × #{item.nombre}
+
+              //- Acciones del dueño: confirmar o cancelar (cancelar repone el stock).
+              if pedido.estado !== 'cancelado'
+                div(class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex flex-wrap gap-2 justify-end")
+                  if pedido.estado === 'pendiente'
+                    form(action="/mis-pedidos/" + pedido._id + "/estado" method="POST")
+                      input(type="hidden" name="estado" value="confirmado")
+                      button(type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors") Confirmar
+                  form(action="/mis-pedidos/" + pedido._id + "/estado" method="POST" onsubmit="return confirm('¿Cancelar el pedido? Se repone el stock de los productos.')")
+                    input(type="hidden" name="estado" value="cancelado")
+                    button(type="submit" class="bg-white border border-red-300 text-red-600 text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition-colors") Cancelar
 
     p(class="text-center text-slate-400 text-xs py-6") © 2025 TechRetail Solutions S.R.L.

@@ -208,13 +208,14 @@ La seguridad de cross-user se garantiza pasando siempre `tiendaId` como filtro e
 ### Pedidos (`/mis-pedidos`, checkout público) — módulo extra
 Registra las compras **simuladas** que se generan en el checkout público. No mueve dinero real: deja constancia de la intención de compra para que el dueño la vea y el admin la cuente. Cierra el RF-01 (Checkout) del relevamiento.
 
-- `POST /tienda/:id/checkout` — Público. Crea el pedido desde el carrito de sesión, valida el medio de pago contra los configurados, vacía el carrito y emite `nuevo-pedido`
+- `POST /tienda/:id/checkout` — Público. Crea el pedido desde el carrito de sesión, valida el medio de pago contra los configurados, **descuenta stock** de los productos físicos, vacía el carrito y emite `nuevo-pedido`
 - `GET /tienda/:id/pedido/:pedidoId` — Público. Confirmación del pedido para el comprador
 - `GET /mis-pedidos` — Cliente autenticado. El dueño ve los pedidos de su tienda
+- `POST /mis-pedidos/:id/estado` — Cliente autenticado. El dueño confirma o cancela un pedido; **cancelar repone el stock**
 
 Schema Pedido: `tiendaId` (ref Tienda, req), `items` (array: `productoId`, `nombre`, `precioUnitario`, `cantidad`, `subtotal` — copia histórica), `total` (req ≥0), `medioPago` (enum del catálogo, req), `medioEnvio` (enum del catálogo, opcional), `comprador` (`nombre` req, `email` req+formato, `telefono`), `estado` (enum `'pendiente'|'confirmado'|'cancelado'`, default `pendiente`), `esSimulado` (bool, default true), timestamps.
 
-El checkout (modal de `carrito-publico.pug`) es un formulario real que postea a `/tienda/:id/checkout`. El dueño en vista previa también puede generar pedidos para probar el flujo.
+El checkout (modal de `carrito-publico.pug`) es un formulario real que postea a `/tienda/:id/checkout`. El dueño en vista previa también puede generar pedidos para probar el flujo. El stock se descuenta al crear el pedido (`descontarStock`, con guard `$gte` para no quedar negativo) y se repone al cancelarlo (`reponerStock`); ambos solo afectan productos físicos.
 
 ---
 
@@ -235,11 +236,13 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 
 ## Calidad, Tests y CI
 
-*   **Tests Unitarios e Integración**: Configurados con Jest (`npm.cmd test`).
+*   **Tests Unitarios**: Configurados con Jest (`npm.cmd test`). Usan mocks de la capa storage.
     *   **Cobertura**:
         *   Modelos: `Plan`, `Usuario`, `Tienda`, `Producto`, `Pedido`.
         *   Controladores: `authController`, `productosController`, `tiendaController`, `pedidosController`.
         *   Lógica y seguridad: Políticas de contraseñas y middleware de sesión.
+*   **Tests de Integración**: `tests/integration/` levanta la app real con `supertest` contra una MongoDB en memoria (`mongodb-memory-server`). Prueban rutas end-to-end (sesión, middlewares, render, 404). `app.js` exporta `app` y solo arranca el servidor con `require.main === module`.
+*   **Cobertura**: `npm run test:coverage` genera el reporte con `jest --coverage`.
 *   **Integración Continua (CI)**: Configurada en `.github/workflows/ci.yml`. Ejecuta las pruebas automáticamente en Node 20 y 22 ante cada Push o PR a `main`.
 *   **API Testing**: Colección de Postman disponible en `src/postman/TechRetail - Test general.postman_collection.json`.
 
@@ -251,8 +254,9 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 - **Storage layer**: DB aislada en `storage/`
 - **PRG (Post-Redirect-Get)**: formularios HTML usan POST → redirect
 - **Flash messages**: tras una acción, el controller setea `req.session.flash = { tipo, mensaje }`; un middleware global lo expone en `res.locals.flash` (un solo uso) y las vistas lo muestran como banner. Da feedback al patrón PRG.
-- **Páginas de error**: el 404/500 global y las rutas públicas de tienda renderizan `error.pug` (con estilo); las rutas `/api/*` siguen devolviendo JSON.
+- **Páginas de error**: el 404/500 global y las rutas públicas de tienda renderizan `error.pug` (con estilo); las rutas `/api/*` siguen devolviendo JSON. El middleware `validarObjectId(param)` valida `:id` malformados antes de llegar al controller (evita CastError → 500).
 - **Seguridad de sesión**: cookie `httpOnly` + `sameSite: 'lax'` (mitiga CSRF) + `secure` en producción (`trust proxy`). `express-rate-limit` limita los intentos de `POST /login`.
+- **Alertas de churn (RF-02)**: el dashboard admin calcula `enRiesgo` (clientes suspendidos, inactivos, con prueba vencida o sin plan) y los muestra como sección de "Clientes en riesgo".
 - **`select: false`** en `contrasena`; se recupera con `.select('+contrasena')` solo en login
 - **`res.locals.usuarioLogueado`**: middleware global para vistas Pug
 - **`normalizarProducto(body, tiendaId, files, imagenesActuales)`**: helper en productosController que centraliza parseo y validación de campos para crear y editar
