@@ -1,0 +1,26 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title #{codigo} — TechRetail Solutions
+    script(src="https://cdn.tailwindcss.com")
+    link(rel="manifest" href="/manifest.json")
+    meta(name="theme-color" content="#1D4ED8")
+    style.
+      .store-bg {
+        background:
+          radial-gradient(circle at top left, rgba(29, 78, 216, .12), transparent 30rem),
+          linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
+      }
+      .surface { background: rgba(255, 255, 255, .92); box-shadow: 0 18px 45px rgba(15, 23, 42, .07); }
+
+  body(class="store-bg min-h-screen font-sans text-slate-900 flex items-center justify-center px-5 py-16")
+    div(class="surface rounded-3xl border border-white max-w-md w-full text-center px-8 py-12")
+      p(class="text-6xl font-extrabold text-blue-700") #{codigo}
+      h1(class="text-2xl font-extrabold text-slate-950 mt-4") #{titulo}
+      p(class="text-slate-500 mt-2 leading-relaxed") #{mensaje}
+      a(href=volverHref || "/" class="inline-flex mt-8 bg-slate-950 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors") #{volverTexto || 'Volver al inicio'}
+      p(class="mt-8 text-xs text-slate-400")
+        | Plataforma
+        span(class="text-slate-500 ml-1") TechRetail Solutions

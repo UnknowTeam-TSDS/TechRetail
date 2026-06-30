@@ -20,10 +20,12 @@ const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
 const tiendaRouter = require('./src/modules/Tienda/routers/tiendaRouter');
 const productosRouter = require('./src/modules/Productos/routers/productosRouter');
+const pedidosRouter = require('./src/modules/Pedidos/routers/pedidosRouter');
 const Usuario = require('./src/modules/usuarios/models/Usuario');
 const Plan = require('./src/modules/Planes/models/Plan');
 const Tienda = require('./src/modules/Tienda/models/Tienda');
 const Producto = require('./src/modules/Productos/models/Producto');
+const Pedido = require('./src/modules/Pedidos/models/Pedido');
 
 const app = express();
 const server = http.createServer(app);
@@ -42,6 +44,7 @@ app.set('views', [
   path.join(__dirname, 'src/modules/Auth/views'),                 // views autenticacion
   path.join(__dirname, 'src/modules/Tienda/views'),               // views modulo tienda
   path.join(__dirname, 'src/modules/Productos/views'),            // views modulo productos
+  path.join(__dirname, 'src/modules/Pedidos/views'),              // views modulo pedidos
 ]);
 
 // ── Middlewares globales ─────────────────────────────────────────────────────
@@ -50,21 +53,35 @@ app.use(express.json());                         // Parsear body JSON en request
 app.use(express.urlencoded({ extended: true })); // Parsear form data
 app.use(logger);                                 // Logger: registra cada request
 
+// En producción la app corre detrás del proxy de Render (HTTPS). Esto permite
+// que la cookie 'secure' viaje correctamente al estar detrás del proxy.
+const enProduccion = process.env.NODE_ENV === 'production';
+if (enProduccion) app.set('trust proxy', 1);
+
 // ── Configuración de sesiones ───────────────────────────────────────────────
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { 
+  cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 24 horas
-    httpOnly: true,
-    secure: false, // cambiar a true si usas HTTPS
+    httpOnly: true,              // la cookie no es accesible desde JS (mitiga XSS)
+    secure: enProduccion,        // solo viaja por HTTPS en producción
+    sameSite: 'lax',             // mitiga CSRF: no se envía en POST cross-site
   }
 }));
 
 // Middleware: pasar usuario logueado a las vistas
 app.use((req, res, next) => {
   res.locals.usuarioLogueado = req.session.usuario || null;
+  next();
+});
+
+// Middleware flash: mensaje de un solo uso que sobrevive al redirect (patrón PRG).
+// Un controller setea req.session.flash y la siguiente vista lo recibe en res.locals.flash.
+app.use((req, res, next) => {
+  res.locals.flash = req.session.flash || null;
+  delete req.session.flash;
   next();
 });
 
@@ -77,7 +94,7 @@ app.get('/', (req, res, next) => {
 }, async (req, res) => {
   try {
     const ahora = new Date();
-    const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, totalTiendas, tiendasPublicadas, tiendasBorrador, tiendasInactivas, totalProductos, usuariosActivos, todosClientes, recientes] = await Promise.all([
+    const [totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, totalTiendas, tiendasPublicadas, tiendasBorrador, tiendasInactivas, totalProductos, totalPedidos, usuariosActivos, todosClientes, recientes] = await Promise.all([
       Usuario.countDocuments({ rol: 'cliente' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'activo' }),
       Usuario.countDocuments({ rol: 'cliente', estado: 'inactivo' }),
@@ -90,6 +107,7 @@ app.get('/', (req, res, next) => {
       Tienda.countDocuments({ estado: 'en_construccion' }),
       Tienda.countDocuments({ estado: 'inactiva' }),
       Producto.countDocuments(),
+      Pedido.countDocuments(),
       Usuario.find({ rol: 'cliente', estado: 'activo' }),
       Usuario.find({ rol: 'cliente' }),
       Usuario.find({ rol: 'cliente' }).sort({ fechaRegistro: -1 }).limit(5),
@@ -113,7 +131,7 @@ app.get('/', (req, res, next) => {
 
     res.render('index', {
       titulo: 'Panel de Gestión',
-      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados, totalTiendas, tiendasPublicadas, tiendasBorrador, tiendasInactivas, totalProductos },
+      stats: { totalClientes, activos, inactivos, suspendidos, enTrial, totalPlanes, totalAddons, mrr, addonsContratados, totalTiendas, tiendasPublicadas, tiendasBorrador, tiendasInactivas, totalProductos, totalPedidos },
       distribucion,
       recientes,
     });
@@ -133,22 +151,38 @@ app.use('/planes', verificarAdmin, planesRouter);          // Proteger vistas
 app.use('/usuarios', verificarAdmin, usuariosRouter);      // Proteger vistas
 app.use('/', tiendaRouter);                                // GET/POST /mi-tienda
 app.use('/', productosRouter);                             // GET/POST /mis-productos
+app.use('/', pedidosRouter);                               // checkout, confirmación, /mis-pedidos
 
 // ── Manejo de rutas no encontradas (404) ─────────────────────────────────────
+// Las rutas /api responden JSON (las consume Postman); el resto, una página con estilo.
 app.use((req, res) => {
-  res.status(404).json({
-    ok: false,
-    mensaje: `Ruta ${req.method} ${req.originalUrl} no encontrada.`,
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(404).json({
+      ok: false,
+      mensaje: `Ruta ${req.method} ${req.originalUrl} no encontrada.`,
+    });
+  }
+  res.status(404).render('error', {
+    codigo: 404,
+    titulo: 'Página no encontrada',
+    mensaje: 'La página que buscás no existe o fue movida.',
   });
 });
 
 // ── Manejo global de errores ─────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({
-    ok: false,
-    mensaje: 'Error interno del servidor',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(500).json({
+      ok: false,
+      mensaje: 'Error interno del servidor',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    });
+  }
+  res.status(500).render('error', {
+    codigo: 500,
+    titulo: 'Algo salió mal',
+    mensaje: 'Tuvimos un problema procesando tu pedido. Probá de nuevo en unos minutos.',
   });
 });
 

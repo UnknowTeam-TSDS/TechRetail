@@ -4,13 +4,23 @@
 */
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const controller = require('../controllers/authController');
 const { verificarSesion } = require('../../../middlewares/autenticacion');
 
 const router = express.Router();
 
+// Limita los intentos de login por IP para frenar ataques de fuerza bruta.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // ventana de 15 minutos
+  max: 10,                  // máximo 10 intentos por IP en esa ventana
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Demasiados intentos de inicio de sesión. Esperá unos minutos y volvé a intentar.',
+});
+
 router.get('/login', controller.vistaLogin);
-router.post('/login', controller.loginUsuario);
+router.post('/login', loginLimiter, controller.loginUsuario);
 router.post('/logout', controller.logout);
 router.get('/registro', controller.vistaRegistro);
 router.post('/registro', controller.registrarUsuario);

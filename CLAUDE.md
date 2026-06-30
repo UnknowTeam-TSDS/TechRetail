@@ -102,6 +102,12 @@ TechRetail/
 │   │   │   ├── storage/productosStorage.js
 │   │   │   ├── models/Producto.js
 │   │   │   └── views/mis-productos.pug
+│   │   ├── Pedidos/                # Pedidos simulados del checkout público
+│   │   │   ├── controllers/pedidosController.js
+│   │   │   ├── routers/pedidosRouter.js
+│   │   │   ├── storage/pedidosStorage.js
+│   │   │   ├── models/Pedido.js
+│   │   │   └── views/ (pedido-confirmacion.pug, mis-pedidos.pug)
 │   │   └── usuarios/               # CRUD usuarios/clientes (admin)
 │   │       ├── controllers/usuariosController.js
 │   │       ├── routers/usuariosRouter.js
@@ -199,6 +205,17 @@ Schema Producto:
 
 La seguridad de cross-user se garantiza pasando siempre `tiendaId` como filtro en todas las operaciones de storage.
 
+### Pedidos (`/mis-pedidos`, checkout público) — módulo extra
+Registra las compras **simuladas** que se generan en el checkout público. No mueve dinero real: deja constancia de la intención de compra para que el dueño la vea y el admin la cuente. Cierra el RF-01 (Checkout) del relevamiento.
+
+- `POST /tienda/:id/checkout` — Público. Crea el pedido desde el carrito de sesión, valida el medio de pago contra los configurados, vacía el carrito y emite `nuevo-pedido`
+- `GET /tienda/:id/pedido/:pedidoId` — Público. Confirmación del pedido para el comprador
+- `GET /mis-pedidos` — Cliente autenticado. El dueño ve los pedidos de su tienda
+
+Schema Pedido: `tiendaId` (ref Tienda, req), `items` (array: `productoId`, `nombre`, `precioUnitario`, `cantidad`, `subtotal` — copia histórica), `total` (req ≥0), `medioPago` (enum del catálogo, req), `medioEnvio` (enum del catálogo, opcional), `comprador` (`nombre` req, `email` req+formato, `telefono`), `estado` (enum `'pendiente'|'confirmado'|'cancelado'`, default `pendiente`), `esSimulado` (bool, default true), timestamps.
+
+El checkout (modal de `carrito-publico.pug`) es un formulario real que postea a `/tienda/:id/checkout`. El dueño en vista previa también puede generar pedidos para probar el flujo.
+
 ---
 
 ## WebSockets (Socket.io)
@@ -210,6 +227,7 @@ El servidor implementa comunicacion bidireccional en tiempo real. Guarda la inst
 *   `nueva-tienda`: emitido cuando un cliente crea su tienda.
 *   `tienda-publicada`: emitido cuando una tienda pasa a estado activa.
 *   `nuevo-producto`: emitido cuando se carga un producto en una tienda.
+*   `nuevo-pedido`: emitido cuando se registra un pedido desde el checkout público.
 
 El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el dashboard administrativo cuando el usuario no esta escribiendo en un formulario.
 
@@ -219,8 +237,8 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 
 *   **Tests Unitarios e Integración**: Configurados con Jest (`npm.cmd test`).
     *   **Cobertura**:
-        *   Modelos: `Plan`, `Usuario`, `Tienda`, `Producto`.
-        *   Controladores: `authController`, `productosController`, `tiendaController`.
+        *   Modelos: `Plan`, `Usuario`, `Tienda`, `Producto`, `Pedido`.
+        *   Controladores: `authController`, `productosController`, `tiendaController`, `pedidosController`.
         *   Lógica y seguridad: Políticas de contraseñas y middleware de sesión.
 *   **Integración Continua (CI)**: Configurada en `.github/workflows/ci.yml`. Ejecuta las pruebas automáticamente en Node 20 y 22 ante cada Push o PR a `main`.
 *   **API Testing**: Colección de Postman disponible en `src/postman/TechRetail - Test general.postman_collection.json`.
@@ -232,6 +250,9 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 - **Async/await** en todos los controllers y storage
 - **Storage layer**: DB aislada en `storage/`
 - **PRG (Post-Redirect-Get)**: formularios HTML usan POST → redirect
+- **Flash messages**: tras una acción, el controller setea `req.session.flash = { tipo, mensaje }`; un middleware global lo expone en `res.locals.flash` (un solo uso) y las vistas lo muestran como banner. Da feedback al patrón PRG.
+- **Páginas de error**: el 404/500 global y las rutas públicas de tienda renderizan `error.pug` (con estilo); las rutas `/api/*` siguen devolviendo JSON.
+- **Seguridad de sesión**: cookie `httpOnly` + `sameSite: 'lax'` (mitiga CSRF) + `secure` en producción (`trust proxy`). `express-rate-limit` limita los intentos de `POST /login`.
 - **`select: false`** en `contrasena`; se recupera con `.select('+contrasena')` solo en login
 - **`res.locals.usuarioLogueado`**: middleware global para vistas Pug
 - **`normalizarProducto(body, tiendaId, files, imagenesActuales)`**: helper en productosController que centraliza parseo y validación de campos para crear y editar

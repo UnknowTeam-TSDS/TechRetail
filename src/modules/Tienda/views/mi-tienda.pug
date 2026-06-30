@@ -48,6 +48,12 @@ html(lang="es")
         h1(class="text-2xl font-bold text-white") TechRetail Solutions
         p(class="text-blue-200 text-sm") Configurá tu tienda paso a paso
 
+      //- ── BANNER DE FEEDBACK (flash) ─────────────────────────────────────
+      if flash
+        - var esError = flash.tipo === 'error'
+        div(class="rounded-xl px-4 py-3 mb-5 text-sm font-semibold " + (esError ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'))
+          | #{flash.mensaje}
+
       //- ── BARRA DE PROGRESO ──────────────────────────────────────────────
       div(class="bg-white rounded-2xl shadow-2xl p-6 mb-5")
         div(class="flex items-end justify-between gap-4 mb-3")
@@ -168,14 +174,17 @@ html(lang="es")
             form(action="/mi-tienda/publicar" method="POST")
               button(type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm transition-colors") 🚀 Publicar tienda
 
-      //- ── ATAJO: VER LA TIENDA ───────────────────────────────────────────
+      //- ── ATAJOS: VER LA TIENDA / PEDIDOS ─────────────────────────────────
       if tienda
-        a(href="/tienda/" + tienda._id target="_blank"
-          class="block w-full text-center bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 rounded-xl text-sm transition-colors mb-5")
-          if tienda.estado === 'activa'
-            | Ver mi tienda publicada →
-          else
-            | Ver vista previa de mi tienda →
+        div(class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5")
+          a(href="/tienda/" + tienda._id target="_blank"
+            class="block text-center bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 rounded-xl text-sm transition-colors")
+            if tienda.estado === 'activa'
+              | Ver mi tienda publicada →
+            else
+              | Ver vista previa →
+          a(href="/mis-pedidos"
+            class="block text-center bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 rounded-xl text-sm transition-colors") Ver mis pedidos →
 
       div(class="text-center")
         a(href="/mi-cuenta" class="text-blue-200 text-sm hover:text-white") ← Volver a mi cuenta

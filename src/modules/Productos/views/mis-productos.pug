@@ -24,6 +24,12 @@ html(lang="es")
             p(class="text-3xl font-extrabold") #{productos.length}
 
     main(class="max-w-6xl mx-auto px-5 py-8")
+      //- ── BANNER DE FEEDBACK (flash) ─────────────────────────────────────
+      if flash
+        - var esError = flash.tipo === 'error'
+        div(class="rounded-xl px-4 py-3 mb-6 text-sm font-semibold " + (esError ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'))
+          | #{flash.mensaje}
+
       - const editando = !!productoEditando
       - const accionFormulario = editando ? '/mis-productos/editar/' + productoEditando._id : '/mis-productos/form'
       - const tagsEditando = editando && productoEditando.tags ? productoEditando.tags.join(', ') : ''

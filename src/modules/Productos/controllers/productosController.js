@@ -6,6 +6,11 @@ const emitirSocket = (req, evento, datos) => {
   if (io) io.emit(evento, datos);
 };
 
+// Mensaje de un solo uso que la próxima vista muestra como banner (patrón PRG).
+const flash = (req, tipo, mensaje) => {
+  if (req.session) req.session.flash = { tipo, mensaje };
+};
+
 const obtenerTiendaDelUsuario = async (req) => {
   return tiendaStorage.buscarPorUsuario(req.session.usuario.id);
 };
@@ -121,9 +126,11 @@ const crearProducto = async (req, res) => {
       tienda: tienda.nombre,
       categoria: producto.categoria,
     });
+    flash(req, 'ok', `Producto "${producto.nombre}" agregado al catálogo.`);
     res.redirect('/mis-productos');
   } catch (error) {
     console.error('Error creando producto:', error.message);
+    flash(req, 'error', 'No pudimos crear el producto. Revisá los datos obligatorios.');
     res.redirect('/mis-productos?nuevo=1');
   }
 };
@@ -140,9 +147,11 @@ const actualizarProducto = async (req, res) => {
     const datos = normalizarProducto(req.body, tienda._id, req.files || [], imagenesActuales);
 
     await storage.actualizar(req.params.id, tienda._id, datos);
+    flash(req, 'ok', 'Producto actualizado.');
     res.redirect('/mis-productos');
   } catch (error) {
     console.error('Error actualizando producto:', error.message);
+    flash(req, 'error', 'No pudimos actualizar el producto.');
     res.redirect('/mis-productos/editar/' + req.params.id);
   }
 };
@@ -153,6 +162,7 @@ const eliminarProducto = async (req, res) => {
     if (!tienda) return res.redirect('/mi-tienda');
 
     await storage.eliminar(req.params.id, tienda._id);
+    flash(req, 'ok', 'Producto eliminado.');
     res.redirect('/mis-productos');
   } catch (error) {
     console.error('Error eliminando producto:', error.message);
@@ -167,6 +177,7 @@ const cambiarEstadoProducto = async (req, res) => {
 
     const activo = req.body.activo === 'true';
     await storage.cambiarEstado(req.params.id, tienda._id, activo);
+    flash(req, 'ok', activo ? 'Producto activado.' : 'Producto desactivado.');
     res.redirect('/mis-productos');
   } catch (error) {
     console.error('Error cambiando estado producto:', error.message);

@@ -279,7 +279,7 @@ describe('Tienda Controller', () => {
       await vistaCarrito(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ ok: false, mensaje: 'Tienda no encontrada.' });
+      expect(res.render).toHaveBeenCalledWith('error', expect.objectContaining({ codigo: 404 }));
     });
 
     test('agrega un producto activo al carrito de la tienda', async () => {

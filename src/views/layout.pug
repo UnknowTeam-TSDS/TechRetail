@@ -52,7 +52,8 @@ html(lang="es")
           usuario: 'bg-green-600',
           tienda: 'bg-teal-600',
           publicada: 'bg-emerald-600',
-          producto: 'bg-indigo-600'
+          producto: 'bg-indigo-600',
+          pedido: 'bg-purple-600'
         };
         const notif = document.createElement('div');
         notif.className = 'fixed bottom-4 right-4 px-4 py-3 rounded-lg text-white text-sm font-semibold shadow-lg z-50 ' + (colores[tipo] || 'bg-gray-700');
@@ -98,5 +99,10 @@ html(lang="es")
 
       socket.on('nuevo-producto', function(data) {
         mostrarNotificacion('Nuevo producto: ' + data.nombre + ' en ' + data.tienda, 'producto');
+        refrescarPanel();
+      });
+
+      socket.on('nuevo-pedido', function(data) {
+        mostrarNotificacion('Nuevo pedido en ' + data.tienda + ' ($' + data.total.toLocaleString('es-AR') + ')', 'pedido');
         refrescarPanel();
       });

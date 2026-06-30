@@ -8,6 +8,21 @@ const emitirSocket = (req, evento, datos) => {
   if (io) io.emit(evento, datos);
 };
 
+// Deja un mensaje de un solo uso que la próxima vista muestra como banner (patrón PRG).
+const flash = (req, tipo, mensaje) => {
+  if (req.session) req.session.flash = { tipo, mensaje };
+};
+
+// Renderiza la página de error con estilo en vez de devolver JSON crudo (rutas públicas).
+const render404 = (res, mensaje = 'No encontramos lo que buscás.') =>
+  res.status(404).render('error', {
+    codigo: 404,
+    titulo: 'No encontrado',
+    mensaje,
+    volverHref: '/',
+    volverTexto: 'Ir al inicio',
+  });
+
 const obtenerCarritoTienda = (req, tiendaId) => {
   const tiendaIdStr = String(tiendaId);
 
@@ -184,9 +199,11 @@ const guardarTienda = async (req, res) => {
       });
     }
 
+    flash(req, 'ok', tiendaActual ? 'Datos de la tienda actualizados.' : '¡Tienda creada! Seguí con los próximos pasos.');
     res.redirect('/mi-tienda');
   } catch (error) {
     console.error('Error guardando tienda:', error.message);
+    flash(req, 'error', 'No pudimos guardar la tienda. Revisá los datos e intentá de nuevo.');
     res.redirect('/mi-tienda/editar');
   }
 };
@@ -197,16 +214,21 @@ const publicarTienda = async (req, res) => {
     const usuario = await Usuario.findById(req.session.usuario.id);
     const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
     const planPago = !!(usuario.planId) && !enTrial;
-    if (!planPago) return res.redirect('/mi-tienda');
+    if (!planPago) {
+      flash(req, 'error', 'Necesitás un plan pago (Growth o Pro) para publicar tu tienda.');
+      return res.redirect('/mi-tienda');
+    }
 
     const tiendaPublicada = await storage.actualizarEstado(req.session.usuario.id, 'activa');
     emitirSocket(req, 'tienda-publicada', {
       nombre: tiendaPublicada?.nombre || 'Tienda',
       usuario: req.session.usuario.nombre,
     });
+    flash(req, 'ok', '¡Tu tienda está publicada y online!');
     res.redirect('/mi-tienda');
   } catch (error) {
     console.error('Error al publicar tienda:', error.message);
+    flash(req, 'error', 'No pudimos publicar la tienda. Intentá de nuevo.');
     res.redirect('/mi-tienda');
   }
 };
@@ -215,6 +237,7 @@ const publicarTienda = async (req, res) => {
 const despublicarTienda = async (req, res) => {
   try {
     await storage.actualizarEstado(req.session.usuario.id, 'inactiva');
+    flash(req, 'ok', 'Tu tienda dejó de estar publicada.');
     res.redirect('/mi-tienda');
   } catch (error) {
     console.error('Error al despublicar tienda:', error.message);
@@ -230,9 +253,11 @@ const guardarMediosPago = async (req, res) => {
     const seleccion = [].concat(req.body.medios || []);
     const validos = seleccion.filter((id) => PAGO_IDS.includes(id));
     await storage.actualizarMediosPago(req.session.usuario.id, validos);
+    flash(req, 'ok', 'Medios de pago actualizados.');
     res.redirect('/mi-tienda');
   } catch (error) {
     console.error('Error guardando medios de pago:', error.message);
+    flash(req, 'error', 'No pudimos guardar los medios de pago.');
     res.redirect('/mi-tienda');
   }
 };
@@ -248,9 +273,11 @@ const guardarMediosEnvio = async (req, res) => {
     const envioGratisMonto = Number.isFinite(monto) && monto > 0 ? monto : null;
 
     await storage.actualizarMediosEnvio(req.session.usuario.id, validos, envioGratisMonto);
+    flash(req, 'ok', 'Medios de envío actualizados.');
     res.redirect('/mi-tienda');
   } catch (error) {
     console.error('Error guardando medios de envío:', error.message);
+    flash(req, 'error', 'No pudimos guardar los medios de envío.');
     res.redirect('/mi-tienda');
   }
 };
@@ -261,14 +288,14 @@ const vistaPublicaTienda = async (req, res) => {
     const tienda = await storage.buscarPorId(req.params.id);
 
     if (!tienda) {
-      return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+      return render404(res, 'Esta tienda no está disponible.');
     }
 
     const esDueno = !!(req.session.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
 
     // Una tienda inactiva solo es visible para su dueño (en modo previsualización)
     if (tienda.estado === 'inactiva' && !esDueno) {
-      return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+      return render404(res, 'Esta tienda no está disponible.');
     }
 
     // Se muestra el catálogo si está activa, o si el dueño está previsualizando
@@ -289,7 +316,7 @@ const vistaPublicaTienda = async (req, res) => {
     });
   } catch (error) {
     console.error('Error cargando tienda pública:', error.message);
-    res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+    render404(res, 'Esta tienda no está disponible.');
   }
 };
 
@@ -299,20 +326,20 @@ const vistaPublicaProducto = async (req, res) => {
     const tienda = await storage.buscarPorId(req.params.id);
 
     if (!tienda) {
-      return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+      return render404(res, 'Este producto no está disponible.');
     }
 
     const esDueno = !!(req.session.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
 
     // La tienda debe estar activa, salvo que el dueño esté previsualizando
     if (tienda.estado !== 'activa' && !esDueno) {
-      return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+      return render404(res, 'Este producto no está disponible.');
     }
 
     const producto = await productosStorage.buscarPublicoPorId(req.params.productoId, tienda._id);
 
     if (!producto) {
-      return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+      return render404(res, 'Este producto no está disponible.');
     }
 
     const previsualizando = esDueno && tienda.estado !== 'activa';
@@ -325,7 +352,7 @@ const vistaPublicaProducto = async (req, res) => {
     });
   } catch (error) {
     console.error('Error cargando producto público:', error.message);
-    res.status(404).json({ ok: false, mensaje: 'Producto no encontrado.' });
+    render404(res, 'Este producto no está disponible.');
   }
 };
 
@@ -333,7 +360,7 @@ const vistaCarrito = async (req, res) => {
   try {
     const resultado = await cargarTiendaComprable(req, req.params.id);
     if (!resultado) {
-      return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+      return render404(res, 'Esta tienda no está disponible.');
     }
 
     const { tienda, previsualizando } = resultado;
@@ -359,7 +386,7 @@ const agregarProductoCarrito = async (req, res) => {
   try {
     const resultado = await cargarTiendaComprable(req, req.params.id);
     if (!resultado) {
-      return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+      return render404(res, 'Esta tienda no está disponible.');
     }
 
     const { tienda } = resultado;
@@ -395,7 +422,7 @@ const actualizarProductoCarrito = async (req, res) => {
   try {
     const resultado = await cargarTiendaComprable(req, req.params.id);
     if (!resultado) {
-      return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+      return render404(res, 'Esta tienda no está disponible.');
     }
 
     const { tienda } = resultado;
@@ -427,7 +454,7 @@ const actualizarProductoCarrito = async (req, res) => {
 
 const quitarProductoCarrito = async (req, res) => {
   const resultado = await cargarTiendaComprable(req, req.params.id);
-  if (!resultado) return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+  if (!resultado) return render404(res, 'Esta tienda no está disponible.');
 
   const carrito = obtenerCarritoTienda(req, resultado.tienda._id);
   carrito.items = carrito.items.filter(item => item.productoId !== String(req.params.productoId));
@@ -436,7 +463,7 @@ const quitarProductoCarrito = async (req, res) => {
 
 const vaciarCarrito = async (req, res) => {
   const resultado = await cargarTiendaComprable(req, req.params.id);
-  if (!resultado) return res.status(404).json({ ok: false, mensaje: 'Tienda no encontrada.' });
+  if (!resultado) return render404(res, 'Esta tienda no está disponible.');
 
   const tiendaId = String(resultado.tienda._id);
   if (req.session.carrito?.tiendaId === tiendaId) {
