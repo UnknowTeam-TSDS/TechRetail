@@ -148,8 +148,16 @@ Schema Usuario: `nombre` (req, min 3), `email` (req, único), `contrasena` (req,
 ### Tienda (`/mi-tienda`) — cliente autenticado
 Configuración de tienda propia. Una tienda por usuario (`usuarioId: unique`).
 
-- `GET /mi-tienda` — Formulario de configuración (crear o editar)
-- `POST /mi-tienda` — Guarda/actualiza la tienda (upsert)
+`GET /mi-tienda` es un **panel guiado de onboarding** (estilo checklist): muestra una barra de progreso y 5 pasos (crear tienda → cargar producto → medios de pago → medios de envío → publicar). Cada paso se marca como completado y se desbloquea en orden. Los pasos de pago/envío se configuran con formularios inline (`<details>`) dentro del mismo panel. La idea responde al RF-05 (Onboarding guiado): asistir a emprendedores sin experiencia técnica.
+
+- `GET /mi-tienda` — Panel guiado con progreso y pasos
+- `GET /mi-tienda/editar` — Formulario de datos de la tienda (crear o editar)
+- `POST /mi-tienda` — Guarda/actualiza la tienda (upsert; no toca medios ni estado)
+- `POST /mi-tienda/publicar` / `POST /mi-tienda/despublicar` — Cambia visibilidad
+- `POST /mi-tienda/medios-pago` — Guarda medios de pago elegidos (checkboxes)
+- `POST /mi-tienda/medios-envio` — Guarda medios de envío y monto de envío gratis
+
+El catálogo de medios de pago/envío vive en `src/modules/Tienda/opcionesComerciales.js` (fuente única de verdad). El controller filtra la selección contra ese catálogo y el checkout público (`carrito-publico.pug`) muestra los medios configurados. Todo es **simulado**: sin pasarela de pago ni courier real.
 
 Schema Tienda:
 - `usuarioId` (ref Usuario, req, unique)
@@ -162,6 +170,9 @@ Schema Tienda:
 - `direccion` (req)
 - `whatsapp` (opcional)
 - `estado` (enum: `'en_construccion'|'activa'|'inactiva'`, default `en_construccion`)
+- `mediosPago` (array enum: `'mercadopago'|'transferencia'|'tarjeta'|'efectivo'`, default `[]`)
+- `mediosEnvio` (array enum: `'correo_argentino'|'oca'|'retiro_local'|'envio_gratis'`, default `[]`)
+- `envioGratisMonto` (Number ≥0, opcional, default `null`)
 - Si el usuario está en trial, `estado` se fuerza a `en_construccion`
 
 ### Productos (`/mis-productos`) — cliente autenticado

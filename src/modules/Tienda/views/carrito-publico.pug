@@ -84,26 +84,44 @@ html(lang="es")
             div(class="flex justify-between text-slate-500")
               span Items
               span #{cantidadTotal}
-            div(class="flex justify-between text-slate-500")
-              span Envio
-              span A definir
+
+            //- Medios de envío configurados por el dueño (selección visual para la demo).
+            if mediosEnvio && mediosEnvio.length > 0
+              div
+                p(class="text-slate-500 mb-2") Envío
+                div(class="space-y-2")
+                  each envio, i in mediosEnvio
+                    label(class="flex items-start gap-2 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors")
+                      input(type="radio" name="envio-demo" checked=(i === 0) class="mt-1 accent-slate-900")
+                      div
+                        p(class="text-sm font-semibold text-slate-800") #{envio.nombre}
+                        p(class="text-xs text-slate-400") #{envio.detalle}
+                if envioGratisMonto
+                  p(class="text-xs text-emerald-600 mt-2") Envío gratis en compras desde $#{envioGratisMonto.toLocaleString('es-AR')}.
+            else
+              div(class="flex justify-between text-slate-500")
+                span Envío
+                span A coordinar
+
             div(class="border-t border-slate-100 pt-4 flex justify-between items-baseline")
               span(class="font-bold text-slate-900") Total
               span(class="text-3xl font-extrabold text-slate-950") $#{total.toLocaleString('es-AR')}
 
           if items.length > 0
-            div(class="mt-6 space-y-3")
-              button(type="button" onclick="abrirPago('MercadoPago')" class="w-full text-left border border-sky-100 bg-sky-50 hover:bg-sky-100 rounded-2xl px-4 py-3 transition-colors")
-                p(class="font-extrabold text-sky-700") Pagar con MercadoPago
-                p(class="text-xs text-sky-600 mt-0.5") Opcion visual para la demo
-              button(type="button" onclick="abrirPago('Transferencia bancaria')" class="w-full text-left border border-slate-200 bg-white hover:bg-slate-50 rounded-2xl px-4 py-3 transition-colors")
-                p(class="font-extrabold text-slate-900") Pagar por transferencia
-                p(class="text-xs text-slate-500 mt-0.5") Simulacion sin generar orden real
-              button(type="button" onclick="abrirPago('tarjeta de credito/debito')" class="w-full text-left border border-blue-100 bg-blue-50 hover:bg-blue-100 rounded-2xl px-4 py-3 transition-colors")
-                p(class="font-extrabold text-blue-700") Pagar con tarjeta
-                p(class="text-xs text-blue-600 mt-0.5") Checkout preparado para la presentacion
-            if previsualizando
-              p(class="text-xs text-slate-400 mt-4 leading-relaxed") Pago simulado para presentacion. No procesa dinero ni genera orden real.
+            //- Medios de pago configurados por el dueño. Cada uno abre el modal simulado.
+            if mediosPago && mediosPago.length > 0
+              p(class="text-xs font-bold text-slate-400 uppercase tracking-wide mt-6 mb-2") Medios de pago
+              div(class="space-y-3")
+                each medio in mediosPago
+                  button(type="button" data-metodo=medio.nombre onclick="abrirPago(this.dataset.metodo)" class="w-full text-left border border-slate-200 bg-white hover:bg-slate-50 rounded-2xl px-4 py-3 transition-colors")
+                    p(class="font-extrabold text-slate-900") Pagar con #{medio.nombre}
+                    p(class="text-xs text-slate-500 mt-0.5") #{medio.detalle}
+              p(class="text-xs text-slate-400 mt-4 leading-relaxed") Pago simulado para la presentación. No procesa dinero ni genera orden real.
+            else
+              div(class="mt-6 border border-amber-200 bg-amber-50 rounded-2xl px-4 py-3")
+                p(class="text-sm font-semibold text-amber-800") Esta tienda todavía no configuró medios de pago.
+                if previsualizando
+                  p(class="text-xs text-amber-700 mt-1") Configurálos desde el paso "Medios de pago" en tu panel.
           else
             a(href="/tienda/" + tienda._id class="mt-6 w-full inline-flex justify-center btn-marca text-white font-bold py-3 rounded-xl text-sm transition-all") Volver al catalogo
 

@@ -8,6 +8,8 @@ router.get('/mi-tienda/editar', verificarSesion, controller.vistaEditarTienda);
 router.post('/mi-tienda', verificarSesion, controller.guardarTienda);
 router.post('/mi-tienda/publicar', verificarSesion, controller.publicarTienda);
 router.post('/mi-tienda/despublicar', verificarSesion, controller.despublicarTienda);
+router.post('/mi-tienda/medios-pago', verificarSesion, controller.guardarMediosPago);
+router.post('/mi-tienda/medios-envio', verificarSesion, controller.guardarMediosEnvio);
 router.get('/tienda/:id/carrito', controller.vistaCarrito);
 router.post('/tienda/:id/carrito/agregar/:productoId', controller.agregarProductoCarrito);
 router.post('/tienda/:id/carrito/actualizar/:productoId', controller.actualizarProductoCarrito);

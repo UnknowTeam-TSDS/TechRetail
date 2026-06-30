@@ -1,6 +1,7 @@
 const storage = require('../storage/tiendaStorage');
 const productosStorage = require('../../Productos/storage/productosStorage');
 const Usuario = require('../../usuarios/models/Usuario');
+const { MEDIOS_PAGO, MEDIOS_ENVIO, PAGO_IDS, ENVIO_IDS, resolver } = require('../opcionesComerciales');
 
 const emitirSocket = (req, evento, datos) => {
   const io = req.app?.get?.('io');
@@ -78,7 +79,7 @@ const cargarTiendaComprable = async (req, id) => {
   };
 };
 
-// GET /mi-tienda — panel resumen de la tienda
+// GET /mi-tienda — panel guiado de onboarding de la tienda
 const vistaTienda = async (req, res) => {
   try {
     const [tienda, usuario] = await Promise.all([
@@ -89,12 +90,33 @@ const vistaTienda = async (req, res) => {
     const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
     const planPago = !!(usuario.planId) && !enTrial;
 
+    // Cantidad de productos cargados: habilita el paso "Cargá tu primer producto".
+    const cantidadProductos = tienda
+      ? (await productosStorage.contarPorTienda(tienda._id)) || 0
+      : 0;
+
+    // Estado de cada paso del onboarding guiado. La vista los muestra como
+    // checklist y desbloquea cada paso a medida que se completa el anterior.
+    const estados = {
+      crear: !!tienda,
+      productos: cantidadProductos > 0,
+      pago: !!(tienda && tienda.mediosPago && tienda.mediosPago.length > 0),
+      envio: !!(tienda && tienda.mediosEnvio && tienda.mediosEnvio.length > 0),
+      publicar: !!(tienda && tienda.estado === 'activa'),
+    };
+    const completados = Object.values(estados).filter(Boolean).length;
+    const total = Object.keys(estados).length;
+
     res.render('mi-tienda', {
       titulo: 'Mi tienda',
       usuario: req.session.usuario,
       tienda,
       enTrial,
       planPago,
+      estados,
+      progreso: { completados, total, porcentaje: Math.round((completados / total) * 100) },
+      mediosPagoCatalogo: MEDIOS_PAGO,
+      mediosEnvioCatalogo: MEDIOS_ENVIO,
     });
   } catch (error) {
     console.error('Error cargando mi tienda:', error.message);
@@ -200,6 +222,39 @@ const despublicarTienda = async (req, res) => {
   }
 };
 
+// POST /mi-tienda/medios-pago — guarda los medios de pago elegidos (simulados)
+const guardarMediosPago = async (req, res) => {
+  try {
+    // Los checkboxes llegan como string (uno), array (varios) o undefined (ninguno).
+    // Normalizamos a array y filtramos contra el catálogo para descartar valores inválidos.
+    const seleccion = [].concat(req.body.medios || []);
+    const validos = seleccion.filter((id) => PAGO_IDS.includes(id));
+    await storage.actualizarMediosPago(req.session.usuario.id, validos);
+    res.redirect('/mi-tienda');
+  } catch (error) {
+    console.error('Error guardando medios de pago:', error.message);
+    res.redirect('/mi-tienda');
+  }
+};
+
+// POST /mi-tienda/medios-envio — guarda los medios de envío y el monto de envío gratis
+const guardarMediosEnvio = async (req, res) => {
+  try {
+    const seleccion = [].concat(req.body.medios || []);
+    const validos = seleccion.filter((id) => ENVIO_IDS.includes(id));
+
+    // El monto de envío gratis solo se guarda si es un número positivo.
+    const monto = parseFloat(req.body.envioGratisMonto);
+    const envioGratisMonto = Number.isFinite(monto) && monto > 0 ? monto : null;
+
+    await storage.actualizarMediosEnvio(req.session.usuario.id, validos, envioGratisMonto);
+    res.redirect('/mi-tienda');
+  } catch (error) {
+    console.error('Error guardando medios de envío:', error.message);
+    res.redirect('/mi-tienda');
+  }
+};
+
 // GET /tienda/:id — pública, sin login. El dueño puede previsualizarla aunque no esté activa.
 const vistaPublicaTienda = async (req, res) => {
   try {
@@ -289,6 +344,10 @@ const vistaCarrito = async (req, res) => {
       total: resumen.total,
       cantidadTotal: resumen.cantidadTotal,
       previsualizando,
+      // Medios configurados por el dueño, resueltos a sus datos completos.
+      mediosPago: resolver(MEDIOS_PAGO, tienda.mediosPago),
+      mediosEnvio: resolver(MEDIOS_ENVIO, tienda.mediosEnvio),
+      envioGratisMonto: tienda.envioGratisMonto || null,
     });
   } catch (error) {
     console.error('Error cargando carrito:', error.message);
@@ -392,6 +451,8 @@ module.exports = {
   guardarTienda,
   publicarTienda,
   despublicarTienda,
+  guardarMediosPago,
+  guardarMediosEnvio,
   vistaPublicaTienda,
   vistaPublicaProducto,
   vistaCarrito,

@@ -36,6 +36,10 @@ const contarTodos = async () => {
   return Producto.countDocuments();
 };
 
+const contarPorTienda = async (tiendaId) => {
+  return Producto.countDocuments({ tiendaId });
+};
+
 const listarActivosPorTienda = async (tiendaId) => {
   return Producto.find({ tiendaId, activo: true }).sort({ createdAt: -1 });
 };
@@ -64,5 +68,6 @@ module.exports = {
   eliminar,
   cambiarEstado,
   contarTodos,
+  contarPorTienda,
   categoriasPorTienda,
 };

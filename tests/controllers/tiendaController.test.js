@@ -10,6 +10,8 @@ const {
   guardarTienda,
   publicarTienda,
   despublicarTienda,
+  guardarMediosPago,
+  guardarMediosEnvio,
   vistaCarrito,
   agregarProductoCarrito,
   actualizarProductoCarrito,
@@ -178,6 +180,57 @@ describe('Tienda Controller', () => {
 
       expect(storage.actualizarEstado).toHaveBeenCalledWith('user-id', 'inactiva');
       expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
+    });
+  });
+
+  describe('guardarMediosPago', () => {
+    test('guarda solo los medios de pago validos del catalogo', async () => {
+      req.body = { medios: ['mercadopago', 'transferencia', 'bitcoin'] };
+      storage.actualizarMediosPago = jest.fn().mockResolvedValue({});
+
+      await guardarMediosPago(req, res);
+
+      expect(storage.actualizarMediosPago).toHaveBeenCalledWith('user-id', ['mercadopago', 'transferencia']);
+      expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
+    });
+
+    test('normaliza un unico medio (string) a un arreglo', async () => {
+      req.body = { medios: 'efectivo' };
+      storage.actualizarMediosPago = jest.fn().mockResolvedValue({});
+
+      await guardarMediosPago(req, res);
+
+      expect(storage.actualizarMediosPago).toHaveBeenCalledWith('user-id', ['efectivo']);
+    });
+
+    test('guarda un arreglo vacio si no se selecciona ningun medio', async () => {
+      req.body = {};
+      storage.actualizarMediosPago = jest.fn().mockResolvedValue({});
+
+      await guardarMediosPago(req, res);
+
+      expect(storage.actualizarMediosPago).toHaveBeenCalledWith('user-id', []);
+    });
+  });
+
+  describe('guardarMediosEnvio', () => {
+    test('guarda medios validos y el monto de envio gratis', async () => {
+      req.body = { medios: ['retiro_local', 'envio_gratis'], envioGratisMonto: '50000' };
+      storage.actualizarMediosEnvio = jest.fn().mockResolvedValue({});
+
+      await guardarMediosEnvio(req, res);
+
+      expect(storage.actualizarMediosEnvio).toHaveBeenCalledWith('user-id', ['retiro_local', 'envio_gratis'], 50000);
+      expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
+    });
+
+    test('descarta el monto de envio gratis si no es un numero positivo', async () => {
+      req.body = { medios: ['oca'], envioGratisMonto: '' };
+      storage.actualizarMediosEnvio = jest.fn().mockResolvedValue({});
+
+      await guardarMediosEnvio(req, res);
+
+      expect(storage.actualizarMediosEnvio).toHaveBeenCalledWith('user-id', ['oca'], null);
     });
   });
 

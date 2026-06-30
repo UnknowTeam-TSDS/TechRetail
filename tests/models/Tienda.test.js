@@ -90,4 +90,40 @@ describe('Modelo Tienda - validaciones de schema', () => {
       await expect(tienda.validate()).resolves.toBeUndefined();
     }
   });
+
+  test('mediosPago y mediosEnvio por defecto son arreglos vacios', () => {
+    const tienda = new Tienda(datosValidos);
+    expect(tienda.mediosPago).toEqual([]);
+    expect(tienda.mediosEnvio).toEqual([]);
+  });
+
+  test('acepta medios de pago validos', async () => {
+    const tienda = new Tienda({ ...datosValidos, mediosPago: ['mercadopago', 'transferencia'] });
+    await expect(tienda.validate()).resolves.toBeUndefined();
+  });
+
+  test('falla si un medio de pago no es valido', async () => {
+    const tienda = new Tienda({ ...datosValidos, mediosPago: ['bitcoin'] });
+    await expect(tienda.validate()).rejects.toThrow();
+  });
+
+  test('acepta medios de envio validos', async () => {
+    const tienda = new Tienda({ ...datosValidos, mediosEnvio: ['retiro_local', 'envio_gratis'] });
+    await expect(tienda.validate()).resolves.toBeUndefined();
+  });
+
+  test('falla si un medio de envio no es valido', async () => {
+    const tienda = new Tienda({ ...datosValidos, mediosEnvio: ['drone'] });
+    await expect(tienda.validate()).rejects.toThrow();
+  });
+
+  test('falla si el monto de envio gratis es negativo', async () => {
+    const tienda = new Tienda({ ...datosValidos, envioGratisMonto: -100 });
+    await expect(tienda.validate()).rejects.toThrow();
+  });
+
+  test('acepta un monto de envio gratis valido', async () => {
+    const tienda = new Tienda({ ...datosValidos, envioGratisMonto: 50000 });
+    await expect(tienda.validate()).resolves.toBeUndefined();
+  });
 });

@@ -9,98 +9,173 @@ html(lang="es")
     meta(name="theme-color" content="#1D4ED8")
     link(rel="apple-touch-icon" href="/icons/icon-192.png")
     script(src="/js/pwa.js")
+
+  //- ── MIXIN: tarjeta de paso ──────────────────────────────────────────────
+  //- Dibuja el "esqueleto" de cada paso (círculo de estado, título, badge) y
+  //- deja un bloque libre para la acción concreta (link, formulario, botón).
+  mixin paso(numero, titulo, descripcion, completado, bloqueado)
+    -
+      var circulo = completado
+        ? 'bg-green-500 text-white'
+        : (bloqueado ? 'bg-gray-100 text-gray-300' : 'bg-blue-100 text-blue-700');
+    div(class="bg-white rounded-2xl shadow-lg overflow-hidden " + (bloqueado ? 'opacity-70' : ''))
+      div(class="p-5")
+        div(class="flex items-start gap-4")
+          div(class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm " + circulo)
+            if completado
+              | ✓
+            else if bloqueado
+              | 🔒
+            else
+              = numero
+          div(class="flex-1 min-w-0")
+            div(class="flex items-center justify-between gap-3")
+              h3(class="font-bold text-gray-900") #{titulo}
+              if completado
+                span(class="shrink-0 text-xs font-bold text-green-600") Listo
+              else if !bloqueado
+                span(class="shrink-0 text-xs font-bold text-blue-600") Pendiente
+            p(class="text-sm text-gray-500 mt-0.5") #{descripcion}
+            if block
+              div(class="mt-4")
+                block
+
   body(class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen font-sans py-10 px-4")
 
     div(class="max-w-2xl mx-auto")
 
       div(class="text-center mb-6")
         h1(class="text-2xl font-bold text-white") TechRetail Solutions
-        p(class="text-blue-200 text-sm") Tu tienda
+        p(class="text-blue-200 text-sm") Configurá tu tienda paso a paso
 
-      if !tienda
-        //- ── SIN TIENDA ──────────────────────────────────────────────────────
-        div(class="bg-white rounded-2xl shadow-2xl p-10 text-center mb-4")
-          div(class="text-5xl mb-4") 🏪
-          h2(class="text-lg font-bold text-blue-900 mb-2") Todavía no creaste tu tienda
-          p(class="text-sm text-gray-500 max-w-sm mx-auto mb-6") Configurá el nombre, el rubro y los datos de contacto para empezar a cargar productos.
-          a(href="/mi-tienda/editar" class="inline-block bg-blue-900 hover:bg-blue-800 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors") Crear mi tienda
+      //- ── BARRA DE PROGRESO ──────────────────────────────────────────────
+      div(class="bg-white rounded-2xl shadow-2xl p-6 mb-5")
+        div(class="flex items-end justify-between gap-4 mb-3")
+          div
+            h2(class="text-lg font-bold text-gray-900") Tu camino para vender online
+            p(class="text-sm text-gray-500") #{progreso.completados} de #{progreso.total} pasos completados
+          span(class="text-3xl font-extrabold text-blue-700") #{progreso.porcentaje}%
+        div(class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden")
+          div(class="h-2.5 rounded-full bg-blue-600 transition-all duration-500" style=`width:${progreso.porcentaje}%`)
+        if progreso.completados === progreso.total
+          p(class="text-sm text-green-600 font-semibold mt-3") 🎉 ¡Tu tienda está completa y publicada!
+        else
+          p(class="text-xs text-gray-400 mt-3") Seguí los pasos en orden. Te guiamos para dejar la tienda lista para vender.
 
-      else
-        //- ── RESUMEN DE LA TIENDA ────────────────────────────────────────────
-        div(class="bg-white rounded-2xl shadow-2xl overflow-hidden mb-4")
-          div(class="h-2" style=`background-color:${tienda.colorPrimario}`)
-          div(class="p-8")
-            div(class="flex items-start justify-between gap-3 mb-5")
-              div
-                h2(class="text-xl font-bold text-gray-900") #{tienda.nombre}
-                if tienda.descripcion
-                  p(class="text-sm text-gray-500 mt-1") #{tienda.descripcion}
-              div(class="shrink-0")
-                if tienda.estado === 'activa'
-                  span(class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1.5 rounded-full") Publicada
-                else if tienda.estado === 'inactiva'
-                  span(class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full") Inactiva
+      div(class="space-y-4 mb-5")
+
+        //- ── PASO 1: CREAR LA TIENDA ──────────────────────────────────────
+        +paso(1, 'Creá tu tienda', 'Nombre, rubro y datos de contacto obligatorios.', estados.crear, false)
+          if !tienda
+            a(href="/mi-tienda/editar" class="inline-block bg-blue-900 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors") Crear mi tienda
+          else
+            div(class="flex flex-wrap items-center gap-2 mb-3")
+              span(class="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full")
+                span(class="w-3 h-3 rounded-full border border-gray-200" style=`background-color:${tienda.colorPrimario}`)
+                | #{tienda.nombre}
+              span(class="bg-gray-50 border border-gray-200 text-gray-500 text-xs font-semibold px-2.5 py-1 rounded-full capitalize") #{tienda.rubro}
+            a(href="/mi-tienda/editar" class="inline-block bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-sm transition-colors") Editar datos
+
+        //- ── PASO 2: CARGAR PRODUCTOS ─────────────────────────────────────
+        +paso(2, 'Cargá tu primer producto', 'Sumá al menos un producto a tu catálogo.', estados.productos, !tienda)
+          if !tienda
+            p(class="text-xs text-gray-400") Disponible cuando crees tu tienda.
+          else
+            a(href="/mis-productos" class="inline-block bg-teal-600 hover:bg-teal-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors")
+              if estados.productos
+                | Gestionar productos →
+              else
+                | Cargar mi primer producto →
+
+        //- ── PASO 3: MEDIOS DE PAGO ───────────────────────────────────────
+        +paso(3, 'Configurá los medios de pago', 'Elegí cómo te van a pagar tus clientes.', estados.pago, !tienda)
+          if !tienda
+            p(class="text-xs text-gray-400") Disponible cuando crees tu tienda.
+          else
+            //- Si ya hay medios elegidos, los mostramos como chips de resumen.
+            if estados.pago
+              div(class="flex flex-wrap gap-1.5 mb-3")
+                each opcion in mediosPagoCatalogo
+                  if tienda.mediosPago.includes(opcion.id)
+                    span(class="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full") #{opcion.nombre}
+            //- <details> nos da un desplegable accesible sin JS. Abierto si falta configurar.
+            details(class="border border-gray-200 rounded-xl" open=!estados.pago)
+              summary(class="cursor-pointer select-none px-4 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-50 rounded-xl")
+                if estados.pago
+                  | Editar medios de pago
                 else
-                  span(class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full") En construcción
+                  | Elegir medios de pago
+              form(action="/mi-tienda/medios-pago" method="POST" class="px-4 pb-4 pt-1 space-y-2")
+                each opcion in mediosPagoCatalogo
+                  label(class="flex items-start gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-colors")
+                    input(type="checkbox" name="medios" value=opcion.id checked=tienda.mediosPago.includes(opcion.id) class="mt-1 accent-blue-600")
+                    div
+                      p(class="text-sm font-semibold text-gray-800") #{opcion.nombre}
+                      p(class="text-xs text-gray-400") #{opcion.detalle}
+                button(type="submit" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl text-sm transition-colors") Guardar medios de pago
 
-            div(class="flex items-center gap-2 mb-5")
-              div(class="w-4 h-4 rounded-full border border-gray-200" style=`background-color:${tienda.colorPrimario}`)
-              span(class="text-xs text-gray-500 capitalize") #{tienda.rubro}
+        //- ── PASO 4: MEDIOS DE ENVÍO ──────────────────────────────────────
+        +paso(4, 'Configurá los medios de envío', 'Definí cómo van a recibir los pedidos.', estados.envio, !tienda)
+          if !tienda
+            p(class="text-xs text-gray-400") Disponible cuando crees tu tienda.
+          else
+            if estados.envio
+              div(class="flex flex-wrap gap-1.5 mb-3")
+                each opcion in mediosEnvioCatalogo
+                  if tienda.mediosEnvio.includes(opcion.id)
+                    span(class="bg-teal-50 text-teal-700 text-xs font-semibold px-2.5 py-1 rounded-full") #{opcion.nombre}
+            details(class="border border-gray-200 rounded-xl" open=!estados.envio)
+              summary(class="cursor-pointer select-none px-4 py-2.5 text-sm font-bold text-teal-700 hover:bg-teal-50 rounded-xl")
+                if estados.envio
+                  | Editar medios de envío
+                else
+                  | Elegir medios de envío
+              form(action="/mi-tienda/medios-envio" method="POST" class="px-4 pb-4 pt-1 space-y-2")
+                each opcion in mediosEnvioCatalogo
+                  label(class="flex items-start gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-colors")
+                    input(type="checkbox" name="medios" value=opcion.id checked=tienda.mediosEnvio.includes(opcion.id) class="mt-1 accent-teal-600")
+                    div
+                      p(class="text-sm font-semibold text-gray-800") #{opcion.nombre}
+                      p(class="text-xs text-gray-400") #{opcion.detalle}
+                div(class="border-t border-gray-100 pt-3")
+                  label(class="block text-sm font-semibold text-gray-700 mb-1") Monto para envío gratis (opcional)
+                  div(class="flex items-center gap-2")
+                    span(class="text-gray-400 text-sm") $
+                    input(type="number" name="envioGratisMonto" min="0" step="0.01" value=tienda.envioGratisMonto || '' placeholder="Ej: 50000" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400")
+                  p(class="text-xs text-gray-400 mt-1") Si elegís "Envío gratis", se aplica desde este monto de compra.
+                button(type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors") Guardar medios de envío
 
-            div(class="border-t border-gray-100 pt-5")
-              p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3") Información de contacto
-              dl(class="space-y-2 text-sm")
-                div(class="flex justify-between gap-4")
-                  dt(class="text-gray-400 shrink-0") Email
-                  dd(class="text-gray-700 text-right break-all") #{tienda.emailContacto}
-                div(class="flex justify-between gap-4")
-                  dt(class="text-gray-400 shrink-0") Teléfono
-                  dd(class="text-gray-700 text-right") #{tienda.telefono}
-                div(class="flex justify-between gap-4")
-                  dt(class="text-gray-400 shrink-0") Dirección
-                  dd(class="text-gray-700 text-right") #{tienda.direccion}
-                if tienda.whatsapp
-                  div(class="flex justify-between gap-4")
-                    dt(class="text-gray-400 shrink-0") WhatsApp
-                    dd(class="text-gray-700 text-right") #{tienda.whatsapp}
-
-        //- ── PUBLICACIÓN ─────────────────────────────────────────────────────
-        if planPago
-          if tienda.estado === 'activa'
-            div(class="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3")
+        //- ── PASO 5: PUBLICAR ─────────────────────────────────────────────
+        +paso(5, 'Publicá tu tienda', 'Activá un plan pago y dejá tu tienda online.', estados.publicar, !tienda || !planPago)
+          if !tienda
+            p(class="text-xs text-gray-400") Disponible cuando crees tu tienda.
+          else if !planPago
+            div(class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3")
+              p(class="text-sm text-amber-800 font-semibold") Tu tienda todavía no se puede publicar
+              p(class="text-xs text-amber-700 mt-0.5")
+                if enTrial
+                  | Durante el período de prueba permanece en construcción. Activá un plan pago (Growth o Pro) para publicarla.
+                else
+                  | Activá un plan pago para publicar tu tienda.
+          else if tienda.estado === 'activa'
+            div(class="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3")
               div
                 p(class="text-sm font-bold text-green-800") ✓ Tienda publicada
                 p(class="text-xs text-green-600") Visible para cualquiera con el enlace
               form(action="/mi-tienda/despublicar" method="POST")
                 button(type="submit" class="shrink-0 bg-white border border-green-300 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors") Despublicar
           else
-            form(action="/mi-tienda/publicar" method="POST" class="mb-4")
+            form(action="/mi-tienda/publicar" method="POST")
               button(type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm transition-colors") 🚀 Publicar tienda
-        else
-          div(class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4")
-            p(class="text-sm text-amber-800 font-semibold") Tu tienda todavía no se puede publicar
-            p(class="text-xs text-amber-700 mt-0.5")
-              if enTrial
-                | Durante el período de prueba permanece en construcción. Activá un plan pago (Growth o Pro) para publicarla.
-              else
-                | Activá un plan pago para publicar tu tienda.
 
-        //- ── ACCIONES ────────────────────────────────────────────────────────
-        div(class="space-y-3 mb-4")
-          a(href="/mi-tienda/editar"
-            class="block w-full text-center bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition-colors")
-            | Editar tienda
-
-          a(href="/mis-productos"
-            class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-sm transition-colors")
-            | Gestionar productos →
-
-          a(href="/tienda/" + tienda._id target="_blank"
-            class="block w-full text-center bg-white border border-blue-200 text-blue-900 font-bold py-3 rounded-xl text-sm transition-colors hover:bg-blue-50")
-            if tienda.estado === 'activa'
-              | Ver mi tienda publicada →
-            else
-              | Ver vista previa de mi tienda →
+      //- ── ATAJO: VER LA TIENDA ───────────────────────────────────────────
+      if tienda
+        a(href="/tienda/" + tienda._id target="_blank"
+          class="block w-full text-center bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 rounded-xl text-sm transition-colors mb-5")
+          if tienda.estado === 'activa'
+            | Ver mi tienda publicada →
+          else
+            | Ver vista previa de mi tienda →
 
       div(class="text-center")
         a(href="/mi-cuenta" class="text-blue-200 text-sm hover:text-white") ← Volver a mi cuenta
