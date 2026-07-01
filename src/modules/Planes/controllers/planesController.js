@@ -5,6 +5,7 @@
 
 const Plan = require('../models/Plan');
 const storage = require('../storage/planesStorage');
+const { emitirSocket } = require('../../../utils/helpers');
 
 // GET /api/planes — Lista todos los planes
 const listarPlanes = async (req, res) => {
@@ -45,14 +46,11 @@ const obtenerPlan = async (req, res) => {
 // POST /api/planes — Crea un nuevo plan
 const crearPlan = async (req, res) => {
   try {
-    // Crear una instancia de Plan para validación
-    const nuevoPlan = new Plan(req.body);
-    
-    // Guardar en la base de datos
+    // Guardar en la base de datos (Mongoose valida en el modelo)
     const planGuardado = await storage.agregar(req.body);
 
     // Notificar a todos los admins conectados via WebSocket
-    req.app.get('io').emit('nuevo-plan', { nombre: planGuardado.nombre, precio: planGuardado.precio, tipo: planGuardado.tipo });
+    emitirSocket(req, 'nuevo-plan', { nombre: planGuardado.nombre, precio: planGuardado.precio, tipo: planGuardado.tipo });
 
     res.status(201).json(planGuardado);
   } catch (error) {
@@ -144,7 +142,7 @@ const vistaPlanes = async (req, res) => {
       titulo: 'Catálogo de Planes', 
       planes: planes 
     });
-  } catch (error) {
+  } catch {
     res.status(500).render('planes', {
       titulo: 'Catálogo de Planes',
       planes: [],
@@ -162,13 +160,13 @@ const crearPlanForm = async (req, res) => {
     // Si es válido, guardarlo
     if (nuevoPlan.nombre && nuevoPlan.precio > 0 && nuevoPlan.tipo) {
       const planGuardado = await storage.agregar(req.body);
-      req.app.get('io').emit('nuevo-plan', { nombre: planGuardado.nombre, precio: planGuardado.precio, tipo: planGuardado.tipo });
+      emitirSocket(req, 'nuevo-plan', { nombre: planGuardado.nombre, precio: planGuardado.precio, tipo: planGuardado.tipo });
     }
 
     // Redirigir a la vista (patrón PRG)
     res.redirect('/planes/vista');
-  } catch (error) {
-    // En caso de error, redirigir pero se podría mejorar con mensajes flash
+  } catch {
+    // En caso de error, redirigir (el flash queda como mejora futura)
     res.redirect('/planes/vista');
   }
 };

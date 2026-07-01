@@ -1,0 +1,60 @@
+extends ../../../views/layout
+
+block contenido
+  h2(class="text-2xl font-bold text-blue-900 mb-1") Finanzas y conciliación
+  p(class="text-gray-400 text-sm mb-8") Ingresos recurrentes y ventas simuladas — TechRetail Solutions S.R.L.
+
+  //- ── Ingresos recurrentes ──────────────────────────────────────────────────
+  p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2") Ingresos recurrentes (mensuales)
+  div(class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8")
+    div(class="bg-white rounded-xl shadow-md p-5")
+      p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") MRR (planes)
+      p(class="text-3xl font-bold text-green-600") $#{mrr.toLocaleString('es-AR')}
+      p(class="text-xs text-gray-400 mt-1") Ingreso mensual recurrente de planes pagos
+    div(class="bg-white rounded-xl shadow-md p-5")
+      p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Add-ons
+      p(class="text-3xl font-bold text-indigo-600") $#{ingresosAddons.toLocaleString('es-AR')}
+      p(class="text-xs text-gray-400 mt-1") Ingresos por add-ons contratados
+    div(class="bg-white rounded-xl shadow-md p-5 border-l-4 border-green-400")
+      p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Total mensual
+      p(class="text-3xl font-bold text-blue-900") $#{ingresoMensualTotal.toLocaleString('es-AR')}
+      p(class="text-xs text-gray-400 mt-1") MRR + add-ons
+
+  //- ── Ingresos por plan ─────────────────────────────────────────────────────
+  div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8")
+    div(class="bg-white rounded-xl shadow-md p-5")
+      h3(class="text-sm font-semibold text-gray-700 mb-4") Ingresos por plan
+      if Object.keys(ingresosPorPlan).length === 0
+        p(class="text-gray-400 text-sm") Todavía no hay ingresos de planes pagos.
+      else
+        each monto, nombre in ingresosPorPlan
+          div(class="flex items-center justify-between mb-3")
+            span(class="text-sm text-gray-700") #{nombre}
+            span(class="text-sm font-semibold text-gray-900") $#{monto.toLocaleString('es-AR')}
+
+    div(class="bg-white rounded-xl shadow-md p-5")
+      h3(class="text-sm font-semibold text-gray-700 mb-4") Nota de conciliación
+      p(class="text-sm text-gray-500 leading-relaxed")
+        | Los ingresos recurrentes se calculan sobre clientes con plan pago activo
+        |  (se excluyen las pruebas gratuitas). Las ventas provienen de pedidos
+        |  simulados: no representan dinero realmente cobrado, sino la intención de
+        |  compra registrada en la plataforma.
+
+  //- ── Ventas simuladas (pedidos) ────────────────────────────────────────────
+  p(class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2") Ventas simuladas (pedidos)
+  div(class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8")
+    div(class="bg-white rounded-xl shadow-md p-5 border-l-4 border-green-400")
+      p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Confirmadas
+      p(class="text-3xl font-bold text-green-600") $#{ventasConfirmadas.toLocaleString('es-AR')}
+      p(class="text-xs text-gray-400 mt-1") #{estadosPedidos.confirmado.cantidad} pedidos confirmados
+    div(class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-400")
+      p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Pendientes
+      p(class="text-3xl font-bold text-amber-600") $#{estadosPedidos.pendiente.total.toLocaleString('es-AR')}
+      p(class="text-xs text-gray-400 mt-1") #{estadosPedidos.pendiente.cantidad} pedidos por confirmar
+    div(class="bg-white rounded-xl shadow-md p-5 border-l-4 border-red-300")
+      p(class="text-xs text-gray-500 uppercase tracking-wide mb-1") Canceladas
+      p(class="text-3xl font-bold text-red-500") $#{estadosPedidos.cancelado.total.toLocaleString('es-AR')}
+      p(class="text-xs text-gray-400 mt-1") #{estadosPedidos.cancelado.cantidad} pedidos cancelados
+
+  div(class="mt-2")
+    a(href="/" class="text-sm text-blue-700 hover:text-blue-900 font-semibold") ← Volver al panel

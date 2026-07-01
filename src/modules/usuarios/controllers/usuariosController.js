@@ -6,6 +6,7 @@
 const Usuario = require('../models/Usuario');
 const storage = require('../storage/usuariosStorage');
 const Plan = require('../../Planes/models/Plan');
+const { emitirSocket } = require('../../../utils/helpers');
 
 // GET /api/usuarios — Lista todos los usuarios
 const listarUsuarios = async (req, res) => {
@@ -59,7 +60,7 @@ const crearUsuario = async (req, res) => {
     const usuarioGuardado = await storage.agregar(req.body);
 
     // Notificar a todos los admins conectados via WebSocket
-    req.app.get('io').emit('nuevo-usuario', { nombre: usuarioGuardado.nombre, email: usuarioGuardado.email });
+    emitirSocket(req, 'nuevo-usuario', { nombre: usuarioGuardado.nombre, email: usuarioGuardado.email });
 
     res.status(201).json(usuarioGuardado);
   } catch (error) {
@@ -177,7 +178,7 @@ const vistaUsuarios = async (req, res) => {
       usuarios: usuarios,
       planes: planes
     });
-  } catch (error) {
+  } catch {
     res.status(500).render('usuarios', {
       titulo: 'Gestión de Usuarios',
       usuarios: [],
@@ -205,7 +206,7 @@ const crearUsuarioForm = async (req, res) => {
     });
 
     // Notificar via WebSocket
-    req.app.get('io').emit('nuevo-usuario', { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email });
+    emitirSocket(req, 'nuevo-usuario', { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email });
 
     // Redirigir a la vista de usuarios
     res.redirect('/usuarios/vista');
@@ -226,7 +227,7 @@ const cambiarEstado = async (req, res) => {
     const { estado } = req.body;
     await storage.actualizar(req.params.id, { estado });
     res.redirect('/usuarios/vista');
-  } catch (error) {
+  } catch {
     res.redirect('/usuarios/vista');
   }
 };

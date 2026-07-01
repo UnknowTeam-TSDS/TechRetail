@@ -1,15 +1,7 @@
 const storage = require('../storage/productosStorage');
 const tiendaStorage = require('../../Tienda/storage/tiendaStorage');
 
-const emitirSocket = (req, evento, datos) => {
-  const io = req.app?.get?.('io');
-  if (io) io.emit(evento, datos);
-};
-
-// Mensaje de un solo uso que la próxima vista muestra como banner (patrón PRG).
-const flash = (req, tipo, mensaje) => {
-  if (req.session) req.session.flash = { tipo, mensaje };
-};
+const { emitirSocket, flash } = require('../../../utils/helpers');
 
 const obtenerTiendaDelUsuario = async (req) => {
   return tiendaStorage.buscarPorUsuario(req.session.usuario.id);

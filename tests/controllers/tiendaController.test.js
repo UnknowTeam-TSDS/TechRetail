@@ -118,10 +118,23 @@ describe('Tienda Controller', () => {
       });
     });
 
-    test('si esta en trial, una tienda activa vuelve a construccion', async () => {
+    test('una tienda activa se mantiene activa durante la prueba gratuita', async () => {
       req.body = { nombre: 'Tienda Test', rubro: 'moda' };
       const trialFuturo = new Date(Date.now() + 86400000);
       Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: trialFuturo });
+      storage.buscarPorUsuario = jest.fn().mockResolvedValue({ estado: 'activa' });
+      storage.guardarTienda = jest.fn().mockResolvedValue({});
+
+      await guardarTienda(req, res);
+
+      expect(storage.guardarTienda).toHaveBeenCalledWith('user-id', expect.objectContaining({
+        estado: 'activa',
+      }));
+    });
+
+    test('sin plan, una tienda activa vuelve a construccion', async () => {
+      req.body = { nombre: 'Tienda Test', rubro: 'moda' };
+      Usuario.findById = jest.fn().mockResolvedValue({ planId: null, trialHasta: null });
       storage.buscarPorUsuario = jest.fn().mockResolvedValue({ estado: 'activa' });
       storage.guardarTienda = jest.fn().mockResolvedValue({});
 
@@ -151,18 +164,21 @@ describe('Tienda Controller', () => {
       expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
     });
 
-    test('no publica si el usuario esta en trial', async () => {
+    test('publica durante la prueba gratuita si el usuario tiene un plan', async () => {
+      const emit = jest.fn();
+      req.app = { get: jest.fn().mockReturnValue({ emit }) };
+      req.session.usuario.nombre = 'Cliente Test';
       const trialFuturo = new Date(Date.now() + 86400000);
       Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: trialFuturo });
-      storage.actualizarEstado = jest.fn().mockResolvedValue({});
+      storage.actualizarEstado = jest.fn().mockResolvedValue({ nombre: 'Tienda Test' });
 
       await publicarTienda(req, res);
 
-      expect(storage.actualizarEstado).not.toHaveBeenCalled();
+      expect(storage.actualizarEstado).toHaveBeenCalledWith('user-id', 'activa');
       expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
     });
 
-    test('no publica si el usuario no tiene plan', async () => {
+    test('no publica si el usuario no tiene ningún plan', async () => {
       Usuario.findById = jest.fn().mockResolvedValue({ planId: null, trialHasta: null });
       storage.actualizarEstado = jest.fn().mockResolvedValue({});
 

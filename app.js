@@ -15,12 +15,13 @@ const path = require('path');
 const logger = require('./src/middlewares/logger');
 const { conectarMongoDB } = require('./src/config/mongodb');
 const session = require('express-session');
-const { verificarSesion, verificarAdmin } = require('./src/middlewares/autenticacion');
+const { verificarAdmin } = require('./src/middlewares/autenticacion');
 const planesRouter = require('./src/modules/Planes/routers/planesRouter');
 const usuariosRouter = require('./src/modules/usuarios/routers/usuariosRouter');
 const tiendaRouter = require('./src/modules/Tienda/routers/tiendaRouter');
 const productosRouter = require('./src/modules/Productos/routers/productosRouter');
 const pedidosRouter = require('./src/modules/Pedidos/routers/pedidosRouter');
+const finanzasRouter = require('./src/modules/Finanzas/routers/finanzasRouter');
 const Usuario = require('./src/modules/usuarios/models/Usuario');
 const Plan = require('./src/modules/Planes/models/Plan');
 const Tienda = require('./src/modules/Tienda/models/Tienda');
@@ -45,6 +46,7 @@ app.set('views', [
   path.join(__dirname, 'src/modules/Tienda/views'),               // views modulo tienda
   path.join(__dirname, 'src/modules/Productos/views'),            // views modulo productos
   path.join(__dirname, 'src/modules/Pedidos/views'),              // views modulo pedidos
+  path.join(__dirname, 'src/modules/Finanzas/views'),             // views modulo finanzas
 ]);
 
 // ── Middlewares globales ─────────────────────────────────────────────────────
@@ -150,7 +152,7 @@ app.get('/', (req, res, next) => {
       recientes,
       enRiesgo,
     });
-  } catch (error) {
+  } catch {
     res.render('index', { titulo: 'Panel de Gestión', stats: null, distribucion: {}, recientes: [], enRiesgo: [] });
   }
 });
@@ -164,6 +166,7 @@ app.use('/api/planes', verificarAdmin, planesRouter);      // Proteger API
 app.use('/api/usuarios', verificarAdmin, usuariosRouter);  // Proteger API
 app.use('/planes', verificarAdmin, planesRouter);          // Proteger vistas
 app.use('/usuarios', verificarAdmin, usuariosRouter);      // Proteger vistas
+app.use('/finanzas', verificarAdmin, finanzasRouter);      // Reporte financiero (RF-03)
 app.use('/', tiendaRouter);                                // GET/POST /mi-tienda
 app.use('/', productosRouter);                             // GET/POST /mis-productos
 app.use('/', pedidosRouter);                               // checkout, confirmación, /mis-pedidos

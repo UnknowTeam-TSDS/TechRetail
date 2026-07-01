@@ -6,11 +6,7 @@
 const Usuario = require('../../usuarios/models/Usuario');
 const Plan = require('../../Planes/models/Plan');
 const { validarContrasenaSegura } = require('../passwordPolicy');
-
-const emitirSocket = (req, evento, datos) => {
-  const io = req.app?.get?.('io');
-  if (io) io.emit(evento, datos);
-};
+const { emitirSocket } = require('../../../utils/helpers');
 
 // GET /login
 const vistaLogin = (req, res) => {

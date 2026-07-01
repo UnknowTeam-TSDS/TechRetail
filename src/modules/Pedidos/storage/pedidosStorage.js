@@ -27,4 +27,19 @@ const contarPorTienda = async (tiendaId) => {
   return Pedido.countDocuments({ tiendaId });
 };
 
-module.exports = { crear, listarPorTienda, buscarPorId, actualizarEstado, contarTodos, contarPorTienda };
+// Agrupa los pedidos por estado con su cantidad y monto total (para Finanzas).
+const resumenPorEstado = async () => {
+  return Pedido.aggregate([
+    { $group: { _id: '$estado', cantidad: { $sum: 1 }, total: { $sum: '$total' } } },
+  ]);
+};
+
+module.exports = {
+  crear,
+  listarPorTienda,
+  buscarPorId,
+  actualizarEstado,
+  contarTodos,
+  contarPorTienda,
+  resumenPorEstado,
+};

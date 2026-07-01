@@ -108,17 +108,24 @@ TechRetail/
 │   │   │   ├── storage/pedidosStorage.js
 │   │   │   ├── models/Pedido.js
 │   │   │   └── views/ (pedido-confirmacion.pug, mis-pedidos.pug)
+│   │   ├── Finanzas/               # Reporte de conciliación (RF-03, solo admin)
+│   │   │   ├── controllers/finanzasController.js
+│   │   │   ├── routers/finanzasRouter.js
+│   │   │   └── views/finanzas.pug
 │   │   └── usuarios/               # CRUD usuarios/clientes (admin)
 │   │       ├── controllers/usuariosController.js
 │   │       ├── routers/usuariosRouter.js
 │   │       ├── storage/usuariosStorage.js
 │   │       ├── models/Usuario.js
 │   │       └── views/usuarios.pug
+│   ├── utils/
+│   │   └── helpers.js              # emitirSocket, flash, render404 (compartidos)
 │   └── views/
 │       ├── layout.pug
-│       └── index.pug               # Dashboard admin
+│       └── index.pug               # Dashboard admin (métricas + churn RF-02)
 └── tests/
     ├── controllers/
+    ├── integration/               # supertest + mongodb-memory-server
     └── models/
 ```
 
@@ -179,7 +186,7 @@ Schema Tienda:
 - `mediosPago` (array enum: `'mercadopago'|'transferencia'|'tarjeta'|'efectivo'`, default `[]`)
 - `mediosEnvio` (array enum: `'correo_argentino'|'oca'|'retiro_local'|'envio_gratis'`, default `[]`)
 - `envioGratisMonto` (Number ≥0, opcional, default `null`)
-- Si el usuario está en trial, `estado` se fuerza a `en_construccion`
+- Publicar requiere tener un plan elegido (la prueba gratuita de Starter **también permite publicar**). Sin ningún plan, `estado` se fuerza a `en_construccion`.
 
 ### Productos (`/mis-productos`) — cliente autenticado
 Catálogo de productos por tienda. Requiere tienda creada; si no hay tienda redirige a `/mi-tienda`.
@@ -217,6 +224,13 @@ Schema Pedido: `tiendaId` (ref Tienda, req), `items` (array: `productoId`, `nomb
 
 El checkout (modal de `carrito-publico.pug`) es un formulario real que postea a `/tienda/:id/checkout`. El dueño en vista previa también puede generar pedidos para probar el flujo. El stock se descuenta al crear el pedido (`descontarStock`, con guard `$gte` para no quedar negativo) y se repone al cancelarlo (`reponerStock`); ambos solo afectan productos físicos.
 
+### Finanzas (`/finanzas`) — solo admin — módulo extra
+Reporte de conciliación (RF-03). Solo lectura. Cruza los ingresos recurrentes con las ventas simuladas.
+
+- `GET /finanzas` — Reporte con MRR (planes pagos, excluye trials), ingresos por add-ons, ingreso mensual total, ingresos por plan y ventas simuladas por estado de pedido (confirmadas/pendientes/canceladas).
+
+Usa `pedidosStorage.resumenPorEstado()` (aggregate `$group` por estado). La vista extiende `layout.pug` como el dashboard. Accesible desde el nav admin.
+
 ---
 
 ## WebSockets (Socket.io)
@@ -243,7 +257,8 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
         *   Lógica y seguridad: Políticas de contraseñas y middleware de sesión.
 *   **Tests de Integración**: `tests/integration/` levanta la app real con `supertest` contra una MongoDB en memoria (`mongodb-memory-server`). Prueban rutas end-to-end (sesión, middlewares, render, 404). `app.js` exporta `app` y solo arranca el servidor con `require.main === module`.
 *   **Cobertura**: `npm run test:coverage` genera el reporte con `jest --coverage`.
-*   **Integración Continua (CI)**: Configurada en `.github/workflows/ci.yml`. Ejecuta las pruebas automáticamente en Node 20 y 22 ante cada Push o PR a `main`.
+*   **Linter**: ESLint con flat config (`eslint.config.js`); `npm run lint` (Node/CommonJS para `src`, browser para `public/js`, jest para `tests`).
+*   **Integración Continua (CI)**: Configurada en `.github/workflows/ci.yml`. Ejecuta `npm run lint` y las pruebas automáticamente en Node 20 y 22 ante cada Push o PR a `main`.
 *   **API Testing**: Colección de Postman disponible en `src/postman/TechRetail - Test general.postman_collection.json`.
 
 ---
@@ -252,6 +267,7 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 
 - **Async/await** en todos los controllers y storage
 - **Storage layer**: DB aislada en `storage/`
+- **Helpers compartidos**: `src/utils/helpers.js` expone `emitirSocket`, `flash` y `render404`, reutilizados por todos los controllers (evita duplicación)
 - **PRG (Post-Redirect-Get)**: formularios HTML usan POST → redirect
 - **Flash messages**: tras una acción, el controller setea `req.session.flash = { tipo, mensaje }`; un middleware global lo expone en `res.locals.flash` (un solo uso) y las vistas lo muestran como banner. Da feedback al patrón PRG.
 - **Páginas de error**: el 404/500 global y las rutas públicas de tienda renderizan `error.pug` (con estilo); las rutas `/api/*` siguen devolviendo JSON. El middleware `validarObjectId(param)` valida `:id` malformados antes de llegar al controller (evita CastError → 500).
@@ -260,7 +276,7 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 - **`select: false`** en `contrasena`; se recupera con `.select('+contrasena')` solo en login
 - **`res.locals.usuarioLogueado`**: middleware global para vistas Pug
 - **`normalizarProducto(body, tiendaId, files, imagenesActuales)`**: helper en productosController que centraliza parseo y validación de campos para crear y editar
-- **Trial vs plan pago**: `enTrial = usuario.trialHasta && new Date(usuario.trialHasta) > new Date()` — los add-ons y el estado activo de tienda requieren `planPago = !!(usuario.planId) && !enTrial`
+- **Trial vs plan pago**: `enTrial = usuario.trialHasta && new Date(usuario.trialHasta) > new Date()`. Los **add-ons** requieren `planPago = !!(usuario.planId) && !enTrial`. **Publicar la tienda** solo requiere tener un plan (`puedePublicar = !!(usuario.planId)`), por lo que la prueba gratuita también puede publicar.
 - **Imágenes**: multer guarda en `public/uploads/productos/`. En Render (free tier) el filesystem es efímero — las imágenes se pierden al redeploy
 - Los precios se expresan en **pesos argentinos (ARS)**
 

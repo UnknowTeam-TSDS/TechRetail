@@ -20,7 +20,7 @@ const usuarioSchema = new mongoose.Schema({
     required: [true, 'El email es obligatorio'],
     unique: true,
     lowercase: true,
-    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Ingresa un email válido'],
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Ingresa un email válido'],
   },
 
   contrasena: {
@@ -90,13 +90,9 @@ usuarioSchema.pre('save', async function() {
     return;
   }
 
-  try {
-    // Generar salt y hashear
-    const salt = await bcrypt.genSalt(10);
-    this.contrasena = await bcrypt.hash(this.contrasena, salt);
-  } catch (error) {
-    throw error;
-  }
+  // Generar salt y hashear (si falla, el error se propaga al save)
+  const salt = await bcrypt.genSalt(10);
+  this.contrasena = await bcrypt.hash(this.contrasena, salt);
 });
 
 // Middleware: actualizar fecha de modificación antes de guardar

@@ -3,23 +3,7 @@ const tiendaStorage = require('../../Tienda/storage/tiendaStorage');
 const productosStorage = require('../../Productos/storage/productosStorage');
 const { MEDIOS_PAGO, MEDIOS_ENVIO, resolver } = require('../../Tienda/opcionesComerciales');
 
-const emitirSocket = (req, evento, datos) => {
-  const io = req.app?.get?.('io');
-  if (io) io.emit(evento, datos);
-};
-
-const flash = (req, tipo, mensaje) => {
-  if (req.session) req.session.flash = { tipo, mensaje };
-};
-
-const render404 = (res, mensaje = 'No encontramos lo que buscás.') =>
-  res.status(404).render('error', {
-    codigo: 404,
-    titulo: 'No encontrado',
-    mensaje,
-    volverHref: '/',
-    volverTexto: 'Ir al inicio',
-  });
+const { emitirSocket, flash, render404 } = require('../../../utils/helpers');
 
 // El dueño puede operar su tienda aunque no esté publicada (modo previsualización).
 const puedeComprar = (req, tienda) => {

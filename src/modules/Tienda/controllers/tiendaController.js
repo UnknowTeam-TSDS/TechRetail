@@ -3,25 +3,7 @@ const productosStorage = require('../../Productos/storage/productosStorage');
 const Usuario = require('../../usuarios/models/Usuario');
 const { MEDIOS_PAGO, MEDIOS_ENVIO, PAGO_IDS, ENVIO_IDS, resolver } = require('../opcionesComerciales');
 
-const emitirSocket = (req, evento, datos) => {
-  const io = req.app?.get?.('io');
-  if (io) io.emit(evento, datos);
-};
-
-// Deja un mensaje de un solo uso que la próxima vista muestra como banner (patrón PRG).
-const flash = (req, tipo, mensaje) => {
-  if (req.session) req.session.flash = { tipo, mensaje };
-};
-
-// Renderiza la página de error con estilo en vez de devolver JSON crudo (rutas públicas).
-const render404 = (res, mensaje = 'No encontramos lo que buscás.') =>
-  res.status(404).render('error', {
-    codigo: 404,
-    titulo: 'No encontrado',
-    mensaje,
-    volverHref: '/',
-    volverTexto: 'Ir al inicio',
-  });
+const { emitirSocket, flash, render404 } = require('../../../utils/helpers');
 
 const obtenerCarritoTienda = (req, tiendaId) => {
   const tiendaIdStr = String(tiendaId);
@@ -104,6 +86,8 @@ const vistaTienda = async (req, res) => {
 
     const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
     const planPago = !!(usuario.planId) && !enTrial;
+    // Para publicar alcanza con tener un plan elegido (incluido Starter en prueba).
+    const puedePublicar = !!(usuario.planId);
 
     // Cantidad de productos cargados: habilita el paso "Cargá tu primer producto".
     const cantidadProductos = tienda
@@ -128,6 +112,7 @@ const vistaTienda = async (req, res) => {
       tienda,
       enTrial,
       planPago,
+      puedePublicar,
       estados,
       progreso: { completados, total, porcentaje: Math.round((completados / total) * 100) },
       mediosPagoCatalogo: MEDIOS_PAGO,
@@ -149,6 +134,7 @@ const vistaEditarTienda = async (req, res) => {
 
     const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
     const planPago = !!(usuario.planId) && !enTrial;
+    const puedePublicar = !!(usuario.planId);
 
     res.render('mi-tienda-editar', {
       titulo: tienda ? 'Editar tienda' : 'Crear tienda',
@@ -156,6 +142,7 @@ const vistaEditarTienda = async (req, res) => {
       tienda,
       enTrial,
       planPago,
+      puedePublicar,
     });
   } catch (error) {
     console.error('Error cargando edición de tienda:', error.message);
@@ -173,12 +160,12 @@ const guardarTienda = async (req, res) => {
       Usuario.findById(req.session.usuario.id),
       storage.buscarPorUsuario(req.session.usuario.id),
     ]);
-    const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
+    const tienePlan = !!(usuario.planId);
 
     // El estado se conserva (no se edita acá); una tienda nueva arranca en construcción.
-    // Si por algún motivo está publicada estando en trial, se vuelve a construcción.
+    // Si estuviera publicada sin un plan elegido, se vuelve a construcción (guard defensivo).
     let estadoFinal = tiendaActual ? tiendaActual.estado : 'en_construccion';
-    if (enTrial && estadoFinal === 'activa') estadoFinal = 'en_construccion';
+    if (!tienePlan && estadoFinal === 'activa') estadoFinal = 'en_construccion';
 
     const tiendaGuardada = await storage.guardarTienda(req.session.usuario.id, {
       nombre: nombre?.trim(),
@@ -208,14 +195,13 @@ const guardarTienda = async (req, res) => {
   }
 };
 
-// POST /mi-tienda/publicar — pone la tienda activa (requiere plan pago, sin trial)
+// POST /mi-tienda/publicar — pone la tienda activa (requiere un plan elegido, trial incluido)
 const publicarTienda = async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.session.usuario.id);
-    const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
-    const planPago = !!(usuario.planId) && !enTrial;
-    if (!planPago) {
-      flash(req, 'error', 'Necesitás un plan pago (Growth o Pro) para publicar tu tienda.');
+    const tienePlan = !!(usuario.planId);
+    if (!tienePlan) {
+      flash(req, 'error', 'Elegí un plan (aunque sea la prueba gratuita) para publicar tu tienda.');
       return res.redirect('/mi-tienda');
     }
 
