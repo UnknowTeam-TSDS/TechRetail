@@ -76,6 +76,11 @@ const usuarioSchema = new mongoose.Schema({
     default: null,
   },
 
+  trialUtilizado: {
+    type: Boolean,
+    default: false,
+  },
+
   cambiarContrasena: {
     type: Boolean,
     default: false,
@@ -104,6 +109,14 @@ usuarioSchema.pre('save', function() {
 usuarioSchema.pre(/^find/, function() {
   this.populate({ path: 'planId', select: 'nombre precio tipo' })
       .populate({ path: 'addons', select: 'nombre precio tipo' });
+});
+
+// La API nunca expone el hash de la contraseña al serializar un usuario.
+usuarioSchema.set('toJSON', {
+  transform: (_doc, ret) => {
+    delete ret.contrasena;
+    return ret;
+  },
 });
 
 // Método: comparar contraseña ingresada con la hasheada

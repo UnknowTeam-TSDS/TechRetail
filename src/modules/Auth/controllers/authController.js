@@ -6,7 +6,8 @@
 const Usuario = require('../../usuarios/models/Usuario');
 const Plan = require('../../Planes/models/Plan');
 const { validarContrasenaSegura } = require('../passwordPolicy');
-const { emitirSocket } = require('../../../utils/helpers');
+const { emitirSocket, flash } = require('../../../utils/helpers');
+const { obtenerEstadoSuscripcion } = require('../../../utils/suscripcion');
 
 // GET /login
 const vistaLogin = (req, res) => {
@@ -84,7 +85,7 @@ const loginUsuario = async (req, res) => {
       });
     }
 
-    const usuario = await Usuario.findOne({ email: email.toLowerCase() }).select('+contrasena');
+    const usuario = await Usuario.findOne({ email: email.toLowerCase().trim() }).select('+contrasena');
 
     if (!usuario) {
       return res.status(401).render('login', {
@@ -166,10 +167,9 @@ const vistaElegirPlan = async (req, res) => {
       Usuario.findById(req.session.usuario.id),
     ]);
 
-    let enTrial = false;
+    const estadoSuscripcion = obtenerEstadoSuscripcion(usuarioActual);
     let diasTrial = null;
-    if (usuarioActual.trialHasta && new Date(usuarioActual.trialHasta) > new Date()) {
-      enTrial = true;
+    if (estadoSuscripcion.enTrial) {
       diasTrial = Math.ceil((new Date(usuarioActual.trialHasta) - new Date()) / (1000 * 60 * 60 * 24));
     }
 
@@ -184,7 +184,9 @@ const vistaElegirPlan = async (req, res) => {
       planes,
       usuario: req.session.usuario,
       planActualId,
-      enTrial,
+      enTrial: estadoSuscripcion.enTrial,
+      trialVencido: estadoSuscripcion.trialVencido,
+      trialUtilizado: usuarioActual.trialUtilizado,
       diasTrial,
     });
   } catch (error) {
@@ -200,15 +202,23 @@ const vistaElegirPlan = async (req, res) => {
 const seleccionarPlan = async (req, res) => {
   const { planId } = req.body;
   try {
-    const plan = await Plan.findById(planId);
-    if (!plan) return res.redirect('/elegir-plan');
+    const [plan, usuario] = await Promise.all([
+      Plan.findOne({ _id: planId, tipo: 'plan', activo: true }),
+      Usuario.findById(req.session.usuario.id),
+    ]);
+    if (!plan || !usuario) return res.redirect('/elegir-plan');
 
     const updates = { planId: plan._id };
 
-    // Starter tiene período de prueba de 14 días. Los planes pagos (Growth/Pro)
-    // terminan el trial: pagar = acceso pleno y posibilidad de publicar la tienda.
+    // La prueba de Starter se concede una sola vez. Si ya fue usada, elegirlo
+    // nuevamente representa el pago simulado del plan.
     if (plan.nombre.toLowerCase() === 'starter') {
-      updates.trialHasta = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      if (!usuario.trialUtilizado && !usuario.planId) {
+        updates.trialHasta = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+        updates.trialUtilizado = true;
+      } else {
+        updates.trialHasta = null;
+      }
     } else {
       updates.trialHasta = null;
     }
@@ -234,14 +244,11 @@ const vistaCliente = async (req, res) => {
       Plan.find({ tipo: 'addon', activo: true }),
     ]);
 
+    const estadoSuscripcion = obtenerEstadoSuscripcion(usuario);
     let diasTrial = null;
-    let enTrial = false;
-    if (usuario.trialHasta && new Date(usuario.trialHasta) > new Date()) {
-      enTrial = true;
+    if (estadoSuscripcion.enTrial) {
       diasTrial = Math.ceil((new Date(usuario.trialHasta) - new Date()) / (1000 * 60 * 60 * 24));
     }
-
-    const planPago = !!(usuario.planId) && !enTrial;
 
     const idsContratados = (usuario.addons || []).map(a => String(a._id || a));
     const addonsDisponibles = todosLosAddons.filter(a => !idsContratados.includes(String(a._id)));
@@ -250,9 +257,10 @@ const vistaCliente = async (req, res) => {
       titulo: 'Mi cuenta',
       usuario: req.session.usuario,
       planActual: usuario.planId,
-      enTrial,
+      enTrial: estadoSuscripcion.enTrial,
+      trialVencido: estadoSuscripcion.trialVencido,
       diasTrial,
-      planPago,
+      planPago: estadoSuscripcion.planPago,
       addonsContratados: usuario.addons || [],
       addonsDisponibles,
       onboardingSolicitado: req.query.onboarding === '1',
@@ -274,9 +282,16 @@ const agregarAddon = async (req, res) => {
 
     if (!addon) return res.redirect('/mi-cuenta');
 
-    const enTrial = usuario.trialHasta && new Date(usuario.trialHasta) > new Date();
-    const planPago = !!(usuario.planId) && !enTrial;
-    if (!planPago) return res.redirect('/mi-cuenta');
+    const { planPago } = obtenerEstadoSuscripcion(usuario);
+    if (!planPago) {
+      flash(req, 'error', 'Los add-ons requieren un plan pago activo.');
+      return res.redirect('/mi-cuenta');
+    }
+
+    if (addon.precio > 0) {
+      flash(req, 'error', 'Este add-on todavía no está disponible para contratar.');
+      return res.redirect('/mi-cuenta');
+    }
 
     await Usuario.findByIdAndUpdate(
       req.session.usuario.id,
@@ -295,6 +310,12 @@ const agregarAddon = async (req, res) => {
 const quitarAddon = async (req, res) => {
   const { addonId } = req.body;
   try {
+    const addon = await Plan.findOne({ _id: addonId, tipo: 'addon' });
+    if (!addon || addon.precio === 0) {
+      flash(req, 'error', 'La guía de onboarding es un beneficio de uso único.');
+      return res.redirect('/mi-cuenta');
+    }
+
     await Usuario.findByIdAndUpdate(
       req.session.usuario.id,
       { $pull: { addons: addonId } }

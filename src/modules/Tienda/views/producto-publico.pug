@@ -28,7 +28,7 @@ html(lang="es")
   body(class="store-bg min-h-screen font-sans text-slate-900")
     - const sinStock = producto.tipo === 'fisico' && producto.stock <= 0
     - const maxCantidad = producto.tipo === 'fisico' ? producto.stock : 99
-    - const precioFinal = producto.precioPromocional || producto.precio
+    - const precioFinal = producto.precioPromocional ?? producto.precio
 
     header(class="bg-white/90 backdrop-blur border-b border-slate-200")
       div(class="max-w-6xl mx-auto px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4")
@@ -82,7 +82,7 @@ html(lang="es")
                   span(class="bg-amber-400 text-white text-xs font-bold px-2.5 py-1 rounded-full") Destacado
 
             div(class="mb-6")
-              if producto.precioPromocional
+              if producto.precioPromocional !== null && producto.precioPromocional !== undefined
                 div(class="flex items-baseline gap-3")
                   span(class="text-marca text-4xl font-extrabold") $#{producto.precioPromocional.toLocaleString('es-AR')}
                   span(class="text-base text-slate-400 line-through") $#{producto.precio.toLocaleString('es-AR')}

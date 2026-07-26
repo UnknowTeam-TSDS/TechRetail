@@ -115,7 +115,8 @@ describe('Auth Controller', () => {
       req.body = { planId: 'plan-id' };
       req.session.usuario = { id: 'user-id', nombre: 'Cliente Test' };
       req.app = { get: jest.fn().mockReturnValue({ emit }) };
-      Plan.findById = jest.fn().mockResolvedValue({ _id: 'plan-id', nombre: 'Growth' });
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'plan-id', nombre: 'Growth' });
+      Usuario.findById = jest.fn().mockResolvedValue({ trialUtilizado: false, planId: null });
       Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
 
       await seleccionarPlan(req, res);
@@ -131,8 +132,40 @@ describe('Auth Controller', () => {
       });
       expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
     });
-  });
+    test('inicia una prueba de Starter por 15 días una sola vez', async () => {
+      const ahora = new Date('2026-07-01T00:00:00Z').getTime();
+      jest.spyOn(Date, 'now').mockReturnValue(ahora);
+      req.body = { planId: 'starter-id' };
+      req.session.usuario = { id: 'user-id', nombre: 'Cliente Test' };
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'starter-id', nombre: 'Starter' });
+      Usuario.findById = jest.fn().mockResolvedValue({ trialUtilizado: false, planId: null });
+      Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
 
+      await seleccionarPlan(req, res);
+
+      expect(Usuario.findByIdAndUpdate).toHaveBeenCalledWith('user-id', {
+        planId: 'starter-id',
+        trialHasta: new Date(ahora + 15 * 24 * 60 * 60 * 1000),
+        trialUtilizado: true,
+      });
+      Date.now.mockRestore();
+    });
+
+    test('si la prueba ya fue usada, Starter se activa como plan pago simulado', async () => {
+      req.body = { planId: 'starter-id' };
+      req.session.usuario = { id: 'user-id', nombre: 'Cliente Test' };
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'starter-id', nombre: 'Starter' });
+      Usuario.findById = jest.fn().mockResolvedValue({ trialUtilizado: true });
+      Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+
+      await seleccionarPlan(req, res);
+
+      expect(Usuario.findByIdAndUpdate).toHaveBeenCalledWith('user-id', {
+        planId: 'starter-id',
+        trialHasta: null,
+      });
+    });
+  });
   describe('agregarAddon', () => {
     test('redirige a /mi-cuenta si el addon no existe', async () => {
       req.body = { addonId: 'id-inexistente' };
@@ -147,16 +180,16 @@ describe('Auth Controller', () => {
       req.body = { addonId: 'addon-id' };
       req.session.usuario = { id: 'user-id' };
       const trialFuturo = new Date(Date.now() + 86400000);
-      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon' });
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon', precio: 0 });
       Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: trialFuturo });
       await agregarAddon(req, res);
       expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
     });
 
-    test('agrega el addon y redirige a /mi-cuenta si tiene plan pago', async () => {
+    test('agrega la guía gratuita y muestra la confirmación de onboarding', async () => {
       req.body = { addonId: 'addon-id' };
       req.session.usuario = { id: 'user-id' };
-      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon' });
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon', precio: 0 });
       Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
       Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
       await agregarAddon(req, res);
@@ -164,20 +197,44 @@ describe('Auth Controller', () => {
         'user-id',
         { $addToSet: { addons: 'addon-id' } }
       );
+      expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta?onboarding=1');
+    });
+    test('bloquea un add-on pago que todavía figura como próximo', async () => {
+      req.body = { addonId: 'addon-pago' };
+      req.session.usuario = { id: 'user-id' };
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-pago', tipo: 'addon', precio: 8000 });
+      Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
+      Usuario.findByIdAndUpdate = jest.fn();
+
+      await agregarAddon(req, res);
+
+      expect(Usuario.findByIdAndUpdate).not.toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
     });
   });
-
   describe('quitarAddon', () => {
     test('quita el addon y redirige a /mi-cuenta', async () => {
       req.body = { addonId: 'addon-id' };
       req.session.usuario = { id: 'user-id' };
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'addon-id', tipo: 'addon', precio: 8000 });
       Usuario.findByIdAndUpdate = jest.fn().mockResolvedValue({});
       await quitarAddon(req, res);
       expect(Usuario.findByIdAndUpdate).toHaveBeenCalledWith(
         'user-id',
         { $pull: { addons: 'addon-id' } }
       );
+      expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
+    });
+
+    test('no permite quitar la guía gratuita de onboarding', async () => {
+      req.body = { addonId: 'onboarding-id' };
+      req.session.usuario = { id: 'user-id' };
+      Plan.findOne = jest.fn().mockResolvedValue({ _id: 'onboarding-id', tipo: 'addon', precio: 0 });
+      Usuario.findByIdAndUpdate = jest.fn();
+
+      await quitarAddon(req, res);
+
+      expect(Usuario.findByIdAndUpdate).not.toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith('/mi-cuenta');
     });
   });

@@ -37,6 +37,12 @@ html(lang="es")
               p(class="text-sm text-gray-500 mt-1")
                 | Al vencer el trial: $#{planActual.precio.toLocaleString('es-AR')}/mes
               p(class="text-xs text-green-700 mt-2") Sin tarjeta requerida durante el período de prueba
+            else if trialVencido
+              div(class="flex items-center gap-2 mb-2")
+                span(class="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-bold") Prueba finalizada
+              p(class="text-2xl font-extrabold text-blue-900") #{planActual.nombre}
+              p(class="text-sm text-gray-500 mt-1") Activá un plan para seguir publicando y contratar add-ons.
+              a(href="/elegir-plan" class="inline-block mt-3 text-blue-700 font-bold text-sm hover:underline") Activar plan →
             else
               p(class="text-2xl font-extrabold text-blue-900") #{planActual.nombre}
               p(class="text-3xl font-bold text-blue-700 mt-1")

@@ -17,9 +17,9 @@ describe('Finanzas Controller', () => {
   test('calcula MRR, add-ons y ventas confirmadas (excluye trials)', async () => {
     const trialFuturo = new Date(Date.now() + 86400000);
     Usuario.find = jest.fn().mockResolvedValue([
-      { planId: { nombre: 'Pro', precio: 55000 }, trialHasta: null, addons: [{ precio: 8000 }] },
-      { planId: { nombre: 'Starter', precio: 12000 }, trialHasta: trialFuturo, addons: [] }, // en trial → no suma MRR
-      { planId: null, trialHasta: null, addons: [] }, // sin plan → no suma
+      { estado: 'activo', planId: { nombre: 'Pro', precio: 55000 }, trialHasta: null, addons: [{ precio: 8000 }] },
+      { estado: 'activo', planId: { nombre: 'Starter', precio: 12000 }, trialHasta: trialFuturo, addons: [] }, // en trial → no suma MRR
+      { estado: 'activo', planId: null, trialHasta: null, addons: [] }, // sin plan → no suma
     ]);
     pedidosStorage.resumenPorEstado = jest.fn().mockResolvedValue([
       { _id: 'confirmado', cantidad: 2, total: 20000 },

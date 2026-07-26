@@ -27,6 +27,7 @@ const Plan = require('./src/modules/Planes/models/Plan');
 const Tienda = require('./src/modules/Tienda/models/Tienda');
 const Producto = require('./src/modules/Productos/models/Producto');
 const Pedido = require('./src/modules/Pedidos/models/Pedido');
+const { obtenerEstadoSuscripcion } = require('./src/utils/suscripcion');
 
 const app = express();
 const server = http.createServer(app);
@@ -59,10 +60,14 @@ app.use(logger);                                 // Logger: registra cada reques
 // que la cookie 'secure' viaje correctamente al estar detrás del proxy.
 const enProduccion = process.env.NODE_ENV === 'production';
 if (enProduccion) app.set('trust proxy', 1);
+if (enProduccion && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET es obligatoria en producción');
+}
+const sessionSecret = process.env.SESSION_SECRET || 'techretail-desarrollo';
 
 // ── Configuración de sesiones ───────────────────────────────────────────────
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -116,8 +121,8 @@ app.get('/', (req, res, next) => {
     ]);
 
     const mrr = usuariosActivos.reduce((sum, u) => {
-      const enTrialU = u.trialHasta && u.trialHasta > ahora;
-      return sum + (!enTrialU && u.planId ? u.planId.precio : 0);
+      const { planPago } = obtenerEstadoSuscripcion(u, ahora);
+      return sum + (planPago ? u.planId.precio : 0);
     }, 0);
 
     const addonsContratados = todosClientes.reduce((sum, u) => sum + (u.addons?.length || 0), 0);
@@ -125,13 +130,12 @@ app.get('/', (req, res, next) => {
     // RF-02 (Alertas de churn): clientes con señales de abandono o riesgo de baja.
     // Se prioriza un solo motivo por cliente, del más grave al más leve.
     const enRiesgo = todosClientes.reduce((lista, u) => {
-      const trialVencido = u.trialHasta && u.trialHasta < ahora;
-      const enTrialU = u.trialHasta && u.trialHasta > ahora;
+      const { trialVencido, enTrial } = obtenerEstadoSuscripcion(u, ahora);
       let motivo = null;
       if (u.estado === 'suspendido') motivo = 'Suspendido';
       else if (u.estado === 'inactivo') motivo = 'Inactivo';
       else if (trialVencido) motivo = 'Prueba vencida';
-      else if (!u.planId && !enTrialU) motivo = 'Sin plan elegido';
+      else if (!u.planId && !enTrial) motivo = 'Sin plan elegido';
       if (motivo) lista.push({ nombre: u.nombre, email: u.email, motivo });
       return lista;
     }, []);
@@ -140,8 +144,10 @@ app.get('/', (req, res, next) => {
     // coherente con el MRR. Al terminar el trial pasa a contar en su plan.
     const distribucion = {};
     todosClientes.forEach(u => {
-      const enTrialU = u.trialHasta && u.trialHasta > ahora;
-      const nombre = enTrialU ? 'Prueba gratuita' : (u.planId?.nombre || 'Sin plan');
+      const { enTrial, trialVencido } = obtenerEstadoSuscripcion(u, ahora);
+      const nombre = enTrial
+        ? 'Prueba gratuita'
+        : (trialVencido ? 'Prueba vencida' : (u.planId?.nombre || 'Sin plan'));
       distribucion[nombre] = (distribucion[nombre] || 0) + 1;
     });
 
@@ -240,7 +246,10 @@ const iniciarServidor = async () => {
 };
 
 if (require.main === module) {
-  iniciarServidor();
+  iniciarServidor().catch((error) => {
+    console.error('No se pudo iniciar el servidor:', error.message);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = app;

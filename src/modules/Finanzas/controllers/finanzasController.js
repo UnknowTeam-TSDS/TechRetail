@@ -1,5 +1,6 @@
 const Usuario = require('../../usuarios/models/Usuario');
 const pedidosStorage = require('../../Pedidos/storage/pedidosStorage');
+const { obtenerEstadoSuscripcion } = require('../../../utils/suscripcion');
 
 // GET /finanzas — reporte de conciliación (RF-03). Solo lectura, solo admin.
 // Cruza los ingresos recurrentes (planes + add-ons) con las ventas simuladas
@@ -18,15 +19,14 @@ const vistaFinanzas = async (req, res) => {
     const ingresosPorPlan = {};
 
     clientes.forEach((u) => {
-      const enTrial = u.trialHasta && u.trialHasta > ahora;
-      if (u.planId && !enTrial) {
+      const { planPago } = obtenerEstadoSuscripcion(u, ahora);
+      if (u.estado === 'activo' && planPago) {
         const precio = u.planId.precio || 0;
         mrr += precio;
         const nombre = u.planId.nombre || 'Sin nombre';
         ingresosPorPlan[nombre] = (ingresosPorPlan[nombre] || 0) + precio;
+        (u.addons || []).forEach((addon) => { ingresosAddons += addon.precio || 0; });
       }
-      // Los add-ons contratados suman su precio (los gratuitos suman 0).
-      (u.addons || []).forEach((addon) => { ingresosAddons += addon.precio || 0; });
     });
 
     // Pedidos agrupados por estado (cantidad y monto).

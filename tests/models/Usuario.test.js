@@ -53,4 +53,14 @@ describe('Modelo Usuario - validaciones de schema', () => {
     expect(Array.isArray(usuario.addons)).toBe(true);
     expect(usuario.addons).toHaveLength(0);
   });
+
+  test('no expone la contraseña al convertir el usuario a JSON', () => {
+    const usuario = new Usuario({ nombre: 'Test User', email: 'seguro@test.com', contrasena: '123456' });
+    expect(usuario.toJSON().contrasena).toBeUndefined();
+  });
+
+  test('la prueba gratuita figura como no utilizada por defecto', () => {
+    const usuario = new Usuario({ nombre: 'Test User', email: 'trial@test.com', contrasena: '123456' });
+    expect(usuario.trialUtilizado).toBe(false);
+  });
 });

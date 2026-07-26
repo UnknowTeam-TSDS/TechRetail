@@ -94,7 +94,7 @@ const seedAdmin = async () => {
       estado: 'activo',
     });
 
-    console.log('✓ Admin por defecto creado (email: admin@techretail.com, contraseña: 123456)');
+    console.log('✓ Admin por defecto creado');
   } catch (error) {
     console.error('✗ Error al crear admin por defecto:', error.message);
   }

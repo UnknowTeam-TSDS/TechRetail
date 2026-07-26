@@ -35,8 +35,8 @@ html(lang="es")
 
             if esMiPlan
               div(class="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full") Tu plan actual
-            if esStarter && !planActualId
-              div(class="absolute top-3 right-3 bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full") GRATIS 14 días
+            if esStarter && !planActualId && !trialUtilizado
+              div(class="absolute top-3 right-3 bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full") GRATIS 15 días
 
             div(class=headerClass)
               h2(class="text-xl font-bold") #{plan.nombre}
@@ -54,14 +54,19 @@ html(lang="es")
                   span(class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold") Período de prueba activo
                 p(class="text-3xl font-extrabold text-blue-900 mt-2") #{diasTrial} días restantes
                 p(class="text-sm text-gray-500 mt-1") Al vencer: $#{plan.precio.toLocaleString('es-AR')}/mes
+              else if esMiPlan && trialVencido
+                div(class="mb-2")
+                  span(class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold") Prueba finalizada
+                p(class="text-3xl font-extrabold text-blue-900 mt-2") #{plan.nombre}
+                p(class="text-sm text-gray-500 mt-1") Activá el plan por $#{plan.precio.toLocaleString('es-AR')}/mes
               else if esMiPlan
                 p(class="text-4xl font-extrabold text-blue-900")
                   | $#{plan.precio.toLocaleString('es-AR')}
                   span(class="text-sm font-normal text-gray-400") /mes
                 p(class="text-xs text-blue-600 font-semibold mt-2") Plan activo
-              else if esStarter && !planActualId
+              else if esStarter && !planActualId && !trialUtilizado
                 p(class="text-4xl font-extrabold text-green-600") GRATIS
-                p(class="text-sm text-gray-500 mt-1") por 14 días, luego $#{plan.precio.toLocaleString('es-AR')}/mes
+                p(class="text-sm text-gray-500 mt-1") por 15 días, luego $#{plan.precio.toLocaleString('es-AR')}/mes
                 p(class="text-xs text-green-700 font-semibold mt-2") Sin tarjeta requerida
               else
                 p(class="text-4xl font-extrabold text-blue-900")
@@ -87,9 +92,19 @@ html(lang="es")
                   li ✓ API personalizada
                   li ✓ Manager dedicado
 
-              if esMiPlan
+              if esMiPlan && trialVencido
+                - const planIdStr = String(plan._id)
+                button(
+                  type="button"
+                  data-plan-id=planIdStr
+                  data-plan-nombre=plan.nombre
+                  data-plan-precio=plan.precio
+                  onclick="abrirPago(this)"
+                  class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition-colors")
+                  | Activar plan Starter
+              else if esMiPlan
                 a(href="/mi-cuenta" class="block w-full text-center bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold py-3 rounded-xl text-sm transition-colors") Conservar plan actual
-              else if esStarter && !planActualId
+              else if esStarter && !planActualId && !trialUtilizado
                 form(action="/elegir-plan" method="POST")
                   input(type="hidden" name="planId" value=String(plan._id))
                   button(type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl text-sm transition-colors") Comenzar prueba gratuita

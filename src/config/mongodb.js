@@ -21,7 +21,7 @@ const conectarMongoDB = async () => {
     
   } catch (error) {
     console.error('✗ Error al conectar a MongoDB:', error.message);
-    console.warn('⚠ Continuando sin base de datos...');
+    throw error;
   }
 };
 

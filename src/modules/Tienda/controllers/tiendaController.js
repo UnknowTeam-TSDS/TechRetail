@@ -4,6 +4,7 @@ const Usuario = require('../../usuarios/models/Usuario');
 const { MEDIOS_PAGO, MEDIOS_ENVIO, PAGO_IDS, ENVIO_IDS, resolver } = require('../opcionesComerciales');
 
 const { emitirSocket, flash, render404 } = require('../../../utils/helpers');
+const { obtenerEstadoSuscripcion } = require('../../../utils/suscripcion');
 
 const obtenerCarritoTienda = (req, tiendaId) => {
   const tiendaIdStr = String(tiendaId);
@@ -41,7 +42,7 @@ const armarResumenCarrito = async (req, tienda) => {
     const cantidad = Math.min(item.cantidad, maximo);
     if (cantidad <= 0) return;
 
-    const precioUnitario = producto.precioPromocional || producto.precio;
+    const precioUnitario = producto.precioPromocional ?? producto.precio;
     const subtotal = precioUnitario * cantidad;
     total += subtotal;
     items.push({ producto, cantidad, precioUnitario, subtotal });
@@ -68,11 +69,15 @@ const cargarTiendaComprable = async (req, id) => {
   if (!tienda) return null;
 
   const esDueno = esDuenoTienda(req, tienda);
-  if (tienda.estado !== 'activa' && !esDueno) return null;
+  const propietario = await Usuario.findById(tienda.usuarioId);
+  const suscripcionActiva = obtenerEstadoSuscripcion(propietario).suscripcionActiva;
+  const disponible = tienda.estado === 'activa' && suscripcionActiva;
+
+  if (!disponible && !esDueno) return null;
 
   return {
     tienda,
-    previsualizando: esDueno && tienda.estado !== 'activa',
+    previsualizando: esDueno && !disponible,
   };
 };
 
@@ -84,10 +89,8 @@ const vistaTienda = async (req, res) => {
       Usuario.findById(req.session.usuario.id),
     ]);
 
-    const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
-    const planPago = !!(usuario.planId) && !enTrial;
-    // Para publicar alcanza con tener un plan elegido (incluido Starter en prueba).
-    const puedePublicar = !!(usuario.planId);
+    const { enTrial, planPago, suscripcionActiva } = obtenerEstadoSuscripcion(usuario);
+    const puedePublicar = suscripcionActiva;
 
     // Cantidad de productos cargados: habilita el paso "Cargá tu primer producto".
     const cantidadProductos = tienda
@@ -132,9 +135,8 @@ const vistaEditarTienda = async (req, res) => {
       Usuario.findById(req.session.usuario.id),
     ]);
 
-    const enTrial = !!(usuario.trialHasta && new Date(usuario.trialHasta) > new Date());
-    const planPago = !!(usuario.planId) && !enTrial;
-    const puedePublicar = !!(usuario.planId);
+    const { enTrial, planPago, suscripcionActiva } = obtenerEstadoSuscripcion(usuario);
+    const puedePublicar = suscripcionActiva;
 
     res.render('mi-tienda-editar', {
       titulo: tienda ? 'Editar tienda' : 'Crear tienda',
@@ -160,12 +162,12 @@ const guardarTienda = async (req, res) => {
       Usuario.findById(req.session.usuario.id),
       storage.buscarPorUsuario(req.session.usuario.id),
     ]);
-    const tienePlan = !!(usuario.planId);
+    const { suscripcionActiva } = obtenerEstadoSuscripcion(usuario);
 
-    // El estado se conserva (no se edita acá); una tienda nueva arranca en construcción.
-    // Si estuviera publicada sin un plan elegido, se vuelve a construcción (guard defensivo).
+    // El estado se conserva; si la suscripción dejó de estar activa, la tienda
+    // vuelve a construcción al editar sus datos.
     let estadoFinal = tiendaActual ? tiendaActual.estado : 'en_construccion';
-    if (!tienePlan && estadoFinal === 'activa') estadoFinal = 'en_construccion';
+    if (!suscripcionActiva && estadoFinal === 'activa') estadoFinal = 'en_construccion';
 
     const tiendaGuardada = await storage.guardarTienda(req.session.usuario.id, {
       nombre: nombre?.trim(),
@@ -195,17 +197,21 @@ const guardarTienda = async (req, res) => {
   }
 };
 
-// POST /mi-tienda/publicar — pone la tienda activa (requiere un plan elegido, trial incluido)
+// POST /mi-tienda/publicar — pone la tienda activa con plan pago o trial vigente
 const publicarTienda = async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.session.usuario.id);
-    const tienePlan = !!(usuario.planId);
-    if (!tienePlan) {
-      flash(req, 'error', 'Elegí un plan (aunque sea la prueba gratuita) para publicar tu tienda.');
+    const { suscripcionActiva } = obtenerEstadoSuscripcion(usuario);
+    if (!suscripcionActiva) {
+      flash(req, 'error', 'Necesitás un plan pago o una prueba vigente para publicar tu tienda.');
       return res.redirect('/mi-tienda');
     }
 
     const tiendaPublicada = await storage.actualizarEstado(req.session.usuario.id, 'activa');
+    if (!tiendaPublicada) {
+      flash(req, 'error', 'Primero completá los datos de tu tienda.');
+      return res.redirect('/mi-tienda');
+    }
     emitirSocket(req, 'tienda-publicada', {
       nombre: tiendaPublicada?.nombre || 'Tienda',
       usuario: req.session.usuario.nombre,
@@ -271,27 +277,14 @@ const guardarMediosEnvio = async (req, res) => {
 // GET /tienda/:id — pública, sin login. El dueño puede previsualizarla aunque no esté activa.
 const vistaPublicaTienda = async (req, res) => {
   try {
-    const tienda = await storage.buscarPorId(req.params.id);
-
-    if (!tienda) {
+    const resultado = await cargarTiendaComprable(req, req.params.id);
+    if (!resultado) {
       return render404(res, 'Esta tienda no está disponible.');
     }
 
-    const esDueno = !!(req.session.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
-
-    // Una tienda inactiva solo es visible para su dueño (en modo previsualización)
-    if (tienda.estado === 'inactiva' && !esDueno) {
-      return render404(res, 'Esta tienda no está disponible.');
-    }
-
-    // Se muestra el catálogo si está activa, o si el dueño está previsualizando
-    const mostrarCatalogo = tienda.estado === 'activa' || esDueno;
-    const productos = mostrarCatalogo
-      ? await productosStorage.listarActivosPorTienda(tienda._id)
-      : [];
-
+    const { tienda, previsualizando } = resultado;
+    const productos = await productosStorage.listarActivosPorTienda(tienda._id);
     const categorias = [...new Set(productos.map(p => p.categoria).filter(Boolean))].sort();
-    const previsualizando = esDueno && tienda.estado !== 'activa';
 
     res.render('tienda-publica', {
       tienda,
@@ -309,26 +302,17 @@ const vistaPublicaTienda = async (req, res) => {
 // GET /tienda/:id/producto/:productoId — pública, sin login. El dueño puede previsualizarla.
 const vistaPublicaProducto = async (req, res) => {
   try {
-    const tienda = await storage.buscarPorId(req.params.id);
-
-    if (!tienda) {
+    const resultado = await cargarTiendaComprable(req, req.params.id);
+    if (!resultado) {
       return render404(res, 'Este producto no está disponible.');
     }
 
-    const esDueno = !!(req.session.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
-
-    // La tienda debe estar activa, salvo que el dueño esté previsualizando
-    if (tienda.estado !== 'activa' && !esDueno) {
-      return render404(res, 'Este producto no está disponible.');
-    }
-
+    const { tienda, previsualizando } = resultado;
     const producto = await productosStorage.buscarPublicoPorId(req.params.productoId, tienda._id);
 
     if (!producto) {
       return render404(res, 'Este producto no está disponible.');
     }
-
-    const previsualizando = esDueno && tienda.estado !== 'activa';
 
     res.render('producto-publico', {
       tienda,

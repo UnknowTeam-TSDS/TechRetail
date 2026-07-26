@@ -12,6 +12,7 @@ const {
   despublicarTienda,
   guardarMediosPago,
   guardarMediosEnvio,
+  vistaPublicaTienda,
   vistaCarrito,
   agregarProductoCarrito,
   actualizarProductoCarrito,
@@ -29,6 +30,7 @@ describe('Tienda Controller', () => {
       json: jest.fn(),
     };
     jest.clearAllMocks();
+    Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
   });
 
   describe('vistaTienda', () => {
@@ -70,6 +72,52 @@ describe('Tienda Controller', () => {
     });
   });
 
+  describe('vistaPublicaTienda', () => {
+    test('muestra una tienda activa con suscripción vigente', async () => {
+      req.params.id = 'tienda-id';
+      req.session = {};
+      const tienda = { _id: 'tienda-id', estado: 'activa', usuarioId: 'owner-id' };
+      storage.buscarPorId = jest.fn().mockResolvedValue(tienda);
+      Usuario.findById = jest.fn().mockResolvedValue({ planId: 'plan-id', trialHasta: null });
+      productosStorage.listarActivosPorTienda = jest.fn().mockResolvedValue([]);
+
+      await vistaPublicaTienda(req, res);
+
+      expect(res.render).toHaveBeenCalledWith('tienda-publica', expect.objectContaining({
+        tienda,
+        previsualizando: false,
+      }));
+    });
+
+    test('oculta una tienda en construcción a visitantes externos', async () => {
+      req.params.id = 'tienda-id';
+      req.session = {};
+      storage.buscarPorId = jest.fn().mockResolvedValue({
+        _id: 'tienda-id', estado: 'en_construccion', usuarioId: 'owner-id',
+      });
+
+      await vistaPublicaTienda(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(productosStorage.listarActivosPorTienda).not.toHaveBeenCalled();
+    });
+
+    test('oculta una tienda publicada cuando venció la prueba del dueño', async () => {
+      req.params.id = 'tienda-id';
+      req.session = {};
+      storage.buscarPorId = jest.fn().mockResolvedValue({
+        _id: 'tienda-id', estado: 'activa', usuarioId: 'owner-id',
+      });
+      Usuario.findById = jest.fn().mockResolvedValue({
+        planId: 'plan-id', trialHasta: new Date(Date.now() - 86400000),
+      });
+
+      await vistaPublicaTienda(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(productosStorage.listarActivosPorTienda).not.toHaveBeenCalled();
+    });
+  });
   describe('guardarTienda', () => {
     test('guarda los datos preservando el estado actual de la tienda', async () => {
       req.body = { nombre: 'Tienda Test', descripcion: 'Desc', rubro: 'moda' };
@@ -175,6 +223,19 @@ describe('Tienda Controller', () => {
       await publicarTienda(req, res);
 
       expect(storage.actualizarEstado).toHaveBeenCalledWith('user-id', 'activa');
+      expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
+    });
+
+    test('no publica si la prueba gratuita está vencida', async () => {
+      Usuario.findById = jest.fn().mockResolvedValue({
+        planId: 'plan-id',
+        trialHasta: new Date(Date.now() - 86400000),
+      });
+      storage.actualizarEstado = jest.fn();
+
+      await publicarTienda(req, res);
+
+      expect(storage.actualizarEstado).not.toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith('/mi-tienda');
     });
 
