@@ -6,6 +6,7 @@
 const Usuario = require('../models/Usuario');
 const Tienda = require('../../Tienda/models/Tienda');
 const Producto = require('../../Productos/models/Producto');
+const Pedido = require('../../Pedidos/models/Pedido');
 
 // Lee todos los usuarios desde la base de datos
 const leerUsuarios = async () => {
@@ -52,7 +53,7 @@ const agregar = async (datos) => {
 const actualizar = async (id, datos) => {
   try {
     return await Usuario.findByIdAndUpdate(id, datos, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     });
   } catch (error) {
@@ -72,7 +73,10 @@ const eliminar = async (id) => {
     const tiendaIds = tiendas.map(tienda => tienda._id);
 
     if (tiendaIds.length > 0) {
-      await Producto.deleteMany({ tiendaId: { $in: tiendaIds } });
+      await Promise.all([
+        Producto.deleteMany({ tiendaId: { $in: tiendaIds } }),
+        Pedido.deleteMany({ tiendaId: { $in: tiendaIds } }),
+      ]);
       await Tienda.deleteMany({ _id: { $in: tiendaIds } });
     }
 

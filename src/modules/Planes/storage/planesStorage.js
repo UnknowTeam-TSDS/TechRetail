@@ -4,6 +4,7 @@
  */
 
 const Plan = require('../models/Plan');
+const Usuario = require('../../usuarios/models/Usuario');
 
 // Lee todos los planes desde la base de datos
 const leerPlanes = async () => {
@@ -40,7 +41,7 @@ const agregar = async (datos) => {
 const actualizar = async (id, datos) => {
   try {
     return await Plan.findByIdAndUpdate(id, datos, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     });
   } catch (error) {
@@ -60,4 +61,13 @@ const eliminar = async (id) => {
   }
 };
 
-module.exports = { leerPlanes, buscarPorId, agregar, actualizar, eliminar };
+const estaEnUso = async (id) => {
+  return !!(await Usuario.exists({
+    $or: [
+      { planId: id },
+      { addons: id },
+    ],
+  }));
+};
+
+module.exports = { leerPlanes, buscarPorId, agregar, actualizar, eliminar, estaEnUso };

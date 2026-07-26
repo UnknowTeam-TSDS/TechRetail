@@ -23,10 +23,10 @@ const planSchema = new mongoose.Schema({
     required: [true, 'El precio es obligatorio'],
     min: [0, 'El precio no puede ser negativo'],
     validate: {
-      validator: function(v) {
-        return v > 0;
+      validator(v) {
+        return this.tipo === 'addon' ? v >= 0 : v > 0;
       },
-      message: 'El precio debe ser mayor a 0',
+      message: 'Los planes deben tener precio mayor a 0',
     },
   },
   tipo: {

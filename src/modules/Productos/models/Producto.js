@@ -26,6 +26,12 @@ const productoSchema = new mongoose.Schema({
     type: Number,
     min: [0, 'El precio promocional no puede ser negativo'],
     default: null,
+    validate: {
+      validator(valor) {
+        return valor === null || valor === undefined || valor < this.precio;
+      },
+      message: 'El precio promocional debe ser menor al precio habitual',
+    },
   },
   tipo: {
     type: String,

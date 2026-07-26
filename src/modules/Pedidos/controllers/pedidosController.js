@@ -18,6 +18,7 @@ const armarItems = async (carrito, tiendaId) => {
   const porId = new Map(productos.map((p) => [String(p._id), p]));
 
   const items = [];
+  const stockItems = [];
   let total = 0;
 
   carrito.items.forEach((item) => {
@@ -28,17 +29,24 @@ const armarItems = async (carrito, tiendaId) => {
     const cantidad = Math.min(item.cantidad, maximo);
     if (cantidad <= 0) return;
 
-    const precioUnitario = producto.precioPromocional || producto.precio;
+    const precioUnitario = producto.precioPromocional ?? producto.precio;
     const subtotal = precioUnitario * cantidad;
     total += subtotal;
     items.push({ productoId: producto._id, nombre: producto.nombre, precioUnitario, cantidad, subtotal });
+    if (producto.tipo === 'fisico') {
+      stockItems.push({ productoId: producto._id, cantidad });
+    }
   });
 
-  return { items, total };
+  return { items, stockItems, total };
 };
 
 // POST /tienda/:id/checkout — crea un pedido simulado a partir del carrito
 const procesarCheckout = async (req, res) => {
+  const reservas = [];
+  let pedidoCreado = false;
+  let tiendaReserva = null;
+
   try {
     const tienda = await tiendaStorage.buscarPorId(req.params.id);
     if (!tienda || !puedeComprar(req, tienda)) {
@@ -49,7 +57,7 @@ const procesarCheckout = async (req, res) => {
     const carritoValido = carrito && carrito.tiendaId === String(tienda._id) && carrito.items.length > 0;
     if (!carritoValido) return res.redirect(`/tienda/${tienda._id}/carrito`);
 
-    const { items, total } = await armarItems(carrito, tienda._id);
+    const { items, stockItems, total } = await armarItems(carrito, tienda._id);
     if (items.length === 0) return res.redirect(`/tienda/${tienda._id}/carrito`);
 
     // El medio de pago debe ser uno de los que el dueño habilitó.
@@ -61,6 +69,22 @@ const procesarCheckout = async (req, res) => {
       return res.redirect(`/tienda/${tienda._id}/carrito`);
     }
     const medioEnvio = mediosEnvio.includes(req.body.medioEnvio) ? req.body.medioEnvio : null;
+
+    // Reservamos stock antes de crear el pedido. Si algún producto cambió de
+    // disponibilidad, revertimos las reservas anteriores y volvemos al carrito.
+    tiendaReserva = tienda._id;
+    for (const item of stockItems) {
+      const actualizado = await productosStorage.descontarStock(item.productoId, tienda._id, item.cantidad);
+      if (!actualizado) {
+        await Promise.all(reservas.map((reserva) =>
+          productosStorage.reponerStock(reserva.productoId, tienda._id, reserva.cantidad)
+        ));
+        reservas.length = 0;
+        flash(req, 'error', 'Cambió el stock de uno de los productos. Revisá el carrito.');
+        return res.redirect(`/tienda/${tienda._id}/carrito`);
+      }
+      reservas.push(item);
+    }
 
     const pedido = await storage.crear({
       tiendaId: tienda._id,
@@ -74,18 +98,19 @@ const procesarCheckout = async (req, res) => {
         telefono: req.body.telefono?.trim() || '',
       },
     });
+    pedidoCreado = true;
 
-    // La venta se concretó: descontamos el stock de los productos físicos.
-    await Promise.all(items.map((item) =>
-      productosStorage.descontarStock(item.productoId, tienda._id, item.cantidad)
-    ));
-
-    // El pedido quedó registrado: vaciamos el carrito de la sesión.
     req.session.carrito = { tiendaId: String(tienda._id), items: [] };
+    req.session.ultimoPedidoId = String(pedido._id);
 
     emitirSocket(req, 'nuevo-pedido', { tienda: tienda.nombre, total: pedido.total });
     res.redirect(`/tienda/${tienda._id}/pedido/${pedido._id}`);
   } catch (error) {
+    if (!pedidoCreado && reservas.length > 0 && tiendaReserva) {
+      await Promise.allSettled(reservas.map((reserva) =>
+        productosStorage.reponerStock(reserva.productoId, tiendaReserva, reserva.cantidad)
+      ));
+    }
     console.error('Error procesando checkout:', error.message);
     flash(req, 'error', 'No pudimos registrar tu pedido. Revisá tus datos de contacto.');
     res.redirect(`/tienda/${req.params.id}/carrito`);
@@ -100,6 +125,12 @@ const vistaConfirmacion = async (req, res) => {
 
     const pedido = await storage.buscarPorId(req.params.pedidoId, tienda._id);
     if (!pedido) return render404(res, 'No encontramos ese pedido.');
+
+    const esDueno = !!(req.session?.usuario && String(req.session.usuario.id) === String(tienda.usuarioId));
+    const esComprador = req.session?.ultimoPedidoId === String(pedido._id);
+    if (!esDueno && !esComprador) {
+      return render404(res, 'No encontramos ese pedido.');
+    }
 
     res.render('pedido-confirmacion', {
       tienda,
@@ -120,7 +151,9 @@ const vistaMisPedidos = async (req, res) => {
     if (!tienda) return res.redirect('/mi-tienda');
 
     const pedidos = await storage.listarPorTienda(tienda._id);
-    const totalVendido = pedidos.reduce((sum, p) => sum + p.total, 0);
+    const totalVendido = pedidos
+      .filter((p) => p.estado === 'confirmado')
+      .reduce((sum, p) => sum + p.total, 0);
 
     res.render('mis-pedidos', {
       titulo: 'Mis pedidos',
@@ -149,7 +182,7 @@ const cambiarEstadoPedido = async (req, res) => {
     }
 
     const pedido = await storage.buscarPorId(req.params.id, tienda._id);
-    if (!pedido) return res.redirect('/mis-pedidos');
+    if (!pedido || pedido.estado === 'cancelado') return res.redirect('/mis-pedidos');
 
     // Al cancelar un pedido que no estaba cancelado, devolvemos el stock reservado.
     if (nuevoEstado === 'cancelado' && pedido.estado !== 'cancelado') {

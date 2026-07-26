@@ -36,6 +36,11 @@ describe('Modelo Plan - validaciones de schema', () => {
     await expect(plan.validate()).resolves.toBeUndefined();
   });
 
+  test('acepta un add-on gratuito', async () => {
+    const plan = new Plan({ nombre: 'Onboarding', descripcion: 'Asesoría inicial', precio: 0, tipo: 'addon' });
+    await expect(plan.validate()).resolves.toBeUndefined();
+  });
+
   test('es valido con tipo "addon"', async () => {
     const plan = new Plan({ nombre: 'Soporte 24/7', descripcion: 'Soporte tecnico prioritario', precio: 5000, tipo: 'addon' });
     await expect(plan.validate()).resolves.toBeUndefined();

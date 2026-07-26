@@ -13,7 +13,7 @@ block contenido
           input(type="text" name="nombre" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
         div
           label(class="block text-sm text-gray-600 mb-1") Precio (ARS)
-          input(type="number" name="precio" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
+          input(type="number" name="precio" min="0" step="0.01" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")
         div
           label(class="block text-sm text-gray-600 mb-1") Tipo
           select(name="tipo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400")

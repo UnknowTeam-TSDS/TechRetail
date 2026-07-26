@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 // y devuelve una página 404 con estilo en su lugar.
 const validarObjectId = (param = 'id') => (req, res, next) => {
   if (!mongoose.isValidObjectId(req.params[param])) {
+    if (req.originalUrl.startsWith('/api/')) {
+      return res.status(400).json({ ok: false, mensaje: 'El identificador no es válido.' });
+    }
     return res.status(404).render('error', {
       codigo: 404,
       titulo: 'Enlace inválido',

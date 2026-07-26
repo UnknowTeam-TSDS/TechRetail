@@ -7,6 +7,7 @@ const tiendaStorage = require('../../src/modules/Tienda/storage/tiendaStorage');
 const productosStorage = require('../../src/modules/Productos/storage/productosStorage');
 const {
   procesarCheckout,
+  vistaConfirmacion,
   vistaMisPedidos,
   cambiarEstadoPedido,
 } = require('../../src/modules/Pedidos/controllers/pedidosController');
@@ -64,7 +65,35 @@ describe('Pedidos Controller', () => {
       expect(productosStorage.descontarStock).toHaveBeenCalledWith('prod-id', 'tienda-id', 2);
       // El carrito queda vacío luego de registrar el pedido
       expect(req.session.carrito).toEqual({ tiendaId: 'tienda-id', items: [] });
+      expect(req.session.ultimoPedidoId).toBe('pedido-id');
       expect(res.redirect).toHaveBeenCalledWith('/tienda/tienda-id/pedido/pedido-id');
+    });
+
+    test('revierte el stock si un producto deja de estar disponible', async () => {
+      req.body = { medioPago: 'mercadopago', medioEnvio: 'retiro_local', nombre: 'Ana', email: 'ana@email.com' };
+      req.session.carrito = {
+        tiendaId: 'tienda-id',
+        items: [
+          { productoId: 'prod-1', cantidad: 1 },
+          { productoId: 'prod-2', cantidad: 1 },
+        ],
+      };
+      tiendaStorage.buscarPorId = jest.fn().mockResolvedValue(tiendaActiva);
+      productosStorage.buscarActivosPorIds = jest.fn().mockResolvedValue([
+        { ...productoMock, _id: 'prod-1' },
+        { ...productoMock, _id: 'prod-2' },
+      ]);
+      productosStorage.descontarStock = jest.fn()
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce(null);
+      productosStorage.reponerStock = jest.fn().mockResolvedValue({});
+      storage.crear = jest.fn();
+
+      await procesarCheckout(req, res);
+
+      expect(productosStorage.reponerStock).toHaveBeenCalledWith('prod-1', 'tienda-id', 1);
+      expect(storage.crear).not.toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith('/tienda/tienda-id/carrito');
     });
 
     test('no crea pedido si el medio de pago no esta habilitado en la tienda', async () => {
@@ -104,10 +133,40 @@ describe('Pedidos Controller', () => {
     });
   });
 
+  describe('vistaConfirmacion', () => {
+    const tienda = { _id: 'tienda-id', usuarioId: 'owner-id' };
+    const pedido = { _id: 'pedido-id', medioPago: 'mercadopago', medioEnvio: 'retiro_local' };
+
+    test('permite ver la confirmación al comprador de la misma sesión', async () => {
+      req.params = { id: 'tienda-id', pedidoId: 'pedido-id' };
+      req.session = { ultimoPedidoId: 'pedido-id' };
+      tiendaStorage.buscarPorId = jest.fn().mockResolvedValue(tienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue(pedido);
+
+      await vistaConfirmacion(req, res);
+
+      expect(res.render).toHaveBeenCalledWith('pedido-confirmacion', expect.objectContaining({ pedido }));
+    });
+
+    test('no expone datos del pedido a otra sesión', async () => {
+      req.params = { id: 'tienda-id', pedidoId: 'pedido-id' };
+      req.session = {};
+      tiendaStorage.buscarPorId = jest.fn().mockResolvedValue(tienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue(pedido);
+
+      await vistaConfirmacion(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.render).toHaveBeenCalledWith('error', expect.objectContaining({ codigo: 404 }));
+    });
+  });
   describe('vistaMisPedidos', () => {
     test('renderiza los pedidos de la tienda del usuario', async () => {
       const tienda = { _id: 'tienda-id', nombre: 'Mi Tienda' };
-      const pedidos = [{ total: 2000 }, { total: 3000 }];
+      const pedidos = [
+        { total: 2000, estado: 'confirmado' },
+        { total: 3000, estado: 'pendiente' },
+      ];
       tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(tienda);
       storage.listarPorTienda = jest.fn().mockResolvedValue(pedidos);
 
@@ -116,7 +175,7 @@ describe('Pedidos Controller', () => {
       expect(res.render).toHaveBeenCalledWith('mis-pedidos', expect.objectContaining({
         tienda,
         pedidos,
-        totalVendido: 5000,
+        totalVendido: 2000,
       }));
     });
 
@@ -159,6 +218,19 @@ describe('Pedidos Controller', () => {
 
       expect(productosStorage.reponerStock).toHaveBeenCalledWith('p1', 'tienda-id', 3);
       expect(storage.actualizarEstado).toHaveBeenCalledWith('pedido-id', 'tienda-id', 'cancelado');
+    });
+
+    test('no permite reactivar un pedido cancelado', async () => {
+      req.params.id = 'pedido-id';
+      req.body.estado = 'confirmado';
+      tiendaStorage.buscarPorUsuario = jest.fn().mockResolvedValue(tienda);
+      storage.buscarPorId = jest.fn().mockResolvedValue({ estado: 'cancelado', items: [] });
+      storage.actualizarEstado = jest.fn();
+
+      await cambiarEstadoPedido(req, res);
+
+      expect(storage.actualizarEstado).not.toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith('/mis-pedidos');
     });
 
     test('ignora un estado no válido', async () => {

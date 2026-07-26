@@ -12,11 +12,11 @@ router.post('/mi-tienda/despublicar', verificarSesion, controller.despublicarTie
 router.post('/mi-tienda/medios-pago', verificarSesion, controller.guardarMediosPago);
 router.post('/mi-tienda/medios-envio', verificarSesion, controller.guardarMediosEnvio);
 router.get('/tienda/:id/carrito', validarObjectId('id'), controller.vistaCarrito);
-router.post('/tienda/:id/carrito/agregar/:productoId', controller.agregarProductoCarrito);
-router.post('/tienda/:id/carrito/actualizar/:productoId', controller.actualizarProductoCarrito);
-router.post('/tienda/:id/carrito/quitar/:productoId', controller.quitarProductoCarrito);
-router.post('/tienda/:id/carrito/vaciar', controller.vaciarCarrito);
+router.post('/tienda/:id/carrito/agregar/:productoId', validarObjectId('id'), validarObjectId('productoId'), controller.agregarProductoCarrito);
+router.post('/tienda/:id/carrito/actualizar/:productoId', validarObjectId('id'), validarObjectId('productoId'), controller.actualizarProductoCarrito);
+router.post('/tienda/:id/carrito/quitar/:productoId', validarObjectId('id'), validarObjectId('productoId'), controller.quitarProductoCarrito);
+router.post('/tienda/:id/carrito/vaciar', validarObjectId('id'), controller.vaciarCarrito);
 router.get('/tienda/:id', validarObjectId('id'), controller.vistaPublicaTienda);
-router.get('/tienda/:id/producto/:productoId', validarObjectId('id'), controller.vistaPublicaProducto);
+router.get('/tienda/:id/producto/:productoId', validarObjectId('id'), validarObjectId('productoId'), controller.vistaPublicaProducto);
 
 module.exports = router;

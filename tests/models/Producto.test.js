@@ -87,6 +87,11 @@ describe('Modelo Producto - validaciones de schema', () => {
     await expect(producto.validate()).rejects.toThrow();
   });
 
+  test('falla si precioPromocional no es menor al precio habitual', async () => {
+    const producto = new Producto({ ...datosFisicosValidos, precioPromocional: 1600 });
+    await expect(producto.validate()).rejects.toThrow();
+  });
+
   test('acepta precioPromocional valido', async () => {
     const producto = new Producto({ ...datosFisicosValidos, precioPromocional: 990 });
     await expect(producto.validate()).resolves.toBeUndefined();

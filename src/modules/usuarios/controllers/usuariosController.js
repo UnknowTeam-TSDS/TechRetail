@@ -6,7 +6,7 @@
 const Usuario = require('../models/Usuario');
 const storage = require('../storage/usuariosStorage');
 const Plan = require('../../Planes/models/Plan');
-const { emitirSocket } = require('../../../utils/helpers');
+const { emitirSocket, flash } = require('../../../utils/helpers');
 
 // GET /api/usuarios — Lista todos los usuarios
 const listarUsuarios = async (req, res) => {
@@ -56,8 +56,13 @@ const crearUsuario = async (req, res) => {
       });
     }
     
-    // Crear el usuario
-    const usuarioGuardado = await storage.agregar(req.body);
+    // Las cuentas de cliente creadas por administracion cambian la clave al ingresar.
+    const datosUsuario = { ...req.body };
+    if ((datosUsuario.rol || 'cliente') === 'cliente' && datosUsuario.cambiarContrasena === undefined) {
+      datosUsuario.cambiarContrasena = true;
+    }
+
+    const usuarioGuardado = await storage.agregar(datosUsuario);
 
     // Notificar a todos los admins conectados via WebSocket
     emitirSocket(req, 'nuevo-usuario', { nombre: usuarioGuardado.nombre, email: usuarioGuardado.email });
@@ -115,7 +120,8 @@ const actualizarUsuario = async (req, res) => {
     }
     
     // Actualizar el usuario
-    const usuarioActualizado = await storage.actualizar(req.params.id, req.body);
+    const { contrasena: _contrasena, ...datosActualizables } = req.body;
+    const usuarioActualizado = await storage.actualizar(req.params.id, datosActualizables);
     
     res.json(usuarioActualizado);
   } catch (error) {
@@ -208,16 +214,23 @@ const crearUsuarioForm = async (req, res) => {
     // Notificar via WebSocket
     emitirSocket(req, 'nuevo-usuario', { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email });
 
-    // Redirigir a la vista de usuarios
+    flash(req, 'ok', `Cuenta creada para ${nuevoUsuario.nombre}.`);
     res.redirect('/usuarios/vista');
   } catch (error) {
     console.error('Error al agregar usuario:', error.message);
-    res.status(400).json({
-      ok: false,
-      mensaje: 'Error al registrar usuario',
-      error: error.message,
-    });
+    flash(req, 'error', 'No pudimos crear la cuenta. Revisá los datos ingresados.');
+    res.redirect('/usuarios/vista');
   }
+};
+
+const eliminarUsuarioForm = async (req, res) => {
+  try {
+    const eliminado = await storage.eliminar(req.params.id);
+    flash(req, eliminado ? 'ok' : 'error', eliminado ? 'Usuario y datos asociados eliminados.' : 'No encontramos ese usuario.');
+  } catch {
+    flash(req, 'error', 'No pudimos eliminar el usuario.');
+  }
+  res.redirect('/usuarios/vista');
 };
 
 
@@ -237,6 +250,7 @@ module.exports = {
   obtenerUsuario,
   crearUsuario,
   crearUsuarioForm,
+  eliminarUsuarioForm,
   actualizarUsuario,
   eliminarUsuario,
   vistaUsuarios,

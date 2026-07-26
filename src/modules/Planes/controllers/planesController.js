@@ -3,9 +3,8 @@
  TechRetail Solutions S.R.L.
  */
 
-const Plan = require('../models/Plan');
 const storage = require('../storage/planesStorage');
-const { emitirSocket } = require('../../../utils/helpers');
+const { emitirSocket, flash } = require('../../../utils/helpers');
 
 // GET /api/planes — Lista todos los planes
 const listarPlanes = async (req, res) => {
@@ -112,6 +111,13 @@ const actualizarPlan = async (req, res) => {
 // DELETE /api/planes/:id — Elimina un plan
 const eliminarPlan = async (req, res) => {
   try {
+    if (await storage.estaEnUso(req.params.id)) {
+      return res.status(409).json({
+        ok: false,
+        mensaje: 'No se puede eliminar porque está asignado a uno o más clientes.',
+      });
+    }
+
     const resultado = await storage.eliminar(req.params.id);
     
     if (!resultado) {
@@ -154,28 +160,36 @@ const vistaPlanes = async (req, res) => {
 // POST /planes/form — Crea un plan desde el formulario HTML con PRG
 const crearPlanForm = async (req, res) => {
   try {
-    // Crear y validar el plan
-    const nuevoPlan = new Plan(req.body);
-    
-    // Si es válido, guardarlo
-    if (nuevoPlan.nombre && nuevoPlan.precio > 0 && nuevoPlan.tipo) {
-      const planGuardado = await storage.agregar(req.body);
-      emitirSocket(req, 'nuevo-plan', { nombre: planGuardado.nombre, precio: planGuardado.precio, tipo: planGuardado.tipo });
+    const planGuardado = await storage.agregar(req.body);
+    emitirSocket(req, 'nuevo-plan', { nombre: planGuardado.nombre, precio: planGuardado.precio, tipo: planGuardado.tipo });
+    flash(req, 'ok', `${planGuardado.nombre} fue agregado al catálogo.`);
+  } catch (error) {
+    flash(req, 'error', error.message || 'No pudimos agregar el plan.');
+  }
+  res.redirect('/planes/vista');
+};
+
+const eliminarPlanForm = async (req, res) => {
+  try {
+    if (await storage.estaEnUso(req.params.id)) {
+      flash(req, 'error', 'No se puede eliminar porque está asignado a uno o más clientes.');
+      return res.redirect('/planes/vista');
     }
 
-    // Redirigir a la vista (patrón PRG)
-    res.redirect('/planes/vista');
+    const eliminado = await storage.eliminar(req.params.id);
+    flash(req, eliminado ? 'ok' : 'error', eliminado ? 'Elemento eliminado del catálogo.' : 'No encontramos ese elemento.');
   } catch {
-    // En caso de error, redirigir (el flash queda como mejora futura)
-    res.redirect('/planes/vista');
+    flash(req, 'error', 'No pudimos eliminar el elemento.');
   }
+  res.redirect('/planes/vista');
 };
 
 module.exports = { 
   listarPlanes, 
   obtenerPlan, 
   crearPlan, 
-  crearPlanForm, 
+  crearPlanForm,
+  eliminarPlanForm,
   actualizarPlan, 
   eliminarPlan, 
   vistaPlanes 

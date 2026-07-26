@@ -10,6 +10,6 @@ router.get('/tienda/:id/pedido/:pedidoId', validarObjectId('id'), validarObjectI
 
 // Panel del dueño: requiere sesión de cliente.
 router.get('/mis-pedidos', verificarSesion, controller.vistaMisPedidos);
-router.post('/mis-pedidos/:id/estado', verificarSesion, controller.cambiarEstadoPedido);
+router.post('/mis-pedidos/:id/estado', verificarSesion, validarObjectId('id'), controller.cambiarEstadoPedido);
 
 module.exports = router;

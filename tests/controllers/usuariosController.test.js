@@ -5,7 +5,9 @@ const {
   listarUsuarios,
   obtenerUsuario,
   crearUsuario,
+  actualizarUsuario,
   eliminarUsuario,
+  eliminarUsuarioForm,
   cambiarEstado,
 } = require('../../src/modules/usuarios/controllers/usuariosController');
 
@@ -48,8 +50,31 @@ describe('Usuarios Controller', () => {
     storage.buscarPorEmail = jest.fn().mockResolvedValue(null);
     storage.agregar = jest.fn().mockResolvedValue({ nombre: 'Ana', email: 'ana@test.com' });
     await crearUsuario(req, res);
-    expect(storage.agregar).toHaveBeenCalled();
+    expect(storage.agregar).toHaveBeenCalledWith(expect.objectContaining({
+      cambiarContrasena: true,
+    }));
     expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  test('actualizarUsuario ignora cambios directos de contraseña', async () => {
+    req.params.id = 'user-id';
+    req.body = { nombre: 'Ana Actualizada', contrasena: 'texto-plano' };
+    storage.buscarPorId = jest.fn().mockResolvedValue({ _id: 'user-id', email: 'ana@test.com' });
+    storage.actualizar = jest.fn().mockResolvedValue({ nombre: 'Ana Actualizada' });
+
+    await actualizarUsuario(req, res);
+
+    expect(storage.actualizar).toHaveBeenCalledWith('user-id', { nombre: 'Ana Actualizada' });
+  });
+
+  test('eliminarUsuarioForm elimina y vuelve al panel', async () => {
+    req.params.id = 'user-id';
+    storage.eliminar = jest.fn().mockResolvedValue(true);
+
+    await eliminarUsuarioForm(req, res);
+
+    expect(storage.eliminar).toHaveBeenCalledWith('user-id');
+    expect(res.redirect).toHaveBeenCalledWith('/usuarios/vista');
   });
 
   test('eliminarUsuario responde 404 si no existe', async () => {

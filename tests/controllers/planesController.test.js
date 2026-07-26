@@ -7,6 +7,7 @@ const {
   crearPlan,
   actualizarPlan,
   eliminarPlan,
+  eliminarPlanForm,
   vistaPlanes,
 } = require('../../src/modules/Planes/controllers/planesController');
 
@@ -22,6 +23,7 @@ describe('Planes Controller', () => {
       redirect: jest.fn(),
     };
     jest.clearAllMocks();
+    storage.estaEnUso = jest.fn().mockResolvedValue(false);
   });
 
   test('listarPlanes devuelve los planes en JSON', async () => {
@@ -59,6 +61,15 @@ describe('Planes Controller', () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
+  test('eliminarPlan responde 409 si está asignado a clientes', async () => {
+    req.params.id = 'plan-id';
+    storage.estaEnUso = jest.fn().mockResolvedValue(true);
+
+    await eliminarPlan(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(storage.eliminar).not.toHaveBeenCalled();
+  });
   test('eliminarPlan responde 404 si no existe', async () => {
     req.params.id = 'plan-id';
     storage.eliminar = jest.fn().mockResolvedValue(null);
@@ -71,6 +82,25 @@ describe('Planes Controller', () => {
     storage.eliminar = jest.fn().mockResolvedValue({ _id: 'plan-id' });
     await eliminarPlan(req, res);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ ok: true }));
+  });
+
+  test('eliminarPlanForm conserva elementos asignados', async () => {
+    req.params.id = 'plan-id';
+    storage.estaEnUso = jest.fn().mockResolvedValue(true);
+
+    await eliminarPlanForm(req, res);
+
+    expect(storage.eliminar).not.toHaveBeenCalled();
+    expect(res.redirect).toHaveBeenCalledWith('/planes/vista');
+  });
+  test('eliminarPlanForm elimina y vuelve al catálogo', async () => {
+    req.params.id = 'plan-id';
+    storage.eliminar = jest.fn().mockResolvedValue(true);
+
+    await eliminarPlanForm(req, res);
+
+    expect(storage.eliminar).toHaveBeenCalledWith('plan-id');
+    expect(res.redirect).toHaveBeenCalledWith('/planes/vista');
   });
 
   test('vistaPlanes renderiza la vista con los planes', async () => {
