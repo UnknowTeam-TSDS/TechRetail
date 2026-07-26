@@ -7,10 +7,11 @@ Trabajo práctico de la **Entrega Final** de la materia **Desarrollo Web Backend
 El proyecto está basado en el relevamiento de empresa que el mismo grupo (Grupo 13) entregó para **Ingeniería de Software** (PFO1). La empresa ficticia es **TechRetail Solutions S.R.L.**, una plataforma SaaS de e-commerce para PyMEs y emprendedores digitales en Argentina.
 
 **El backend implementa:**
-- Panel de administración interno (gestión de planes, clientes, métricas)
-- Panel de cliente (mi cuenta, tienda propia, catálogo de productos)
+- Panel de administración interno (clientes, planes, métricas, churn y finanzas)
+- Panel de cliente (suscripción, tienda, productos y pedidos)
+- Tienda pública (catálogo, carrito y checkout simulado)
 
-El 3° parcial/entrega final **permite módulos extra** siempre que se documenten y justifiquen. Los módulos Tienda y Productos fueron agregados por eso.
+El 3° parcial/entrega final **permite módulos extra** siempre que se documenten y justifiquen. Los módulos Tienda, Productos, Pedidos y Finanzas fueron agregados por eso.
 
 ### Grupo 13 — Comisión E
 
@@ -43,7 +44,7 @@ El 3° parcial/entrega final **permite módulos extra** siempre que se documente
 ```bash
 npm run dev    # nodemon, recarga automática
 npm start      # node app.js
-npm test       # jest --forceExit
+npm test       # jest
 ```
 
 Servidor en: `http://localhost:3000`
@@ -119,7 +120,8 @@ TechRetail/
 │   │       ├── models/Usuario.js
 │   │       └── views/usuarios.pug
 │   ├── utils/
-│   │   └── helpers.js              # emitirSocket, flash, render404 (compartidos)
+│   │   ├── helpers.js              # emitirSocket, flash, render404
+│   │   └── suscripcion.js           # estado unificado de suscripción
 │   └── views/
 │       ├── layout.pug
 │       └── index.pug               # Dashboard admin (métricas + churn RF-02)
@@ -156,7 +158,7 @@ Vistas HTML (PRG): `GET /usuarios/vista`, `POST /usuarios/form`, `POST /usuarios
 
 API REST: `GET|POST /api/usuarios`, `GET|PUT|DELETE /api/usuarios/:id`
 
-Schema Usuario: `nombre` (req, min 3), `email` (req, único), `contrasena` (req, min 6, hashed, `select:false`), `empresa`, `telefono`, `planId` (ref Plan), `rol` (enum: `'admin'|'cliente'`), `estado` (enum: `'activo'|'inactivo'|'suspendido'`), `trialHasta` (Date), `addons` (array ref Plan), timestamps.
+Schema Usuario: `nombre` (req, min 3), `email` (req, único), `contrasena` (req, min 6, hash, `select:false`), `empresa`, `telefono`, `planId` (ref Plan), `addons` (array ref Plan), `rol`, `estado`, `trialHasta` (Date), `trialUtilizado` (bool), `cambiarContrasena` (bool), timestamps.
 
 ### Tienda (`/mi-tienda`) — cliente autenticado
 Configuración de tienda propia. Una tienda por usuario (`usuarioId: unique`).
@@ -186,7 +188,7 @@ Schema Tienda:
 - `mediosPago` (array enum: `'mercadopago'|'transferencia'|'tarjeta'|'efectivo'`, default `[]`)
 - `mediosEnvio` (array enum: `'correo_argentino'|'oca'|'retiro_local'|'envio_gratis'`, default `[]`)
 - `envioGratisMonto` (Number ≥0, opcional, default `null`)
-- Publicar requiere tener un plan elegido (la prueba gratuita de Starter **también permite publicar**). Sin ningún plan, `estado` se fuerza a `en_construccion`.
+- Publicar requiere una suscripción activa: plan pago o trial vigente. Si vence el trial o la cuenta deja de estar activa, compradores externos ya no acceden; el dueño conserva la vista previa.
 
 ### Productos (`/mis-productos`) — cliente autenticado
 Catálogo de productos por tienda. Requiere tienda creada; si no hay tienda redirige a `/mi-tienda`.
@@ -201,7 +203,7 @@ Catálogo de productos por tienda. Requiere tienda creada; si no hay tienda redi
 Schema Producto:
 - `tiendaId` (ref Tienda, req)
 - `nombre` (req, min 3), `descripcion`, `categoria`
-- `precio` (req, ≥0), `precioPromocional` (opcional)
+- `precio` (req, ≥0), `precioPromocional` (opcional y menor al precio normal)
 - `tipo` (enum: `'fisico'|'digital'|'servicio'`, default `'fisico'`)
 - `pesoKg` (req si tipo=fisico), `dimensiones.altoCm/anchoCm/largoCm` (req si tipo=fisico)
 - `stock` (default 0)
@@ -222,12 +224,12 @@ Registra las compras **simuladas** que se generan en el checkout público. No mu
 
 Schema Pedido: `tiendaId` (ref Tienda, req), `items` (array: `productoId`, `nombre`, `precioUnitario`, `cantidad`, `subtotal` — copia histórica), `total` (req ≥0), `medioPago` (enum del catálogo, req), `medioEnvio` (enum del catálogo, opcional), `comprador` (`nombre` req, `email` req+formato, `telefono`), `estado` (enum `'pendiente'|'confirmado'|'cancelado'`, default `pendiente`), `esSimulado` (bool, default true), timestamps.
 
-El checkout (modal de `carrito-publico.pug`) es un formulario real que postea a `/tienda/:id/checkout`. El dueño en vista previa también puede generar pedidos para probar el flujo. El stock se descuenta al crear el pedido (`descontarStock`, con guard `$gte` para no quedar negativo) y se repone al cancelarlo (`reponerStock`); ambos solo afectan productos físicos.
+El checkout (modal de `carrito-publico.pug`) es un formulario real que postea a `/tienda/:id/checkout`. El dueño en vista previa también puede generar pedidos para probar el flujo. El stock se reserva de forma atómica antes de crear el pedido y se revierte si falla cualquier reserva o el alta. Cancelar repone stock; el estado cancelado es terminal. La confirmación pública solo se muestra a la sesión compradora original o al dueño de la tienda.
 
 ### Finanzas (`/finanzas`) — solo admin — módulo extra
 Reporte de conciliación (RF-03). Solo lectura. Cruza los ingresos recurrentes con las ventas simuladas.
 
-- `GET /finanzas` — Reporte con MRR (planes pagos, excluye trials), ingresos por add-ons, ingreso mensual total, ingresos por plan y ventas simuladas por estado de pedido (confirmadas/pendientes/canceladas).
+- `GET /finanzas` — Reporte con MRR de suscripciones pagas activas (excluye trials), add-ons pagos, ingresos por plan y ventas simuladas por estado. Los totales de ventas consideran confirmados.
 
 Usa `pedidosStorage.resumenPorEstado()` (aggregate `$group` por estado). La vista extiende `layout.pug` como el dashboard. Accesible desde el nav admin.
 
@@ -250,11 +252,8 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 
 ## Calidad, Tests y CI
 
-*   **Tests Unitarios**: Configurados con Jest (`npm.cmd test`). Usan mocks de la capa storage.
-    *   **Cobertura**:
-        *   Modelos: `Plan`, `Usuario`, `Tienda`, `Producto`, `Pedido`.
-        *   Controladores: `authController`, `productosController`, `tiendaController`, `pedidosController`.
-        *   Lógica y seguridad: Políticas de contraseñas y middleware de sesión.
+*   **Estado verificado**: 18 suites y 200 tests pasando; ESLint limpio y 19 vistas Pug compiladas.
+*   **Cobertura**: modelos, controllers de todos los módulos, autenticación, ObjectId, suscripción, storage, WebSockets e integración HTTP.
 *   **Tests de Integración**: `tests/integration/` levanta la app real con `supertest` contra una MongoDB en memoria (`mongodb-memory-server`). Prueban rutas end-to-end (sesión, middlewares, render, 404). `app.js` exporta `app` y solo arranca el servidor con `require.main === module`.
 *   **Cobertura**: `npm run test:coverage` genera el reporte con `jest --coverage`.
 *   **Linter**: ESLint con flat config (`eslint.config.js`); `npm run lint` (Node/CommonJS para `src`, browser para `public/js`, jest para `tests`).
@@ -276,9 +275,10 @@ El `layout.pug` escucha estos eventos, muestra una notificacion y refresca el da
 - **`select: false`** en `contrasena`; se recupera con `.select('+contrasena')` solo en login
 - **`res.locals.usuarioLogueado`**: middleware global para vistas Pug
 - **`normalizarProducto(body, tiendaId, files, imagenesActuales)`**: helper en productosController que centraliza parseo y validación de campos para crear y editar
-- **Trial vs plan pago**: `enTrial = usuario.trialHasta && new Date(usuario.trialHasta) > new Date()`. Los **add-ons** requieren `planPago = !!(usuario.planId) && !enTrial`. **Publicar la tienda** solo requiere tener un plan (`puedePublicar = !!(usuario.planId)`), por lo que la prueba gratuita también puede publicar.
+- **Suscripción**: `src/utils/suscripcion.js` centraliza `enTrial`, `trialVencido`, `planPago` y `suscripcionActiva`. Starter ofrece 15 días una sola vez (`trialUtilizado`). Add-ons requieren plan pago; publicar admite plan pago o trial activo.
 - **Imágenes**: multer guarda en `public/uploads/productos/`. En Render (free tier) el filesystem es efímero — las imágenes se pierden al redeploy
 - Los precios se expresan en **pesos argentinos (ARS)**
+- **Limitaciones**: pagos simulados, uploads efímeros en Render, MemoryStore no apto para producción escalable, sin CSRF dedicado y cascada solo desde aplicación/API.
 
 ---
 
@@ -299,7 +299,7 @@ El proyecto está desplegado en Render: `techretail-jc1f.onrender.com`
 
 ---
 
-## Convenciones de trabajo con IA
+## Convenciones de trabajo
 
 - **Commits**: mensajes breves, descriptivos y humanos. No mencionar IA, asistentes, herramientas ni coautoría automática.
 - **Comentarios de código**: usar solo cuando aporten contexto real. Deben ser cortos y naturales; evitar comentarios obvios o redactados como texto generado.

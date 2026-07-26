@@ -2,304 +2,183 @@
 
 [![CI](https://github.com/UnknowTeam-TSDS/TechRetail/actions/workflows/ci.yml/badge.svg)](https://github.com/UnknowTeam-TSDS/TechRetail/actions/workflows/ci.yml)
 
-**Plataforma SaaS de Comercio Electrónico para PyMEs Argentinas**
+Plataforma SaaS de e-commerce para PyMEs y emprendedores argentinos. Proyecto académico de la Entrega Final de Desarrollo Web Backend, Grupo 13, IFST 29.
 
-Proyecto académico del Segundo Parcial Backend | Grupo 13 | Tecnología Informática
+Deploy: [techretail-jc1f.onrender.com](https://techretail-jc1f.onrender.com)
 
----
+## Funcionalidades
 
-## 📋 Descripción
+### Administración
 
-**TechRetail Solutions S.R.L.** es una plataforma SaaS escalable diseñada para ayudar a pequeñas y medianas empresas argentinas a gestionar su negocio de comercio electrónico. Permite la administración de planes de suscripción, registro de usuarios/clientes y un sistema de autenticación robusto.
+- Dashboard con clientes, trials, tiendas, productos, pedidos y MRR.
+- Gestión HTML y API REST de planes, add-ons y usuarios.
+- Estados de clientes y detección de riesgo de churn.
+- Reporte de finanzas y conciliación simulada.
+- Notificaciones en tiempo real con Socket.io.
 
-### Características Principales
+### Cliente
 
-- ✅ **Sistema de Autenticación** con contraseñas hasheadas (bcryptjs)
-- ✅ **Gestión de Planes** (Starter, Growth, Pro)
-- ✅ **Registro y Gestión de Usuarios**
-- ✅ **Control de Roles** (Admin y Cliente) - implementación escalable
-- ✅ **Sesiones Seguras** con express-session
-- ✅ **API REST** con endpoints documentados
-- ✅ **Vistas Responsivas** con Tailwind CSS
+- Registro, login y recuperación del flujo según el estado de la cuenta.
+- Prueba gratuita Starter de 15 días, una sola vez.
+- Selección y activación simulada de planes.
+- Add-on gratuito de onboarding y servicios pagos marcados como próximamente.
+- Creación guiada de una tienda, configuración comercial y publicación.
+- Catálogo de productos con imágenes, stock, precios, SEO y datos logísticos.
+- Gestión de pedidos generados desde la tienda pública.
 
----
+### Comprador
 
-## 🚀 Tecnología
+- Catálogo y detalle público de productos.
+- Búsqueda y filtro por categoría.
+- Carrito guardado en la sesión del visitante.
+- Checkout simulado que registra un pedido y descuenta stock.
 
-### Backend
-- **Node.js** - Runtime de JavaScript
-- **Express** - Framework web
-- **MongoDB** - Base de datos NoSQL
-- **Mongoose** - ODM para MongoDB
-- **bcryptjs** - Hash de contraseñas
+## Stack
 
-### Frontend
-- **Pug** - Motor de plantillas
-- **Tailwind CSS** (CDN) - Framework CSS
+- Node.js y Express 5.
+- MongoDB Atlas y Mongoose 9.
+- Pug y Tailwind CSS por CDN.
+- express-session y bcryptjs.
+- Socket.io.
+- multer.
+- Jest, Supertest, mongodb-memory-server y ESLint.
+- GitHub Actions y Render.
 
-### Herramientas
-- **Postman** - Testing de APIs
-- **Git** - Control de versiones
+## Arquitectura
 
----
+El proyecto usa MVC modular:
 
-## 📁 Estructura del Proyecto
-
-```
-TechRetail/
-├── src/
-│   ├── config/
-│   │   ├── mongodb.js           # Conexión a MongoDB
-│   │   └── seed.js              # Datos iniciales (planes, admin)
-│   │
-│   ├── middlewares/
-│   │   └── autenticacion.js     # Middleware de autenticación
-│   │   └── logger.js            # Middleware de logger
-│   │
-│   ├── modules/
-│   │   ├── auth/                # Módulo de Autenticación
-│   │   │   ├── controllers/
-│   │   │   │   └── authController.js
-│   │   │   ├── routers/
-│   │   │   │   └── authRouter.js
-│   │   │   └── views/
-│   │   │       └── login.pug
-│   │   │
-│   │   ├── Planes/              # Módulo de Planes
-│   │   │   ├── models/
-│   │   │   │   └── Plan.js
-│   │   │   ├── controllers/
-│   │   │   │   └── planesController.js
-│   │   │   ├── routers/
-│   │   │   │   └── planesRouter.js
-│   │   │   └── views/
-│   │   │       └── planes.pug
-│   │   │
-│   │   └── usuarios/            # Módulo de Usuarios
-│   │       ├── models/
-│   │       │   └── Usuario.js
-│   │       ├── controllers/
-│   │       │   └── usuariosController.js
-│   │       ├── routers/
-│   │       │   └── usuariosRouter.js
-│   │       └── views/
-│   │           └── usuarios.pug
-│   │
-│   ├── views/                   # Vistas globales
-│   │   ├── layout.pug           # Layout principal
-│   │   └── index.pug            # Dashboard
-│   │
-│   └── postman/                 # Colección de tests
-│       └── TechRetail - Test general.postman_collection.json
-│
-├── app.js                       # Punto de entrada
-├── package.json
-└── README.md
+```text
+router -> controller -> storage -> model
+                     -> view Pug
 ```
 
----
+Módulos principales:
 
-## 🔐 Autenticación y Roles
-
-### Modelo Usuario
-
-El modelo `Usuario` contiene los siguientes campos:
-
-```javascript
-{
-  nombre: String,              // Nombre completo
-  email: String,               // Email único
-  empresa: String,             // Nombre de la empresa
-  telefono: String,            // Teléfono de contacto
-  contrasena: String,          // Contraseña hasheada (bcryptjs)
-  rol: Enum ['admin', 'cliente'], // Rol del usuario
-  planId: ObjectId,            // Referencia al plan suscrito
-  estado: Enum ['activo', 'inactivo', 'suspendido'],
-  fechaRegistro: Date,         // Fecha de creación
-  fechaActualizacion: Date     // Última actualización
-}
+```text
+src/modules/
+|-- Auth/
+|-- Planes/
+|-- usuarios/
+|-- Tienda/
+|-- Productos/
+|-- Pedidos/
+`-- Finanzas/
 ```
 
-### Roles Disponibles
+`app.js` configura middlewares, sesiones, rutas, Socket.io y el servidor HTTP. La conexión a MongoDB se realiza antes de comenzar a escuchar el puerto.
 
-| Rol | Acceso | Permisos |
-|-----|--------|----------|
-| **admin** | `/`, `/planes/vista`, `/usuarios/vista` | Gestiona planes y usuarios |
-| **cliente** | En desarrollo | Verá su información, plan y funciones habilitadas |
+## Instalación
 
----
-
-## ⚙️ Instalación
-
-### Requisitos
-- Node.js v18+
-- MongoDB local o Atlas
-- npm o yarn
-
-### Pasos
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone <url-repositorio>
-   cd TechRetail
-   ```
-
-2. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar variables de entorno**
-   
-   Crea un archivo `.env` en la raíz:
-   ```env
-   MONGO_URI=mongodb://localhost:27017/[DB_NAME]
-   PORT=[PORT]
-   ```
-
-4. **Iniciar servidor**
-   ```bash
-   npm start
-   ```
-
-5. **Acceder a la aplicación**
-   ```
-   http://localhost:3000/login
-   ```
-
----
-
-## API Endpoints
-
-### Autenticación
-```
-POST   /login              Iniciar sesión
-POST   /logout             Cerrar sesión
-GET    /login              Ver formulario de login
-```
-
-### Planes (requiere autenticación)
-```
-GET    /api/planes         Listar todos los planes (JSON)
-GET    /planes/vista       Ver planes (HTML)
-POST   /api/planes         Crear nuevo plan
-PUT    /api/planes/:id     Actualizar plan
-DELETE /api/planes/:id     Eliminar plan
-```
-
-### Usuarios (requiere autenticación)
-```
-GET    /api/usuarios       Listar todos los usuarios (JSON)
-GET    /usuarios/vista     Ver usuarios (HTML)
-POST   /api/usuarios       Crear nuevo usuario
-PUT    /api/usuarios/:id   Actualizar usuario
-DELETE /api/usuarios/:id   Eliminar usuario
-```
-
----
-
-## 🧪 Testing con Postman
-
-### Importar Colección
-
-1. Abre **Postman**
-2. Click en **Import**
-3. Selecciona: `src/postman/TechRetail - Test general.postman_collection.json`
-
-## 🔐 Seguridad
-
-### Implementaciones
-
-- ✅ **Contraseñas Hasheadas** con bcryptjs (salt: 10 rounds)
-- ✅ **Sesiones Seguras** con express-session
-- ✅ **Cookies HttpOnly** para sesiones
-- ✅ **Validación de Entrada** en modelos (Mongoose)
-- ✅ **Rutas Protegidas** con middleware de autenticación
-- ✅ **Emails Únicos** para evitar duplicados
-
-### Próximas Mejoras
-
-- 🔲 CSRF tokens
-- 🔲 Rate limiting
-- 🔲 Logs de auditoría
-- 🔲 Autenticación OAuth
-
----
-
-## 📝 Configuración de la Base de Datos
-
-### Seed Automático
-
-Al iniciar la aplicación, se ejecutan automáticamente:
-
-1. **Planes por defecto**
-   - Starter: $15000/mes
-   - Growth: $45000/mes
-   - Pro: $80000/mes
-
-2. **Admin por defecto**
-   - Usuario: admin
-   - Email: admin@techretail.com
-   - Contraseña: 123456 (hasheada)
-
-### Conexión MongoDB
-
-```javascript
-// src/config/mongodb.js
-const MONGO_URI = process.env.MONGO_URI;
-
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('✓ Conectado a MongoDB'))
-  .catch(err => console.error('✗ Error:', err));
-```
-
----
-
-## 🛠️ Comandos Disponibles
+Requisitos: Node.js 20 o superior y MongoDB local o Atlas.
 
 ```bash
-# Instalar dependencias
+git clone https://github.com/UnknowTeam-TSDS/TechRetail.git
+cd TechRetail
 npm install
-
-# Iniciar servidor (desarrollo)
-npm start
-
-# Iniciar con nodemon (auto-reload)
-npm run dev  # si está configurado
 ```
 
----
+Crear `.env` a partir de `.env.example`:
 
-## 👥 Equipo de Desarrollo
+```env
+PORT=3000
+NODE_ENV=development
+SESSION_SECRET=una-clave-segura
+MONGO_URI=mongodb://localhost:27017/techretail
+```
 
-| Integrante | Rol |
-|------------|-----|
-| Sacha Melchiori | Tech Lead / Backend Architect |
-| Carlos Zarate | Frontend & UX/UI |
-| Javier Navarro | Backend Developer |
-| Heber Choque | QA/Tester & Documentation |
+Iniciar:
 
----
+```bash
+npm run dev
+```
 
-## 📚 Stack Completo (Segundo Parcial)
+Abrir `http://localhost:3000/login`.
 
-- ✅ **Backend:** Node.js/Express + MongoDB/Mongoose
-- ✅ **Frontend:** Pug + Tailwind CSS
-- ✅ **Autenticación:** Sesiones + Contraseñas Hasheadas
-- ✅ **Testing:** Postman (10+ tests)
-- ✅ **Documentación:** README + Código comentado
+Admin inicial de desarrollo:
 
----
+```txt
+Email: admin@techretail.com
+Password: 123456
+```
 
-## 📖 Próximas Fases
+## Reglas de negocio centrales
 
-- [ ] Dashboard por rol (Admin vs Cliente)
-- [ ] Carrito de compra
-- [ ] Pagos (integración Mercado Pago/Stripe)
-- [ ] Historial de órdenes
-- [ ] Sistema de notificaciones
-- [ ] API OAuth (Google, GitHub)
-- [ ] Reportes y analíticas
-- [ ] Soporte multiidioma
-- [ ] Deploy a producción (Heroku/AWS)
+- Starter ofrece 15 días de prueba una sola vez.
+- Un trial activo o plan pago permite publicar la tienda.
+- Una suscripción vencida o cuenta suspendida oculta la tienda al público.
+- Los add-ons requieren plan pago; la Guía de Onboarding es gratuita y única.
+- Una cuenta creada por un administrador cambia su contraseña en el primer ingreso.
+- Cada cliente tiene una sola tienda.
+- Productos físicos requieren peso y dimensiones.
+- El precio promocional debe ser menor al precio normal.
+- Productos y pedidos siempre se filtran por la tienda del cliente.
+- El checkout reserva stock y revierte la reserva si no puede completar el pedido.
+- Cancelar un pedido repone stock.
+- El MRR excluye pruebas gratuitas.
 
+## Rutas principales
+
+| Área | Rutas |
+|------|-------|
+| Auth | `/login`, `/registro`, `/elegir-plan`, `/mi-cuenta` |
+| Admin | `/`, `/planes/vista`, `/usuarios/vista`, `/finanzas` |
+| API admin | `/api/planes`, `/api/usuarios` |
+| Tienda cliente | `/mi-tienda`, `/mis-productos`, `/mis-pedidos` |
+| Tienda pública | `/tienda/:id`, `/tienda/:id/producto/:productoId`, `/tienda/:id/carrito` |
+| Checkout | `POST /tienda/:id/checkout` |
+
+## WebSockets
+
+Socket.io se inicializa sobre el mismo servidor HTTP:
+
+```javascript
+const server = http.createServer(app);
+const io = new Server(server);
+app.set('io', io);
+```
+
+Los controllers emiten mediante `emitirSocket(req, evento, datos)`. El layout administrativo escucha y muestra toasts o refresca el dashboard.
+
+Eventos actuales:
+
+- `nuevo-usuario`
+- `nuevo-plan`
+- `plan-seleccionado`
+- `nueva-tienda`
+- `tienda-publicada`
+- `nuevo-producto`
+- `nuevo-pedido`
+
+## Calidad
+
+Estado verificado localmente:
+
+```txt
+18 suites
+200 tests
+ESLint sin errores
+19 vistas Pug compiladas
+```
+
+Comandos:
+
+```bash
+npm test
+npm run lint
+npm run test:coverage
+```
+
+GitHub Actions ejecuta lint y tests con Node 20 y 22.
+
+La colección Postman está en `src/postman/TechRetail - Test general.postman_collection.json`.
+
+## Limitaciones de la entrega
+
+- El cobro es simulado y no procesa dinero real.
+- MercadoPago, ARCA y logística real quedan como integraciones futuras.
+- Render free usa filesystem efímero; los archivos subidos pueden perderse tras un redeploy.
+- La sesión usa MemoryStore, suficiente para la demo de una instancia pero no para producción escalable.
+- La cascada de usuario, tienda, productos y pedidos funciona al borrar desde la aplicación/API, no al borrar manualmente en Atlas.
+
+La documentación completa y el guion de defensa están en `docs/`.

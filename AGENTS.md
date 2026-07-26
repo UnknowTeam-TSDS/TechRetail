@@ -1,44 +1,42 @@
 # TechRetail Solutions S.R.L. - AGENTS.md
 
-## Contexto del proyecto
+## Contexto
 
-Trabajo practico de la **Entrega Final / 3er Parcial** de la materia **Desarrollo Web Backend** de la Tecnicatura en Programacion, IFST 29.
+Trabajo practico de la Entrega Final / 3er Parcial de Desarrollo Web Backend, Tecnicatura en Programacion del IFST 29.
 
-El proyecto parte del relevamiento realizado para **Ingenieria de Software** por el Grupo 13. La empresa ficticia es **TechRetail Solutions S.R.L.**, una plataforma SaaS de e-commerce para PyMEs y emprendedores digitales en Argentina.
+TechRetail es una plataforma SaaS de e-commerce para PyMEs y emprendedores argentinos. El sistema implementa:
 
-El sistema ya no es solamente un CRUD administrativo. En la version actual implementa:
+- Panel admin con clientes, planes, add-ons, metricas, churn y finanzas.
+- Panel cliente con registro, login, suscripcion, tienda, productos y pedidos.
+- Tienda publica con catalogo, detalle, carrito y checkout simulado.
 
-- Panel de administracion interno con dashboard, metricas, planes, add-ons y clientes.
-- Panel de cliente con registro, login, seleccion de plan, trial, add-ons, tienda propia y catalogo.
-- Tienda publica con vista de tienda y detalle de producto.
+Los modulos Tienda, Productos, Pedidos y Finanzas conectan la entrega de Backend con el relevamiento de Ingenieria de Software del Grupo 13.
 
-Los modulos **Tienda** y **Productos** se agregaron para acercar el backend al relevamiento original y al flujo real de creacion de una tienda online. Si se agregan mas funciones, deben estar justificadas en la documentacion y mantenerse dentro de un alcance razonable para la entrega.
+## Reglas de trabajo
 
-## Reglas para agentes
-
-- Leer este archivo antes de tocar el proyecto.
-- No modificar `.env`.
-- No subir `node_modules`.
+- Leer este archivo antes de modificar el proyecto.
+- No modificar ni commitear `.env`.
+- No subir `node_modules/`, `material_tecnicatura/` ni `public/uploads/`.
 - No mencionar IA, asistentes, modelos ni coautoria automatizada en commits.
 - Usar commits breves, descriptivos y humanos.
-- Preguntar antes de hacer `git push`, salvo que el usuario lo pida explicitamente.
-- Revisar arquitectura y tests antes de cambios grandes.
-- Mantener cambios acotados a la tarea.
-- No revertir cambios del usuario sin permiso.
-- No agregar tecnologias nuevas si el problema se resuelve con el stack actual.
-- Los comentarios de codigo deben ser breves, naturales y utiles. Evitar comentarios obvios o roboticos.
+- Preguntar antes de `git push`, salvo pedido explicito del usuario.
+- Ejecutar tests y lint antes de commitear cambios de logica.
+- Mantener cambios acotados y respetar la arquitectura existente.
+- No revertir cambios ajenos sin permiso.
+- No agregar tecnologias si el stack actual resuelve el problema.
+- Los comentarios de codigo deben ser cortos, naturales y aportar contexto real.
 
 ## Grupo 13 - Comision E
 
 | Integrante | Rol en IS |
 |------------|-----------|
-| Melchiori Leandro | Squad UX/Prod - Onboarding guiado (RF-05) |
-| Navarro Javier | Squad Pagos - Checkout (RF-01) |
-| Zarate Carlos | Squad Monitoreo - Alertas churn (RF-02) |
-| Choque Heber | Squad Finanzas - Conciliacion (RF-03) |
-| Basarab Lautaro | Squad Logistica - Integracion logistica (RF-04) |
+| Melchiori Leandro | UX/Prod - Onboarding guiado (RF-05) |
+| Navarro Javier | Pagos - Checkout (RF-01) |
+| Zarate Carlos | Monitoreo - Alertas churn (RF-02) |
+| Choque Heber | Finanzas - Conciliacion (RF-03) |
+| Basarab Lautaro | Logistica - Integracion logistica (RF-04) |
 
-## Stack tecnologico
+## Stack
 
 | Capa | Tecnologia |
 |------|------------|
@@ -49,30 +47,26 @@ Los modulos **Tienda** y **Productos** se agregaron para acercar el backend al r
 | Vistas | Pug 3.x + Tailwind CSS por CDN |
 | Uploads | multer |
 | Tiempo real | Socket.io |
-| Tests | Jest |
-| Desarrollo | nodemon |
+| Tests | Jest + Supertest + mongodb-memory-server |
+| Calidad | ESLint + GitHub Actions |
+| Deploy | Render |
 
 ## Comandos
 
 ```bash
+npm install
 npm run dev
 npm start
 npm test
+npm run lint
+npm run test:coverage
 ```
 
-Servidor local:
+Local: `http://localhost:3000`
 
-```txt
-http://localhost:3000
-```
+Deploy: `https://techretail-jc1f.onrender.com`
 
-Deploy en Render:
-
-```txt
-https://techretail-jc1f.onrender.com
-```
-
-Credenciales admin por defecto:
+Admin inicial de desarrollo:
 
 ```txt
 Email: admin@techretail.com
@@ -81,318 +75,181 @@ Password: 123456
 
 ## Variables de entorno
 
-| Variable | Default | Descripcion |
-|----------|---------|-------------|
-| `MONGO_URI` | `mongodb://localhost:27017/techretail` | URI de MongoDB local o Atlas |
-| `SESSION_SECRET` | - | Secreto de sesion. Requerido en produccion |
-| `NODE_ENV` | - | En `development`, muestra detalle de errores 500 |
-| `PORT` | `3000` | Puerto del servidor |
+| Variable | Default | Uso |
+|----------|---------|-----|
+| `MONGO_URI` | `mongodb://localhost:27017/techretail` | MongoDB local o Atlas |
+| `SESSION_SECRET` | solo fallback en desarrollo | Obligatoria en produccion |
+| `NODE_ENV` | - | Entorno de ejecucion |
+| `PORT` | `3000` | Puerto HTTP |
 
-No commitear `.env`.
+La aplicacion no inicia en produccion si falta `SESSION_SECRET` o falla MongoDB.
 
-## Datos iniciales
+## Catalogo inicial
 
-`src/config/seed.js` sincroniza el catalogo canonico con upsert por nombre y limpieza de items no canonicos.
+`src/config/seed.js` sincroniza el catalogo canonico mediante upsert.
 
 Planes:
 
-- Starter - $12.000
-- Growth - $32.000
-- Pro - $55.000
+- Starter - $12.000.
+- Growth - $32.000.
+- Pro - $55.000.
 
 Add-ons:
 
-- Guia de Onboarding - gratis, de uso unico.
-- Conector ERP - $8.000.
-- Facturacion Electronica ARCA - $5.000.
-
-El seed tambien crea el usuario admin si no existe.
+- Guia de Onboarding - gratis y de uso unico.
+- Conector ERP - $8.000, marcado como proximamente.
+- Facturacion Electronica ARCA - $5.000, marcado como proximamente.
 
 ## Arquitectura
 
-Patron **MVC modular**. Cada modulo mantiene router, controller, storage, model y views cuando aplica.
+Patron MVC modular. Los modulos usan router, controller, storage, model y views cuando corresponde.
 
 ```text
 TechRetail/
 |-- app.js
 |-- public/
-|   |-- js/password.js
+|   |-- js/
 |   |-- uploads/productos/
 |   |-- manifest.json
 |   |-- sw.js
-|   |-- offline.html
-|   `-- techretail_*.svg
+|   `-- offline.html
 |-- src/
 |   |-- config/
-|   |   |-- mongodb.js
-|   |   |-- multer.js
-|   |   `-- seed.js
 |   |-- middlewares/
-|   |   |-- autenticacion.js
-|   |   `-- logger.js
 |   |-- modules/
 |   |   |-- Auth/
 |   |   |-- Planes/
-|   |   |-- Productos/
+|   |   |-- usuarios/
 |   |   |-- Tienda/
-|   |   `-- usuarios/
+|   |   |-- Productos/
+|   |   |-- Pedidos/
+|   |   `-- Finanzas/
+|   |-- utils/
 |   `-- views/
-|       |-- layout.pug
-|       `-- index.pug
-`-- tests/
+|-- tests/
+`-- docs/
 ```
 
-`app.js`:
+`app.js` carga variables, crea Express y el servidor HTTP, inicializa Socket.io, configura sesiones, monta routers, registra errores y conecta MongoDB antes de escuchar el puerto.
 
-- Carga `dotenv`.
-- Crea `http.createServer(app)` para Socket.io.
-- Sirve archivos estaticos desde `public`.
-- Configura sesiones.
-- Monta rutas publicas, de cliente y de admin.
-- Expone Socket.io en `app.set('io', io)`.
-- Eventos de Socket.io en tiempo real: `nuevo-usuario`, `nuevo-plan`, `plan-seleccionado`, `nueva-tienda`, `tienda-publicada` y `nuevo-producto`.
+La instancia Socket.io se guarda con `app.set('io', io)`. Los controllers la recuperan mediante `req.app.get('io')` a traves de `emitirSocket()`.
 
-## Modulos y rutas principales
+Eventos: `nuevo-usuario`, `nuevo-plan`, `plan-seleccionado`, `nueva-tienda`, `tienda-publicada`, `nuevo-producto` y `nuevo-pedido`.
 
-### Auth
+## Modulos y reglas
 
-Publicas:
+### Auth y suscripcion
 
-- `GET /login`
-- `POST /login`
-- `POST /logout`
-- `GET /registro`
-- `POST /registro`
+Rutas publicas: `/login`, `/registro`, `/logout`.
 
-Cliente autenticado:
+Rutas cliente: `/elegir-plan`, `/mi-cuenta`, `/cambiar-contrasena`, `/mis-addons/*`.
 
-- `GET /elegir-plan`
-- `POST /elegir-plan`
-- `GET /mi-cuenta`
-- `POST /mis-addons/agregar`
-- `POST /mis-addons/quitar`
-- `GET /cambiar-contrasena`
-- `POST /cambiar-contrasena`
+- Admin inicia en `/`; cliente se redirige segun contrasena, plan y trial.
+- Starter ofrece 15 dias de prueba una sola vez (`trialUtilizado`).
+- Al vencer, Starter puede activarse mediante pago simulado sin reiniciar el trial.
+- Growth y Pro usan pago simulado.
+- La logica comun vive en `src/utils/suscripcion.js`.
+- Add-ons requieren un plan pago activo. La Guia de Onboarding es gratis y de uso unico; los pagos siguen proximamente.
+- Cuentas creadas por admin o API deben cambiar la contrasena en el primer login.
+- La politica segura exige 8 caracteres, minuscula, mayuscula, numero y simbolo.
 
-Flujo:
+### Planes y usuarios
 
-- Admin inicia sesion y va al dashboard `/`.
-- Cliente sin plan va a `/elegir-plan`.
-- Cliente con plan o trial va a `/mi-cuenta`.
-- Usuarios creados por admin tienen `cambiarContrasena: true` y deben cambiar contrasena en el primer login.
-- `validarContrasenaSegura()` exige minimo 8 caracteres, minuscula, mayuscula, numero y simbolo.
+Admin HTML: `/planes/vista`, `/usuarios/vista`.
 
-### Planes
+API admin: `/api/planes`, `/api/usuarios` y sus rutas `/:id`.
 
-Admin:
-
-- `GET /planes/vista`
-- `POST /planes/form`
-- `POST /planes/eliminar/:id`
-
-API admin:
-
-- `GET /api/planes`
-- `POST /api/planes`
-- `GET /api/planes/:id`
-- `PUT /api/planes/:id`
-- `DELETE /api/planes/:id`
-
-### Usuarios
-
-Admin:
-
-- `GET /usuarios/vista`
-- `POST /usuarios/form`
-- `POST /usuarios/eliminar/:id`
-- `POST /usuarios/estado/:id`
-
-API admin:
-
-- `GET /api/usuarios`
-- `POST /api/usuarios`
-- `GET /api/usuarios/:id`
-- `PUT /api/usuarios/:id`
-- `DELETE /api/usuarios/:id`
+- No se puede eliminar un plan o add-on asignado a clientes.
+- Actualizar usuario por API ignora `contrasena`; el cambio usa el flujo seguro.
+- Al eliminar usuario desde panel o API se eliminan sus tiendas, productos y pedidos.
+- Borrar manualmente en Atlas no ejecuta la cascada de la aplicacion.
 
 ### Tienda
 
-Cliente autenticado:
+Cliente: `/mi-tienda`, `/mi-tienda/editar`, publicacion, medios de pago y envio.
 
-- `GET /mi-tienda`
-- `GET /mi-tienda/editar`
-- `POST /mi-tienda`
-- `POST /mi-tienda/publicar`
-- `POST /mi-tienda/despublicar`
-
-Publicas:
-
-- `GET /tienda/:id`
-- `GET /tienda/:id/producto/:productoId`
-- `GET /tienda/:id/carrito`
-- `POST /tienda/:id/carrito/agregar/:productoId`
-- `POST /tienda/:id/carrito/actualizar/:productoId`
-- `POST /tienda/:id/carrito/quitar/:productoId`
-- `POST /tienda/:id/carrito/vaciar`
-
-Reglas:
+Publico: `/tienda/:id`, detalle de producto y carrito.
 
 - Una tienda por cliente (`usuarioId` unico).
-- Durante trial, la tienda permanece `en_construccion`.
-- Para publicar, el cliente debe tener plan pago.
-- Datos legales obligatorios: email de contacto, telefono y direccion.
-- WhatsApp es opcional.
-- El color principal queda en el modelo como base para una futura personalizacion visual, pero no se edita desde la creacion inicial.
-- El carrito publico vive en la sesion del visitante y no mezcla productos de distintas tiendas.
-- El pago del carrito es simulado para la presentacion; no genera orden real ni procesa dinero.
+- Nace `en_construccion`.
+- Se puede publicar con plan pago o trial activo.
+- Trial vencido o usuario suspendido no mantiene la tienda visible al publico.
+- El duenio autenticado puede previsualizar su tienda aunque no este publicada.
+- Datos legales obligatorios: email, telefono y direccion. WhatsApp es opcional.
+- El color permanece en el modelo para personalizacion futura, no se elige al crear.
+- El carrito vive en la sesion del visitante y no mezcla tiendas.
 
 ### Productos
 
-Cliente autenticado:
+Cliente: `/mis-productos` y rutas de alta, edicion, estado y eliminacion.
 
-- `GET /mis-productos`
-- `POST /mis-productos/form`
-- `GET /mis-productos/editar/:id`
-- `POST /mis-productos/editar/:id`
-- `POST /mis-productos/eliminar/:id`
-- `POST /mis-productos/estado/:id`
+- Toda operacion filtra por `tiendaId`.
+- Categorias se seleccionan y pueden crearse desde el formulario.
+- Productos fisicos requieren peso y dimensiones.
+- Precio promocional, si existe, debe ser menor al precio normal.
+- Hasta 5 imagenes de 5 MB con multer.
+- En Render el filesystem es efimero; la interfaz muestra `Sin imagen` si falta el archivo.
 
-Reglas:
+### Pedidos y checkout
 
-- Requiere tienda creada.
-- Todo acceso a productos filtra por `tiendaId`, para impedir modificar productos de otra tienda.
-- Categorias se eligen desde un selector y se pueden crear desde el formulario.
-- Productos fisicos requieren peso y dimensiones para logistica.
-- Productos digitales o servicios no requieren peso ni dimensiones.
-- Imagenes se suben con multer a `public/uploads/productos/`.
-- En Render free tier el filesystem es efimero; si una imagen se pierde, la UI debe mostrar placeholder "Sin imagen".
+Publico: `POST /tienda/:id/checkout` y confirmacion del pedido.
 
-## Modelos principales
+Cliente: `/mis-pedidos` y cambio de estado.
 
-### Usuario
+- El checkout persiste un pedido simulado; no procesa dinero ni guarda tarjetas.
+- El stock fisico se reserva de forma atomica y se revierte si falla el pedido.
+- Cancelar repone stock. Un pedido cancelado no puede confirmarse despues.
+- La confirmacion publica solo es visible para la misma sesion compradora o el duenio.
+- Los totales de ventas consideran pedidos confirmados.
 
-Campos relevantes:
+### Finanzas
 
-- `nombre`, `email`, `contrasena`
-- `empresa`, `telefono`
-- `planId`, `addons`
-- `rol`, `estado`
-- `trialHasta`
-- `cambiarContrasena`
+Admin: `GET /finanzas`.
 
-Notas:
+- MRR solo incluye planes pagos activos, nunca trials.
+- Add-ons pagos y ventas se muestran por separado.
+- Pedidos se agrupan por estado para conciliacion simulada.
 
-- `contrasena` tiene `select: false`.
-- Login usa `.select('+contrasena')`.
-- La contrasena se hashea con bcrypt en `pre('save')`.
-- Las queries poblan `planId` y `addons`.
+## Modelos
 
-### Plan
+- `Usuario`: identidad, rol, estado, plan, add-ons, trial y cambio de clave.
+- `Plan`: plan o add-on, precio, descripcion y estado.
+- `Tienda`: duenio, identidad comercial, datos legales, medios y publicacion.
+- `Producto`: catalogo, precios, stock, imagenes, SEO y logistica.
+- `Pedido`: copia historica de items, comprador, total, medio y estado.
 
-Campos relevantes:
+## Seguridad
 
-- `nombre`
-- `descripcion`
-- `precio`
-- `tipo`: `plan` o `addon`
-- `activo`
+- Cookies `httpOnly`, `sameSite: 'lax'` y `secure` en produccion.
+- Rate limit en login.
+- bcrypt para hashes; `contrasena` usa `select: false` y no se serializa a JSON.
+- `verificarSesion` y `verificarAdmin` protegen rutas.
+- `validarObjectId` evita CastError y responde HTML o JSON segun la ruta.
+- Guardas por `tiendaId` evitan acceso cruzado.
+- Variables sensibles quedan fuera de Git.
 
-### Tienda
+## Tests y CI
 
-Campos relevantes:
+Estado verificado: 18 suites y 200 tests pasando, ESLint limpio y 19 vistas Pug compiladas.
 
-- `usuarioId`
-- `nombre`
-- `descripcion`
-- `rubro`
-- `colorPrimario`
-- `emailContacto`
-- `telefono`
-- `direccion`
-- `whatsapp`
-- `estado`
+Cobertura: autenticacion, password policy, suscripcion, middlewares, modelos, controllers, storage, WebSockets e integracion HTTP.
 
-### Producto
+GitHub Actions ejecuta lint y tests en Node 20 y 22 para push y pull request sobre `main`.
 
-Campos relevantes:
+## Limitaciones conocidas
 
-- `tiendaId`
-- `nombre`, `descripcion`, `categoria`
-- `precio`, `precioPromocional`
-- `tipo`: `fisico`, `digital`, `servicio`
-- `pesoKg`
-- `dimensiones.altoCm`, `dimensiones.anchoCm`, `dimensiones.largoCm`
-- `stock`
-- `imagenes`
-- `destacado`, `esNovedad`, `esOferta`
-- `tags`
-- `tituloSEO`, `descripcionSEO`
-- `activo`
+- Los pagos son simulados.
+- No hay integracion real con MercadoPago, ARCA ni couriers.
+- Los uploads locales se pierden en redeploys del plan gratuito de Render.
+- `express-session` usa MemoryStore; sirve para la demo con una instancia, pero produccion real requiere un store persistente como MongoDB/Redis.
+- No hay tokens CSRF dedicados; `sameSite: 'lax'` solo reduce parte del riesgo.
+- La cascada no se activa con borrados manuales realizados directamente en Atlas.
 
-## Patrones y convenciones
-
-- Usar `async/await`.
-- Mantener controllers claros y sin mezclar responsabilidades innecesarias.
-- Usar storage layer para acceso a base cuando el modulo ya lo tiene.
-- Formularios HTML con PRG: POST -> redirect.
-- Respetar rutas protegidas con `verificarSesion` o `verificarAdmin`.
-- Usar codigos HTTP correctos en API y login.
-- No tocar cambios ajenos ni revertir archivos no relacionados.
-- Mantener los cambios acotados a la tarea.
-- Evitar overengineering: si una mejora se resuelve con modelo + controller + vista, no crear infraestructura extra.
-
-## Tests
-
-Jest esta configurado en `package.json`.
-
-Hay tests para:
-
-- middleware de autenticacion
-- politica de contrasena
-- modelos: Plan, Usuario, Tienda, Producto
-- eventos WebSocket emitidos desde Auth, Tienda y Productos
-- controllers: Auth, Tienda, Productos (actualmente planes y usuarios no poseen tests específicos de controlador)
-
-Antes de commitear cambios de logica, correr:
-
-```bash
-npm test
-```
-
-Si PowerShell bloquea `npm.ps1`, usar:
-
-```bash
-npm.cmd test
-```
-
-### Integración Continua (CI)
-
-Configurada en `.github/workflows/ci.yml`. Corre los tests en Node 20 y 22 en cada Push o PR a `main`.
-
-### Pruebas de API (Postman)
-
-Existe una colección de pruebas en `src/postman/TechRetail - Test general.postman_collection.json`.
-
-## Convenciones de commits y push
-
-- Commits breves, descriptivos y humanos.
-- No mencionar IA, asistentes, herramientas ni coautoria automatizada.
-- Comentarios de codigo solo cuando aporten contexto real.
-- Comentarios cortos, naturales y explicativos.
-- Preguntar siempre antes de hacer `git push`, salvo que el usuario lo pida explicitamente.
-- No commitear `node_modules`.
-
-## Archivos y carpetas que no deben subirse
+## Archivos excluidos
 
 - `.env`
 - `node_modules/`
 - `material_tecnicatura/`
 - `public/uploads/`
 
-`public/techretail_*.svg` son recursos de documentacion y pueden estar versionados.
-
-## Material de referencia
-
-- `material_tecnicatura/`: PDFs de la catedra. No modificar ni borrar.
-- Relevamiento de Ingenieria de Software: base funcional del dominio.
-- Tutorial de Tiendanube: referencia UX para tienda, productos, onboarding y catalogo.
+Los SVG de documentacion en `public/techretail_*.svg` pueden versionarse.
