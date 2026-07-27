@@ -173,6 +173,18 @@ GitHub Actions ejecuta lint y tests con Node 20 y 22.
 
 La colección Postman está en `src/postman/TechRetail - Test general.postman_collection.json`.
 
+## Renderizado de la documentación
+
+Con LibreOffice y Poppler instalados:
+
+```powershell
+.\scripts\render-docx.ps1 `
+  -InputPath .\docs\DSWB_Entrega_Final_TechRetail_1C2026_final.docx `
+  -OutputDir .\rendered-docx
+```
+
+El comando genera un PDF y una imagen PNG por página. La carpeta de salida está ignorada por Git.
+
 ## Limitaciones de la entrega
 
 - El cobro es simulado y no procesa dinero real.

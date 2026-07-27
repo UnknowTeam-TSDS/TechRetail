@@ -62,6 +62,16 @@ npm run lint
 npm run test:coverage
 ```
 
+Renderizar un Word a PDF y PNG:
+
+```powershell
+.\scripts\render-docx.ps1 `
+  -InputPath .\docs\DSWB_Entrega_Final_TechRetail_1C2026_final.docx `
+  -OutputDir .\rendered-docx
+```
+
+Requiere LibreOffice y Poppler instalados. `rendered-docx/` queda fuera de Git.
+
 Local: `http://localhost:3000`
 
 Deploy: `https://techretail-jc1f.onrender.com`
